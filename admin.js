@@ -3,12 +3,12 @@ import { getFirestore, collection, getDocs, deleteDoc, doc, setDoc } from "https
 import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCy0qWrPE_aQGaKjJXIM_vgU8oO5Wq9mOI",
-  authDomain: "my-dating-service.firebaseapp.com",
-  projectId: "my-dating-service",
-  storageBucket: "my-dating-service.firebasestorage.app",
-  messagingSenderId: "231488184905",
-  appId: "1:231488184905:web:d49b3e4f0ef35e524e5598"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.firebasestorage.app",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -16,13 +16,13 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 let currentData = [];
 
-const EXPORT_PASSWORD = "yuyeon_secure_777"; 
+const EXPORT_PASSWORD = "yuyeon_secure_777"; // 2차 비밀번호
 
 window.checkAdmin = async function() {
     const email = document.getElementById('admin-email').value;
     const pw = document.getElementById('admin-password').value;
     try { await signInWithEmailAndPassword(auth, email, pw); } 
-    catch (e) { alert("로그인 실패: 정보를 확인하세요."); }
+    catch (e) { alert("로그인 실패"); }
 };
 
 onAuthStateChanged(auth, (user) => {
@@ -81,14 +81,14 @@ async function updateDashboard() {
     } catch(e) { console.error(e); }
 }
 
-function verify() { return prompt("🔐 보안 인증: 2차 비밀번호를 입력하세요.") === EXPORT_PASSWORD; }
+function verify() { return prompt("2차 비밀번호를 입력하세요.") === EXPORT_PASSWORD; }
 
-document.getElementById('open-btn').onclick = async () => { if(confirm("결과 공개 및 접수 마감을 진행하시겠습니까?")) { await setDoc(doc(db, "settings", "matching_status"), { is_open: true }); alert("공개 완료"); } };
-document.getElementById('close-btn').onclick = async () => { if(confirm("결과 차단 및 접수 재개를 진행하시겠습니까?")) { await setDoc(doc(db, "settings", "matching_status"), { is_open: false }); alert("차단 완료"); } };
+document.getElementById('open-btn').onclick = async () => { if(confirm("공개하시겠습니까?")) { await setDoc(doc(db, "settings", "matching_status"), { is_open: true }); alert("공개 완료"); } };
+document.getElementById('close-btn').onclick = async () => { if(confirm("차단하시겠습니까?")) { await setDoc(doc(db, "settings", "matching_status"), { is_open: false }); alert("차단 완료"); } };
 
 document.getElementById('delete-btn').onclick = async () => {
-    const batch = prompt("백업할 기수 이름을 입력하세요", "유연 132기");
-    if (!batch || !confirm(`[${batch}] 명단으로 백업 후 초기화하시겠습니까?`)) return;
+    const batch = prompt("백업할 기수 이름을 입력하세요");
+    if (!batch || !verify()) return;
     try {
         const btn = document.getElementById('delete-btn'); btn.disabled = true; btn.innerText = "⏳ 처리 중...";
         const backupPromises = currentData.map(p => {
@@ -99,7 +99,7 @@ document.getElementById('delete-btn').onclick = async () => {
         const snap = await getDocs(collection(db, "participants"));
         await Promise.all(snap.docs.map(d => deleteDoc(doc(db, "participants", d.id))));
         alert(`${batch} 백업 완료!`); location.reload();
-    } catch(e) { alert("오류: " + e.message); btn.disabled = false; btn.innerText = "⚠️ 기수 백업 및 초기화"; }
+    } catch(e) { alert("오류: " + e.message); btn.disabled = false; btn.innerText = "⚠️ 초기화"; }
 };
 
 document.getElementById('refresh-btn').onclick = updateDashboard;
