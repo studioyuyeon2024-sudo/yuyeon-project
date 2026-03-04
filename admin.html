@@ -8,29 +8,39 @@
 </head>
 <body>
     <div class="admin-container">
-        <h1 class="serif-title">Admin Panel</h1>
-        <div id="auth-section" class="card" style="max-width:350px; margin:20px auto;">
-            <input type="email" id="admin-email" placeholder="이메일" style="margin-bottom:10px;">
-            <input type="password" id="admin-password" placeholder="비밀번호" style="margin-bottom:15px;">
-            <button onclick="checkAdmin()" id="submit-btn">로그인</button>
+        <h1 class="serif-title">Admin Dashboard</h1>
+        
+        <div id="auth-section" class="card" style="max-width:380px; margin:20px auto;">
+            <input type="email" id="admin-email" placeholder="관리자 이메일" style="margin-bottom:12px;">
+            <input type="password" id="admin-password" placeholder="비밀번호" style="margin-bottom:18px;">
+            <button onclick="checkAdmin()" id="submit-btn">관리자 로그인</button>
         </div>
+
         <div id="report-section" style="display:none;">
             <div class="stats-grid">
-                <div class="stats-card"><h4>총 참가</h4><p id="stat-total">0</p></div>
-                <div class="stats-card"><h4>남/여</h4><p id="stat-gender">0/0</p></div>
-                <div class="stats-card"><h4>커플</h4><p id="stat-couples">0</p></div>
+                <div class="stats-card"><h4>총 참가자</h4><p id="stat-total">0</p></div>
+                <div class="stats-card"><h4>남성/여성</h4><p id="stat-gender">0/0</p></div>
+                <div class="stats-card"><h4>매칭 커플</h4><p id="stat-couples" style="color:#FF5252;">0</p></div>
                 <div class="stats-card"><h4>매칭률</h4><p id="stat-rate">0%</p></div>
             </div>
+
             <div class="control-panel">
-                <button id="open-btn" style="background:#9b59b6;">🔓 공개</button>
-                <button id="close-btn" style="background:#34495e;">🔒 차단</button>
-                <button id="download-btn" style="background:#f39c12;">📥 명단</button>
-                <button id="download-archive-btn" style="background:#8e44ad;">📂 백업</button>
+                <button id="open-btn" style="background:#9b59b6;">🔓 결과 공개</button>
+                <button id="close-btn" style="background:#34495e;">🔒 공개 차단</button>
+                <button id="download-btn" style="background:#f39c12;">📥 현재 명단</button>
+                <button id="download-archive-btn" style="background:#8e44ad;">📂 전체 백업</button>
                 <button id="refresh-btn" style="background:#27ae60; grid-column: span 2;">🔄 데이터 새로고침</button>
                 <button id="delete-btn" style="background:#e74c3c; grid-column: span 2;">⚠️ 기수 백업 및 초기화</button>
             </div>
-            <div id="final-matches-admin" style="text-align:left; margin-bottom:20px;"></div>
-            <div class="table-wrapper"><table><thead><tr><th>#</th><th>성별</th><th>이름</th><th>연락처</th><th>픽</th></tr></thead><tbody id="participant-list"></tbody></table></div>
+
+            <div id="final-matches-admin" style="text-align:left; margin-bottom:25px;"></div>
+
+            <div class="table-wrapper">
+                <table>
+                    <thead><tr><th>#</th><th>성별</th><th>이름</th><th>연락처</th><th>픽한 이성</th></tr></thead>
+                    <tbody id="participant-list"></tbody>
+                </table>
+            </div>
         </div>
     </div>
     <script type="module" src="./admin.js"></script>
