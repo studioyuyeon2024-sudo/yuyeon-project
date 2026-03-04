@@ -9,8 +9,7 @@
 <body>
     <div class="container">
         <h1 class="serif-title">Studio Yuyeon</h1>
-        <p class="subtitle">당신의 유일한 인연을 찾아가는 시간</p>
-        
+        <p class="subtitle">당신의 유연한 인연을 찾아가는 시간</p>
         <div id="input-section">
             <form id="matching-form">
                 <div class="card">
@@ -19,7 +18,6 @@
                     <div class="field"><label>본명</label><input type="text" id="user-real-name" placeholder="성함을 입력하세요" required></div>
                     <div class="field"><label>핸드폰 번호</label><input type="tel" id="user-phone" maxlength="13" placeholder="010-0000-0000" required></div>
                 </div>
-
                 <div class="card" id="preference-card">
                     <label>호감 가는 이성 번호 (최대 2명)</label>
                     <div class="bubble-grid" id="pick-id-grid"></div>
@@ -27,19 +25,16 @@
                     <button type="button" id="skip-btn" class="secondary-btn">이번 기수에는 인연이 없었어요 ❄️</button>
                     <input type="hidden" id="is-skipping" value="false">
                 </div>
-
-                <div class="field"><label>참여 후기 (선택)</label><textarea id="user-review" rows="2" placeholder="오늘 유연 데이팅은 어떠셨나요?"></textarea></div>
-
+                <div class="field"><label>참여 후기 (선택)</label><textarea id="user-review" rows="2" placeholder="오늘 데이팅은 어떠셨나요?"></textarea></div>
                 <div class="field">
                     <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="privacy-check" style="width:18px; height:18px;"><span style="font-size:13px; font-weight:bold;">개인정보 수집 및 이용 동의 (필수)</span></label>
                     <div class="privacy-content">
                         <strong>1. 수집 항목:</strong> 성명, 성별, 연락처, 매칭 번호, 후기<br>
                         <strong>2. 이용 목적:</strong> 매칭 결과 분석 및 참가자 안내<br>
-                        <strong>3. 보유 기간:</strong> <strong>행사 종료 및 결과 안내 즉시 파기</strong><br>
+                        <strong>3. 보유 기간:</strong> 행사 종료 및 결과 안내 즉시 파기<br>
                         <strong>4. 동의 거부:</strong> 거부 시 서비스 이용이 제한됩니다.
                     </div>
                 </div>
-
                 <div style="margin-top:20px;">
                     <button type="submit" id="submit-btn">1. 정보 제출하기</button>
                     <button type="button" id="withdraw-btn" style="display:none; background:#e74c3c; color:white;">제출 정보 회수하기</button>
@@ -47,7 +42,6 @@
                 </div>
             </form>
         </div>
-
         <div id="result-section" style="display:none;">
             <h2 id="status-message" class="serif-title" style="font-size:24px;">분석 중...</h2>
             <div style="background:#FFF9E6; padding:20px; border-radius:20px; margin:20px 0;"><p style="margin:0; font-size:14px;">총 <span id="vote-count" style="font-size:24px; font-weight:bold; color:#E67E22;">0</span>표를 받았습니다.</p></div>
