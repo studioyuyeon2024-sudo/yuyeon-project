@@ -2,78 +2,44 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Studio Yuyeon | 프리미엄 매칭 시스템</title>
+    <title>유연 관리자 통제실 🔐</title>
     <link rel="stylesheet" href="./style.css">
+    <style>
+        .admin-container { max-width: 900px; margin: 30px auto; text-align: center; }
+        .control-panel { display: flex; gap: 10px; justify-content: center; margin-bottom: 30px; }
+        .control-panel button { padding: 12px 20px; border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: bold; }
+        #open-btn { background: #9b59b6; } #close-btn { background: #34495e; }
+        #refresh-btn { background: #27ae60; } #download-btn { background: #f39c12; } #delete-btn { background: #e74c3c; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
+        th { background: #34495e; color: white; }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1 class="serif-title">Studio Yuyeon</h1>
-        <p class="subtitle">당신의 유연한 인연을 찾아가는 시간</p>
-        
-        <div id="input-section">
-            <form id="matching-form">
-                <div class="card">
-                    <div class="field">
-                        <label>성별</label>
-                        <select id="user-gender">
-                            <option value="male">남성</option>
-                            <option value="female">여성</option>
-                        </select>
-                    </div>
-
-                    <div class="field">
-                        <label>본인 번호 (1~12번)</label>
-                        <div class="bubble-grid" id="my-id-grid"></div>
-                        <input type="hidden" id="user-id" required>
-                    </div>
-
-                    <div class="field">
-                        <label>본명</label>
-                        <input type="text" id="user-real-name" placeholder="성함을 입력하세요" required>
-                    </div>
-
-                    <div class="field">
-                        <label>핸드폰 번호</label>
-                        <input type="tel" id="user-phone" maxlength="13" placeholder="010-0000-0000" required>
-                    </div>
-                </div>
-
-                <div class="card" id="preference-card">
-                    <label>호감 가는 이성 번호 (최대 2명)</label>
-                    <p class="hint">순위 상관없이 최대 두 분까지 선택해 주세요.</p>
-                    <div class="bubble-grid" id="pick-id-grid"></div>
-                    <div class="divider">또는</div>
-                    <button type="button" id="skip-btn" class="secondary-btn">이번 기수에는 인연이 없었어요 ❄️</button>
-                    <input type="hidden" id="is-skipping" value="false">
-                </div>
-
-                <div class="field">
-                    <label>참여 후기 (선택)</label>
-                    <textarea id="user-review" rows="3" placeholder="오늘 로테이션 데이팅은 어떠셨나요?"></textarea>
-                </div>
-
-                <div style="margin-top: 30px; display: flex; flex-direction: column; gap: 12px;">
-                    <button type="submit" id="submit-btn" style="background: #1A237E; color: white; padding: 18px; border: none; border-radius: 15px; font-weight: bold; cursor: pointer;">1. 정보 제출하기</button>
-                    <button type="button" id="check-result-btn" style="background: #FFFFFF; color: #1A237E; border: 2px solid #1A237E; padding: 15px; border-radius: 15px; font-weight: bold; cursor: pointer;">2. 결과 확인하기</button>
-                </div>
-            </form>
+    <div class="admin-container">
+        <h1>스튜디오 유연 리포트 📊</h1>
+        <div id="auth-section">
+            <input type="password" id="admin-password" placeholder="비밀번호 입력" style="padding: 10px;">
+            <button onclick="checkAdmin()" style="padding: 10px;">접속</button>
         </div>
 
-        <div id="result-section" style="display: none;">
-            <h2 id="status-message" class="serif-title" style="font-size: 28px;">분석 중...</h2>
-            <div class="vote-card">
-                <p class="vote-text">이성으로부터 총 <span id="vote-count" class="highlight">0</span>표를 받으셨습니다.</p>
+        <div id="report-section" style="display: none;">
+            <div class="control-panel">
+                <button id="open-btn">🔓 결과 공개 승인</button>
+                <button id="close-btn">🔒 결과 공개 차단</button>
+                <button id="refresh-btn">🔄 새로고침</button>
+                <button id="download-btn">📥 엑셀 저장</button>
+                <button id="delete-btn">⚠️ 초기화</button>
             </div>
-            <div id="match-list-area" style="margin-bottom: 20px;"></div>
-            <div id="fail-box" class="schedule-box" style="display: none;">
-                <p>이번 기수에서는 아쉽게도 서로 선택이 일치하지 않았습니다.</p>
-                <a href="https://studioyuyeon.com" target="_blank">👉 다음 기수 일정 확인하기</a>
-            </div>
-            <button onclick="location.reload()" class="retry-btn" style="width: 100%; padding: 15px; border: none; border-radius: 12px; cursor: pointer; background: #eee;">처음으로 돌아가기</button>
+            <h3>👥 참가자 명단</h3>
+            <table>
+                <thead>
+                    <tr><th>번호</th><th>성별</th><th>이름</th><th>연락처</th><th>픽1</th><th>픽2</th><th>후기</th></tr>
+                </thead>
+                <tbody id="participant-list"></tbody>
+            </table>
         </div>
     </div>
-
-    <script type="module" src="./script.js"></script>
+    <script type="module" src="./admin.js"></script>
 </body>
 </html>
