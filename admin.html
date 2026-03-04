@@ -3,93 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>유연 관리자 통제실 🔐</title>
+    <title>Studio Yuyeon | 프리미엄 매칭 시스템</title>
     <link rel="stylesheet" href="./style.css">
-    <style>
-        /* 관리자 페이지 전용 추가 스타일 */
-        .admin-container { max-width: 900px; width: 95%; margin: 30px auto; text-align: center; }
-        
-        /* 인증 섹션 */
-        #auth-section { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
-        #admin-password { padding: 12px; width: 250px; border: 1px solid #ddd; border-radius: 8px; margin-right: 10px; }
-        
-        /* 리포트 섹션 및 버튼 레이아웃 */
-        .control-panel { 
-            display: flex; gap: 10px; justify-content: center; margin-bottom: 30px; flex-wrap: wrap;
-        }
-        .control-panel button { flex: 1; min-width: 120px; max-width: 200px; margin: 0; }
-        
-        /* 데이터 테이블 스타일 */
-        .table-wrapper { overflow-x: auto; background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
-        table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th, td { border: 1px solid #eee; padding: 12px; text-align: center; }
-        th { background: #34495e; color: white; font-weight: 600; }
-        tr:nth-child(even) { background: #fdfdfd; }
-
-        /* 매칭 카드 스타일 */
-        .match-card { 
-            background: #e3f2fd; padding: 15px; border-radius: 12px; margin-bottom: 12px; 
-            border-left: 6px solid #2196f3; text-align: left; font-size: 15px;
-        }
-        .match-card strong { color: #1565c0; }
-        
-        /* 버튼 색상 커스텀 */
-        #refresh-btn { background: #27ae60; }
-        #download-btn { background: #f39c12; }
-        #delete-all-btn { background: #e74c3c; }
-    </style>
 </head>
 <body>
-    <div class="admin-container">
-        <h1 style="margin-bottom: 30px;">스튜디오 유연 리포트 📊</h1>
+    <div class="container">
+        <h1 class="serif-title">Studio Yuyeon</h1>
+        <p class="subtitle">당신의 유연한 인연을 찾아가는 시간</p>
         
-        <div id="auth-section">
-            <p style="margin-bottom: 15px; color: #666;">관리자 권한이 필요합니다.</p>
-            <input type="password" id="admin-password" placeholder="비밀번호 입력">
-            <button onclick="checkAdmin()" style="width: auto; padding: 12px 25px;">접속하기</button>
+        <div id="input-section">
+            <form id="matching-form">
+                <div class="card">
+                    <div class="field">
+                        <label>성별</label>
+                        <select id="user-gender">
+                            <option value="male">남성</option>
+                            <option value="female">여성</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>본인 번호 (1~12번)</label>
+                        <div class="bubble-grid" id="my-id-grid"></div>
+                        <input type="hidden" id="user-id" required>
+                    </div>
+
+                    <div class="field">
+                        <label>본명</label>
+                        <input type="text" id="user-real-name" placeholder="성함을 입력하세요" required>
+                    </div>
+
+                    <div class="field">
+                        <label>핸드폰 번호</label>
+                        <input type="tel" id="user-phone" maxlength="13" placeholder="010-0000-0000" required>
+                    </div>
+                </div>
+
+                <div class="card" id="preference-card">
+                    <label>호감 가는 이성 번호 (최대 2명)</label>
+                    <p class="hint">순위 상관없이 최대 두 분까지 선택해 주세요.</p>
+                    <div class="bubble-grid" id="pick-id-grid"></div>
+                    <div class="divider">또는</div>
+                    <button type="button" id="skip-btn" class="secondary-btn">이번 기수에는 인연이 없었어요 ❄️</button>
+                    <input type="hidden" id="is-skipping" value="false">
+                </div>
+
+                <div class="field">
+                    <label>참여 후기 (선택)</label>
+                    <textarea id="user-review" rows="3" placeholder="오늘 로테이션 데이팅은 어떠셨나요?"></textarea>
+                </div>
+
+                <div style="margin-top: 30px; display: flex; flex-direction: column; gap: 12px;">
+                    <button type="submit" id="submit-btn" style="background: #1A237E; color: white; padding: 18px; border: none; border-radius: 15px; font-weight: bold; cursor: pointer;">1. 정보 제출하기</button>
+                    <button type="button" id="check-result-btn" style="background: #FFFFFF; color: #1A237E; border: 2px solid #1A237E; padding: 15px; border-radius: 15px; font-weight: bold; cursor: pointer;">2. 결과 확인하기</button>
+                </div>
+            </form>
         </div>
 
-        <div id="report-section" style="display: none;">
-            
-            <div class="control-panel">
-                <button id="refresh-btn">🔄 새로고침</button>
-                <button id="download-btn">📥 엑셀(CSV) 저장</button>
-                <button id="delete-all-btn">⚠️ 데이터 초기화</button>
+        <div id="result-section" style="display: none;">
+            <h2 id="status-message" class="serif-title" style="font-size: 28px;">분석 중...</h2>
+            <div class="vote-card">
+                <p class="vote-text">이성으로부터 총 <span id="vote-count" class="highlight">0</span>표를 받으셨습니다.</p>
             </div>
-
-            <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
-
-            <div style="text-align: left; margin-bottom: 30px;">
-                <h3>✅ 최종 매칭 결과</h3>
-                <div id="final-matches">
-                    <p style="color: #999;">데이터를 불러오는 중...</p>
-                </div>
+            <div id="match-list-area" style="margin-bottom: 20px;"></div>
+            <div id="fail-box" class="schedule-box" style="display: none;">
+                <p>이번 기수에서는 아쉽게도 서로 선택이 일치하지 않았습니다.</p>
+                <a href="https://studioyuyeon.com" target="_blank">👉 다음 기수 일정 확인하기</a>
             </div>
-
-            <div style="text-align: left;">
-                <h3>👥 전체 참가자 명단</h3>
-                <div class="table-wrapper">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>번호</th>
-                                <th>성별</th>
-                                <th>이름</th>
-                                <th>연락처</th>
-                                <th>1지망</th>
-                                <th>2지망</th>
-                                <th>후기</th>
-                            </tr>
-                        </thead>
-                        <tbody id="participant-list">
-                            </tbody>
-                    </table>
-                </div>
-            </div>
-            
+            <button onclick="location.reload()" class="retry-btn" style="width: 100%; padding: 15px; border: none; border-radius: 12px; cursor: pointer; background: #eee;">처음으로 돌아가기</button>
         </div>
     </div>
 
-    <script type="module" src="./admin.js"></script>
+    <script type="module" src="./script.js"></script>
 </body>
 </html>
