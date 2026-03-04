@@ -1,226 +1,28 @@
-/* 1. 프리미엄 폰트 불러오기 */
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
 
-/* 2. 기본 배경 및 폰트 설정 */
-body {
-    background: #FDFBF6; /* 고급스러운 크림 화이트 */
-    font-family: 'Noto Sans KR', sans-serif;
-    color: #333;
-    display: flex;
-    justify-content: center;
-    padding: 20px;
-    margin: 0;
-    line-height: 1.6;
-}
+body { background: #FDFBF6; font-family: 'Noto Sans KR', sans-serif; color: #333; display: flex; justify-content: center; padding: 20px; margin: 0; line-height: 1.6; }
+.container { background: white; padding: 40px 30px; border-radius: 30px; box-shadow: 0 15px 40px rgba(0,0,0,0.06); width: 100%; max-width: 440px; text-align: center; border-top: 6px solid #1A237E; }
+.serif-title { font-family: 'Playfair Display', serif; font-size: 34px; color: #1A237E; margin-bottom: 8px; }
+.subtitle { font-size: 13px; color: #888; margin-bottom: 35px; letter-spacing: 1.2px; }
 
-/* 3. 메인 컨테이너 (거실 상자) */
-.container {
-    background: white;
-    padding: 40px 30px;
-    border-radius: 30px;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.06);
-    width: 100%;
-    max-width: 440px;
-    text-align: center;
-    border-top: 6px solid #1A237E; /* 상단 포인트 컬러: 신뢰의 딥블루 */
-}
+.card { background: #FFFFFF; border: 1px solid #F0F0F0; padding: 22px; border-radius: 20px; margin-bottom: 20px; text-align: left; }
+.field { margin-bottom: 18px; }
+label { font-weight: 500; font-size: 14px; color: #2C3E50; display: block; margin-bottom: 10px; }
+.hint { font-size: 11px; color: #999; margin-top: -5px; margin-bottom: 15px; }
 
-/* 4. 제목 및 텍스트 스타일 */
-.serif-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 34px;
-    color: #1A237E;
-    margin-bottom: 8px;
-}
+.bubble-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+.bubble { aspect-ratio: 1; border-radius: 50%; background: #F8F9FA; border: 1px solid #E0E0E0; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; transition: 0.25s; color: #666; }
+.bubble.selected { background: #1A237E; color: white; border-color: #1A237E; transform: scale(1.1); font-weight: bold; }
+.bubble.disabled { opacity: 0.2; cursor: not-allowed; }
 
-.subtitle {
-    font-size: 13px;
-    color: #888;
-    margin-bottom: 35px;
-    letter-spacing: 1.2px;
-}
+input[type="text"], input[type="tel"], select, textarea { width: 100%; padding: 13px; border: 1px solid #E5E7EB; border-radius: 12px; font-size: 15px; box-sizing: border-box; background: #FAFAFA; }
+.divider { text-align: center; margin: 20px 0; color: #CCC; font-size: 12px; }
 
-/* 5. 입력 카드 디자인 */
-.card {
-    background: #FFFFFF;
-    border: 1px solid #F0F0F0;
-    padding: 22px;
-    border-radius: 20px;
-    margin-bottom: 20px;
-    text-align: left;
-    transition: transform 0.3s ease;
-}
+#submit-btn, #withdraw-btn, #check-result-btn { width: 100%; padding: 18px; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
+#submit-btn { background: #1A237E; color: white; }
+#check-result-btn { background: white; color: #1A237E; border: 2px solid #1A237E; }
 
-.field {
-    margin-bottom: 18px;
-    text-align: left;
-}
-
-label {
-    font-weight: 500;
-    font-size: 14px;
-    color: #2C3E50;
-    display: block;
-    margin-bottom: 10px;
-}
-
-.hint {
-    font-size: 11px;
-    color: #999;
-    margin-top: -5px;
-    margin-bottom: 15px;
-}
-
-/* 6. 버블 그리드 (숫자 버튼들) */
-.bubble-grid {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 10px;
-    margin-bottom: 5px;
-}
-
-.bubble {
-    aspect-ratio: 1;
-    border-radius: 50%;
-    background: #F8F9FA;
-    border: 1px solid #E0E0E0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    position: relative;
-    color: #666;
-}
-
-/* 버블이 선택되었을 때 */
-.bubble.selected {
-    background: #1A237E;
-    color: white;
-    border-color: #1A237E;
-    transform: scale(1.1);
-    box-shadow: 0 5px 12px rgba(26, 35, 126, 0.3);
-    font-weight: bold;
-}
-
-/* 버블이 비활성화되었을 때 (스킵 버튼 눌렀을 때) */
-.bubble.disabled {
-    opacity: 0.2;
-    cursor: not-allowed;
-    filter: grayscale(1);
-}
-
-/* 7. 입력창 및 텍스트박스 */
-input[type="text"], input[type="tel"], select, textarea {
-    width: 100%;
-    padding: 13px;
-    border: 1px solid #E5E7EB;
-    border-radius: 12px;
-    font-size: 15px;
-    box-sizing: border-box;
-    background: #FAFAFA;
-}
-
-input:focus, textarea:focus {
-    outline: none;
-    border-color: #1A237E;
-    background: #FFFFFF;
-}
-
-/* 8. 구분선 및 보조 버튼 */
-.divider {
-    text-align: center;
-    margin: 20px 0;
-    color: #CCC;
-    font-size: 12px;
-    position: relative;
-}
-
-.divider::before, .divider::after {
-    content: "";
-    flex: 1;
-    height: 1px;
-    background: #EEE;
-}
-
-.secondary-btn {
-    width: 100%;
-    padding: 12px;
-    background: white;
-    border: 1.5px solid #1A237E;
-    color: #1A237E;
-    border-radius: 12px;
-    cursor: pointer;
-    font-size: 13px;
-    font-weight: 500;
-    transition: 0.3s;
-}
-
-.secondary-btn.active {
-    background: #E8EAF6;
-    border-color: #1A237E;
-    font-weight: bold;
-}
-
-/* 9. 결과 페이지 관련 디자인 */
-.vote-card {
-    background: #FFF9E6;
-    padding: 25px;
-    border-radius: 20px;
-    margin: 25px 0;
-    border: 1px solid #FFECB3;
-}
-
-.vote-text {
-    font-size: 16px;
-    color: #795548;
-    margin: 0;
-}
-
-.highlight {
-    font-size: 28px;
-    font-weight: bold;
-    color: #E67E22;
-}
-
-.schedule-box {
-    background: #F3F4F6;
-    padding: 20px;
-    border-radius: 15px;
-    font-size: 14px;
-    color: #666;
-    margin-bottom: 20px;
-}
-
-.schedule-box a {
-    color: #1A237E;
-    text-decoration: none;
-    font-weight: bold;
-}
-
-/* 10. 반응형 디자인 (모바일 최적화) */
-@media (max-width: 480px) {
-    .container { padding: 30px 20px; }
-    .bubble-grid { gap: 6px; }
-    .bubble { font-size: 13px; }
-}
-
-/* style.css 하단에 추가 */
-.privacy-card {
-    border-top: 2px solid #E8EAF6 !important;
-    background: #fff;
-}
-
-.privacy-content::-webkit-scrollbar {
-    width: 4px;
-}
-
-.privacy-content::-webkit-scrollbar-thumb {
-    background: #CCC;
-    border-radius: 10px;
-}
-
-#privacy-check:checked + span {
-    color: #1A237E;
-}
+.privacy-content { font-size: 12px; color: #777; background: #f9f9f9; padding: 10px; border-radius: 8px; height: 80px; overflow-y: scroll; line-height: 1.5; }
+.vote-card { background: #FFF9E6; padding: 25px; border-radius: 20px; margin: 25px 0; border: 1px solid #FFECB3; }
+.highlight { font-size: 28px; font-weight: bold; color: #E67E22; }
+.retry-btn { width: 100%; padding: 15px; border: none; border-radius: 12px; background: #eee; cursor: pointer; }
