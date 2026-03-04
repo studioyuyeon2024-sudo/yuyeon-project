@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let selectedPicks = [];
 
+    // 버블 생성
     for (let i = 1; i <= 12; i++) {
         const mb = document.createElement('div');
         mb.className = 'bubble'; mb.innerText = i;
@@ -51,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // 하이픈 자동생성
     phoneInput.addEventListener('input', (e) => {
         let val = e.target.value.replace(/[^0-9]/g, '');
         if (val.length <= 3) e.target.value = val;
@@ -58,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else e.target.value = val.slice(0, 3) + '-' + val.slice(3, 7) + '-' + val.slice(7, 11);
     });
 
+    // 제출 회수 로직
     withdrawBtn.onclick = async () => {
         const phone = phoneInput.value;
         if (phone.length < 13) return alert("번호를 정확히 입력해주세요.");
@@ -74,12 +77,12 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { alert("오류: " + e.message); }
     };
 
+    // 정보 제출 로직
     document.getElementById('matching-form').onsubmit = async (e) => {
         e.preventDefault();
         if (!privacyCheck.checked) return alert("개인정보 동의가 필요합니다.");
         if (!userIdInput.value) return alert("본인 번호를 선택해주세요.");
         if (phoneInput.value.length < 13) return alert("번호를 다 적어주세요.");
-        if (isSkippingInput.value === "false" && selectedPicks.length === 0) return alert("이성을 선택해주세요.");
 
         const userData = {
             gender: document.getElementById('user-gender').value,
@@ -107,6 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { alert("오류: " + e.message); }
     };
 
+    // 결과 확인 로직
     document.getElementById('check-result-btn').onclick = async () => {
         try {
             const adminDoc = await getDoc(doc(db, "settings", "matching_status"));
@@ -123,10 +127,11 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('input-section').style.display = 'none';
             document.getElementById('result-section').style.display = 'block';
             document.getElementById('vote-count').innerText = votes;
+            
             const list = document.getElementById('match-list-area');
-            list.innerHTML = "";
             const statusMsg = document.getElementById('status-message');
             const failBox = document.getElementById('fail-box');
+            list.innerHTML = "";
 
             if (matched.length > 0) {
                 statusMsg.innerText = "매칭 성공! 🎉";
