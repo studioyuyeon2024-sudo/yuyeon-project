@@ -25,7 +25,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let selectedPicks = [];
 
-    // [버블 생성]
     for (let i = 1; i <= 12; i++) {
         const mb = document.createElement('div');
         mb.className = 'bubble'; mb.innerText = i;
@@ -52,7 +51,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // [하이픈 자동생성]
     phoneInput.addEventListener('input', (e) => {
         let val = e.target.value.replace(/[^0-9]/g, '');
         if (val.length <= 3) e.target.value = val;
@@ -60,17 +58,14 @@ document.addEventListener('DOMContentLoaded', () => {
         else e.target.value = val.slice(0, 3) + '-' + val.slice(3, 7) + '-' + val.slice(7, 11);
     });
 
-    // [제출 회수 기능]
     withdrawBtn.onclick = async () => {
         const phone = phoneInput.value;
         if (phone.length < 13) return alert("번호를 정확히 입력해주세요.");
         if (!confirm("기존 제출 내역을 삭제하고 다시 작성하시겠습니까?")) return;
-
         try {
             const q = query(collection(db, "participants"), where("phone", "==", phone));
             const snap = await getDocs(q);
             if (snap.empty) return alert("해당 번호로 제출된 내역이 없습니다.");
-
             await Promise.all(snap.docs.map(d => deleteDoc(doc(db, "participants", d.id))));
             alert("회수 완료! 다시 제출해주세요.");
             withdrawBtn.style.display = 'none';
@@ -79,12 +74,12 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { alert("오류: " + e.message); }
     };
 
-    // [정보 제출]
     document.getElementById('matching-form').onsubmit = async (e) => {
         e.preventDefault();
         if (!privacyCheck.checked) return alert("개인정보 동의가 필요합니다.");
         if (!userIdInput.value) return alert("본인 번호를 선택해주세요.");
         if (phoneInput.value.length < 13) return alert("번호를 다 적어주세요.");
+        if (isSkippingInput.value === "false" && selectedPicks.length === 0) return alert("이성을 선택하거나 '인연이 없었어요'를 눌러주세요.");
 
         const userData = {
             gender: document.getElementById('user-gender').value,
@@ -112,7 +107,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { alert("오류: " + e.message); }
     };
 
-    // [결과 확인]
     document.getElementById('check-result-btn').onclick = async () => {
         const adminDoc = await getDoc(doc(db, "settings", "matching_status"));
         if (!adminDoc.exists() || !adminDoc.data().is_open) return alert("아직 결과 공개 전입니다!");
@@ -129,6 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('result-section').style.display = 'block';
         document.getElementById('vote-count').innerText = votes;
         const list = document.getElementById('match-list-area');
+        list.innerHTML = "";
         if (matched.length > 0) {
             matched.forEach(p => {
                 const div = document.createElement('div');
