@@ -16,7 +16,7 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 let currentData = [];
 
-const EXPORT_PASSWORD = "yuyeon_secure_777"; 
+const EXPORT_PASSWORD = "2024"; 
 
 window.checkAdmin = async function() {
     const email = document.getElementById('admin-email').value;
