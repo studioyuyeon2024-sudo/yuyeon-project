@@ -1,0 +1,24 @@
+body { font-family: 'Pretendard', sans-serif; background: #f4f7f6; display: flex; justify-content: center; padding: 20px; }
+.container { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
+
+h2 { margin-bottom: 20px; color: #333; }
+.field { margin-bottom: 15px; text-align: left; }
+label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 5px; color: #666; }
+
+input, select, textarea { 
+  width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; font-size: 15px; 
+}
+
+button { 
+  width: 100%; padding: 15px; border: none; border-radius: 10px; background: #3498db; color: white; 
+  font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; 
+}
+
+/* 결과 페이지 스타일 */
+.vote-card { background: #fff9e6; padding: 20px; border-radius: 15px; margin: 20px 0; border: 1px solid #ffeeba; }
+.vote-text { font-size: 18px; color: #856404; margin: 0; }
+.highlight { font-size: 24px; font-weight: bold; color: #e67e22; }
+
+.detail-box { background: #e3f2fd; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: none; }
+.schedule-box { background: #f8f9fa; padding: 15px; border-radius: 12px; font-size: 14px; }
+.retry-btn { background: #eee; color: #666; font-size: 14px; }

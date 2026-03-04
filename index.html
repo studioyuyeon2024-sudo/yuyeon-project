@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>유연 테스트앱</title>
+    <link rel="stylesheet" href="./style.css">
+
+  </head>
+    
+  <body>
+  <div class="container">
+  <div id="input-section">
+    <h2>스튜디오 유연 참여 정보 📝</h2>
+    <form id="matching-form">
+      <div class="field">
+        <label>성별</label>
+        <select id="user-gender">
+          <option value="male">남성</option>
+          <option value="female">여성</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>본인 번호 (1~12번)</label>
+        <input type="number" id="user-id" min="1" max="12" placeholder="예: 7" required>
+      </div>
+
+      <div class="field">
+        <label>본명</label>
+        <input type="text" id="user-real-name" placeholder="성함을 입력하세요" required>
+      </div>
+
+      <div class="field">
+        <label>핸드폰 번호</label>
+        <input type="tel" id="user-phone" pattern="[0-9]*" inputmode="numeric" placeholder="01012345678 (숫자만)" required>
+      </div>
+
+      <hr style="border: 0; border-top: 1px dashed #ddd; margin: 20px 0;">
+
+      <div class="field">
+        <label style="color: #e67e22;">❤️ 1지망 이성 번호 (필수)</label>
+        <input type="number" id="user-pick-1" min="1" max="12" placeholder="가장 호감 가는 분의 번호" required>
+      </div>
+
+      <div class="field">
+        <label style="color: #3498db;">💙 2지망 이성 번호 (선택)</label>
+        <input type="number" id="user-pick-2" min="1" max="12" placeholder="두 번째로 호감 가는 분의 번호">
+      </div>
+
+      <div class="field">
+        <label>참여 후기</label>
+        <textarea id="user-review" rows="3" placeholder="오늘 로테이션 데이팅은 어떠셨나요?"></textarea>
+      </div>
+
+      <button type="submit" id="submit-btn">결과 확인하기</button>
+    </form>
+  </div>
+
+  <div id="result-section" style="display: none;">
+    <h2 id="status-message">분석 중...</h2>
+    <div class="vote-card">
+      <p class="vote-text">이성으로부터 총 <span id="vote-count" class="highlight">0</span>표를 받으셨습니다.</p>
+    </div>
+    <div id="match-list-area" style="margin-bottom: 20px;"></div>
+    
+    <div id="fail-box" class="schedule-box" style="display: none;">
+      <p>이번 기수에서는 아쉽게도 서로 선택이 일치하지 않았습니다.</p>
+      <a href="https://studioyuyeon.com" target="_blank">👉 다음 기수 일정 확인하기</a>
+    </div>
+    <button onclick="location.reload()" class="retry-btn">다시 입력하기</button>
+  </div>
+</div>
+    <script type="module" src="./script.js"></script>
+
+  </body>
+  
+</html>
