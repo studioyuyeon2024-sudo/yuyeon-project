@@ -33,6 +33,14 @@
         #submit-btn { width: 100%; padding: 20px; border: none; border-radius: 15px; font-weight: bold; background: #1A237E; color: white; font-size: 17px; cursor: pointer; margin-top: 10px; }
         #withdraw-btn { width: 100%; padding: 15px; border: none; border-radius: 15px; font-weight: bold; background: #e74c3c; color: white; font-size: 14px; cursor: pointer; margin-top: 10px; display: none; }
         #check-result-btn { width: 100%; padding: 18px; border: 1.5px solid #1A237E; border-radius: 15px; font-weight: bold; background: white; color: #1A237E; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        
+        .next-schedule-box { 
+            background: #1A237E; color: white; padding: 25px 20px; border-radius: 20px; 
+            margin-top: 20px; text-decoration: none; display: block; transition: 0.3s;
+        }
+        .next-schedule-box:hover { background: #283593; transform: translateY(-3px); }
+        .next-schedule-box strong { display: block; font-size: 18px; margin-bottom: 5px; }
+        .next-schedule-box span { font-size: 13px; opacity: 0.9; }
     </style>
 </head>
 <body>
@@ -48,9 +56,7 @@
                     <label>생년월일</label><input type="tel" id="user-birth" maxlength="10" placeholder="1900-00-00" required>
                     <label>핸드폰 번호</label><input type="tel" id="user-phone" maxlength="13" placeholder="010-0000-0000" required>
                 </div>
-                <div class="card">
-                    <label>호감 이성 번호 (최대 2명)</label><div class="bubble-grid" id="pick-id-grid"></div>
-                </div>
+                <div class="card"><label>호감 이성 번호 (최대 2명)</label><div class="bubble-grid" id="pick-id-grid"></div></div>
                 <div class="card"><label>참여 후기 (선택)</label><textarea id="user-review" placeholder="오늘 데이팅은 어떠셨나요?"></textarea></div>
                 
                 <div class="privacy-section">
@@ -64,7 +70,7 @@
                 </div>
 
                 <button type="submit" id="submit-btn">정보 제출하기</button>
-                <button type="button" id="withdraw-btn">⚠️ 제출 정보 회수하고 다시 쓰기</button>
+                <button type="button" id="withdraw-btn">⚠️ 정보 회수하고 다시 쓰기</button>
                 <button type="button" id="check-result-btn">결과 확인하기 (마감 후 공개)</button>
             </form>
         </div>
@@ -83,7 +89,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // 자동 하이픈 로직 (숫자 외 입력 차단)
+        // 숫자 외 입력 차단 및 자동 하이픈 로직
         const applyFormat = (id, type) => {
             document.getElementById(id).addEventListener('input', (e) => {
                 let val = e.target.value.replace(/[^0-9]/g, '');
@@ -100,7 +106,7 @@
         };
         applyFormat('user-birth', 'birth'); applyFormat('user-phone', 'phone');
 
-        // 번호 선택 그리드
+        // 번호 선택 그리드 로직
         let selectedPicks = [];
         const setupGrid = (gridId, targetId, limit) => {
             const grid = document.getElementById(gridId);
@@ -120,26 +126,23 @@
         };
         setupGrid('my-id-grid', 'user-id', 1); setupGrid('pick-id-grid', '', 2);
 
-        // [신규] 정보 제출 및 회수 로직
+        // 제출 및 회수 기능
         const form = document.getElementById('matching-form');
         const withdrawBtn = document.getElementById('withdraw-btn');
 
         form.onsubmit = async (e) => {
             e.preventDefault();
-            const btn = document.getElementById('submit-btn');
-            btn.disabled = true; btn.innerText = "상태 확인 중...";
+            const btn = document.getElementById('submit-btn'); btn.disabled = true;
 
             const adminSnap = await getDoc(doc(db, "settings", "matching_status"));
-            if (adminSnap.exists() && adminSnap.data().is_open) { alert("🛑 현재 기수 접수가 마감되었습니다."); btn.disabled = false; return; }
-            if (!document.getElementById('privacy-check').checked) { alert("동의 필요!"); btn.disabled = false; return; }
+            if (adminSnap.exists() && adminSnap.data().is_open) { alert("🛑 접수 마감되었습니다."); btn.disabled = false; return; }
 
             const phone = document.getElementById('user-phone').value;
             const q = query(collection(db, "participants"), where("phone", "==", phone));
             const existing = await getDocs(q);
             if (!existing.empty) { 
-                alert("이미 제출된 번호입니다. 정보를 수정하려면 '회수하기' 버튼을 누르세요."); 
-                withdrawBtn.style.display = 'block'; btn.disabled = false; btn.innerText = "정보 제출하기";
-                return; 
+                alert("이미 제출된 번호입니다. 정보 수정을 원하시면 '회수하기'를 누르세요."); 
+                withdrawBtn.style.display = 'block'; btn.disabled = false; return; 
             }
 
             await addDoc(collection(db, "participants"), {
@@ -148,33 +151,28 @@
                 realName: document.getElementById('user-real-name').value,
                 birth: document.getElementById('user-birth').value,
                 phone: phone,
-                pickId1: selectedPicks[0] || null,
-                pickId2: selectedPicks[1] || null,
-                review: document.getElementById('user-review').value,
-                createdAt: new Date()
+                pickId1: selectedPicks[0] || null, pickId2: selectedPicks[1] || null,
+                review: document.getElementById('user-review').value, createdAt: new Date()
             });
-            alert("✅ 제출 성공! 정보 수정을 원하시면 같은 번호로 다시 시도하여 '회수하기'를 누르세요.");
-            btn.innerText = "제출 완료"; withdrawBtn.style.display = 'block';
+            alert("✅ 제출 성공!"); btn.innerText = "제출 완료"; withdrawBtn.style.display = 'block';
         };
 
         withdrawBtn.onclick = async () => {
-            if (!confirm("⚠️ 제출하신 정보를 삭제하고 다시 작성하시겠습니까?")) return;
+            if (!confirm("⚠️ 제출 정보를 삭제하고 다시 작성하시겠습니까?")) return;
             const phone = document.getElementById('user-phone').value;
             const q = query(collection(db, "participants"), where("phone", "==", phone));
             const snap = await getDocs(q);
-            const deletePromises = snap.docs.map(d => deleteDoc(doc(db, "participants", d.id)));
-            await Promise.all(deletePromises);
-            alert("회수 완료! 이제 다시 제출하실 수 있습니다.");
-            location.reload();
+            await Promise.all(snap.docs.map(d => deleteDoc(doc(db, "participants", d.id))));
+            alert("회수 완료!"); location.reload();
         };
 
-        // [복구] 결과 확인하기 로직
+        // 결과 확인 및 매칭 축하 로직
         document.getElementById('check-result-btn').onclick = async () => {
             const adminSnap = await getDoc(doc(db, "settings", "matching_status"));
-            if (!adminSnap.exists() || !adminSnap.data().is_open) return alert("결과 공개 전입니다! 마감 후 다시 확인해 주세요.");
+            if (!adminSnap.exists() || !adminSnap.data().is_open) return alert("결과 공개 전입니다!");
             
             const myId = Number(document.getElementById('user-id').value);
-            if (!myId) return alert("먼저 본인 번호를 선택하고 성함을 입력해 주세요.");
+            if (!myId) return alert("본인 번호를 먼저 선택해 주세요.");
 
             const snap = await getDocs(collection(db, "participants"));
             const all = []; snap.forEach(d => all.push(d.data()));
@@ -185,9 +183,23 @@
             document.getElementById('input-section').style.display = 'none';
             document.getElementById('result-section').style.display = 'block';
             const area = document.getElementById('match-list-area');
-            area.innerHTML = `<div style="background:#FFF9E6; padding:20px; border-radius:20px; margin-bottom:20px;">받은 호감: <b>${votes}표</b></div>`;
-            if (matched.length > 0) matched.forEach(p => area.innerHTML += `<div style='background:#e3f2fd; padding:15px; border-radius:12px; margin-bottom:10px; font-weight:bold;'>💖 ${p.myId}번(${p.realName})님과 매칭 성공!</div>`);
-            else area.innerHTML += `<div style='background:#f4f4f4; padding:20px; border-radius:15px;'>아쉽게도 매칭되지 않았습니다.</div>`;
+            
+            if (matched.length > 0) {
+                area.innerHTML = `
+                    <div style="margin-bottom:25px;">
+                        <h3 style="color:#FF5252; font-size:22px; margin-bottom:10px;">🎉 축하합니다! 🎉</h3>
+                        <p style="font-size:15px; color:#555; line-height:1.6;">용기 내어 선택한 마음이 상대에게 전달되었습니다.</p>
+                    </div>
+                    <div style="background:#FFF9E6; padding:20px; border-radius:20px; margin-bottom:20px;">나에게 호감 표시: <b>${votes}표</b></div>`;
+                matched.forEach(p => area.innerHTML += `<div style='background:linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%); padding:20px; border-radius:15px; margin-bottom:12px; font-weight:bold;'>💖 ${p.myId}번(${p.realName})님과 매칭!</div>`);
+            } else {
+                area.innerHTML = `
+                    <div style="background:#f4f4f4; padding:20px; border-radius:15px; margin-bottom:20px; color:#666;">아쉽게도 이번 기수에는 매칭되지 않았습니다.</div>
+                    <a href="https://litt.ly/studioyuyeon" target="_blank" class="next-schedule-box">
+                        <strong>🗓️ 다음 일정 확인하기</strong>
+                        <span>새로운 인연이 기다리는 다음 기수 일정을 확인해 보세요!</span>
+                    </a>`;
+            }
         };
     </script>
 </body>
