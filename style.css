@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
 
-/* 기본 레이아웃 */
+/* 공통 레이아웃 */
 body { background: #FDFBF6; font-family: 'Noto Sans KR', sans-serif; color: #333; display: flex; justify-content: center; padding: 10px; margin: 0; line-height: 1.6; }
 .container, .admin-container { background: white; padding: 30px 20px; border-radius: 30px; box-shadow: 0 15px 40px rgba(0,0,0,0.06); width: 100%; max-width: 440px; text-align: center; border-top: 6px solid #1A237E; box-sizing: border-box; margin-bottom: 30px; }
 .admin-container { max-width: 900px; } 
@@ -8,13 +8,18 @@ body { background: #FDFBF6; font-family: 'Noto Sans KR', sans-serif; color: #333
 .serif-title { font-family: 'Playfair Display', serif; font-size: 30px; color: #1A237E; margin-bottom: 8px; }
 .subtitle { font-size: 13px; color: #888; margin-bottom: 30px; letter-spacing: 1.2px; }
 
-/* 카드 및 입력창 */
-.card { background: #FFFFFF; border: 1px solid #F0F0F0; padding: 20px; border-radius: 20px; margin-bottom: 20px; text-align: left; }
+/* [해결] 버블 그리드 설정 - 이게 있어야 가로로 나옵니다 */
+.bubble-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: 10px; }
+.bubble { aspect-ratio: 1; border-radius: 50%; background: #F8F9FA; border: 1px solid #E0E0E0; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; color: #666; transition: 0.2s; }
+.bubble.selected { background: #1A237E; color: white; border-color: #1A237E; font-weight: bold; transform: scale(1.1); }
+
+/* 입력창 및 카드 */
+.card { background: #FFFFFF; border: 1px solid #F0F0F0; padding: 22px; border-radius: 20px; margin-bottom: 20px; text-align: left; }
 .field { margin-bottom: 18px; }
 label { font-weight: 500; font-size: 14px; color: #2C3E50; display: block; margin-bottom: 10px; }
 input, select, textarea { width: 100%; padding: 13px; border: 1px solid #E5E7EB; border-radius: 12px; font-size: 15px; box-sizing: border-box; background: #FAFAFA; }
 
-/* 참여자 페이지용 버튼 */
+/* 버튼 디자인 */
 #submit-btn, #withdraw-btn, #check-result-btn, .secondary-btn { 
     width: 100%; padding: 18px; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; font-size: 16px; box-sizing: border-box; margin-bottom: 10px;
 }
@@ -27,31 +32,9 @@ input, select, textarea { width: 100%; padding: 13px; border: 1px solid #E5E7EB;
 }
 .secondary-btn.active { background: #FF5252; color: white; border-color: #FF5252; }
 
-/* [핵심 수정] 관리자 페이지 버튼 및 제어판 */
-.stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 25px; }
-.stats-card { background: #F8F9FA; padding: 20px; border-radius: 20px; border-top: 4px solid #1A237E; }
-.stats-card h4 { margin: 0; font-size: 13px; color: #777; }
-.stats-card p { margin: 8px 0 0; font-size: 22px; font-weight: bold; color: #1A237E; }
-
+/* 관리자 페이지 대형 버튼 */
 .control-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 25px; }
-.control-panel button { 
-    width: 100%; 
-    padding: 22px 10px; /* ★ 버튼 높이를 대폭 키움 */
-    border: none; 
-    border-radius: 18px; 
-    color: white; 
-    font-weight: bold; 
-    font-size: 17px; /* ★ 폰트 크기 확대 */
-    cursor: pointer; 
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    transition: transform 0.1s;
-}
-.control-panel button:active { transform: scale(0.96); }
+.control-panel button { padding: 22px 10px; border: none; border-radius: 18px; color: white; font-weight: bold; font-size: 17px; cursor: pointer; }
 
-/* 표 가로 스크롤 및 디자인 */
-.table-wrapper { width: 100%; overflow-x: auto; border-radius: 20px; border: 1px solid #eee; margin-top: 20px; }
-table { width: 100%; border-collapse: collapse; min-width: 600px; }
-th, td { padding: 15px; border: 1px solid #f9f9f9; font-size: 14px; text-align: center; }
-th { background: #1A237E; color: white; }
-
+/* 개인정보 동의 박스 */
 .privacy-content { font-size: 11px; color: #777; text-align: left; height: 80px; overflow-y: auto; background: #f9f9f9; padding: 12px; border-radius: 10px; line-height: 1.6; }
