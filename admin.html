@@ -1,50 +1,98 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <title>유연 관리자 통제실 🔐</title>
-    <link rel="stylesheet" href="./style.css">
-    <style>
-        .admin-container { max-width: 800px; width: 95%; margin: 20px auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; font-size: 13px; }
-        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
-        th { background: #34495e; color: white; }
-        .match-card { background: #e1f5fe; padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 5px solid #03a9f4; text-align: left; }
-    </style>
-</head>
-<body>
-    <div class="admin-container">
-        <h2>스튜디오 유연 전체 리포트 📊</h2>
-        
-        <div id="auth-section">
-            <input type="password" id="admin-password" placeholder="관리자 암호를 입력하세요">
-            <button onclick="checkAdmin()">접속하기</button>
-        </div>
-
-        <div id="report-section" style="display: none;">
-            <button id="refresh-btn" style="background: #27ae60; margin-bottom: 20px;">새로고침 및 분석 시작</button>
-            
-            <h3>✅ 최종 매칭 결과</h3>
-            <div id="final-matches"></div>
-
-            <h3>👥 전체 참가자 명단</h3>
-            <table id="participant-table">
-                <thead>
-                    <tr>
-                        <th>번호</th>
-                        <th>성별</th>
-                        <th>이름</th>
-                        <th>연락처</th>
-                        <th>1지망</th>
-                        <th>2지망</th>
-                        <th>후기</th>
-                    </tr>
-                </thead>
-                <tbody id="participant-list"></tbody>
-            </table>
-        </div>
+<div id="report-section" style="display: none;">
+    <div style="margin-bottom: 20px; display: flex; gap: 10px; justify-content: center;">
+        <button id="refresh-btn" style="background: #27ae60; flex: 1;">🔄 새로고침</button>
+        <button id="download-btn" style="background: #f39c12; flex: 1;">📥 엑셀로 저장</button>
+        <button id="delete-all-btn" style="background: #e74c3c; flex: 1;">⚠️ 전체 데이터 삭제</button>
     </div>
+    
+    <h3>✅ 최종 매칭 결과</h3>
+    <div id="final-matches"></div>
+    ```
 
-    <script type="module" src="./admin.js"></script>
-</body>
-</html>
+---
+
+### 2. `admin.js` 수정 (기능 구현)
+기존 코드 상단 `import` 부분에 `deleteDoc`과 `doc`을 추가하고, 하단에 두 가지 신규 함수를 넣어야 합니다.
+
+```javascript
+// 1. import 부분에 deleteDoc, doc 추가 확인!
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+// ... (기존 firebaseConfig 및 초기화 코드 동일) ...
+
+let currentData = []; // 엑셀 다운로드를 위해 데이터를 전역 변수에 저장합니다.
+
+// [기능 1] 모든 데이터 삭제하기
+async function deleteAllData() {
+    if (!confirm("정말로 모든 참가자 데이터를 삭제하시겠습니까?\n삭제된 데이터는 복구할 수 없습니다.")) {
+        return;
+    }
+
+    try {
+        const querySnapshot = await getDocs(collection(db, "participants"));
+        
+        // 모든 문서를 하나씩 삭제합니다.
+        const deletePromises = querySnapshot.docs.map(document => 
+            deleteDoc(doc(db, "participants", document.id))
+        );
+        
+        await Promise.all(deletePromises);
+        alert("모든 데이터가 성공적으로 삭제되었습니다.");
+        location.reload(); // 화면 새로고침
+    } catch (err) {
+        alert("삭제 중 오류가 발생했습니다: " + err.message);
+    }
+}
+
+// [기능 2] 엑셀(CSV)로 저장하기
+function downloadExcel() {
+    if (currentData.length === 0) {
+        alert("다운로드할 데이터가 없습니다.");
+        return;
+    }
+
+    // CSV 헤더 설정
+    let csvContent = "\uFEFF"; // 한글 깨짐 방지용 BOM
+    csvContent += "번호,성별,이름,연락처,1지망,2지망,후기\n";
+
+    // 데이터 행 추가
+    currentData.forEach(p => {
+        const row = [
+            p.myId,
+            p.gender === 'male' ? '남' : '여',
+            p.realName,
+            p.phone,
+            p.pickId1,
+            p.pickId2 || '-',
+            `"${(p.review || '').replace(/"/g, '""')}"` // 후기에 쉼표가 있을 경우 대비
+        ].join(",");
+        csvContent += row + "\n";
+    });
+
+    // 파일 다운로드 트리거
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `유연_참가자명단_${new Date().toLocaleDateString()}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// 기존 loadAllData 함수 내부에 아래 한 줄을 추가하여 데이터를 보관하게 만듭니다.
+async function loadAllData() {
+    const querySnapshot = await getDocs(collection(db, "participants"));
+    const all = [];
+    querySnapshot.forEach(doc => all.push(doc.data()));
+    currentData = all; // 전역 변수에 저장
+    
+    // ... (기존 테이블 및 매칭 로직 동일) ...
+}
+
+// 버튼 이벤트 연결
+document.getElementById('refresh-btn').addEventListener('click', loadAllData);
+document.getElementById('download-btn').addEventListener('click', downloadExcel);
+document.getElementById('delete-all-btn').addEventListener('click', deleteAllData);
