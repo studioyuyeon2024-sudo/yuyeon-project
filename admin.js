@@ -1,80 +1,45 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, getDocs, deleteDoc, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyCy0qWrPE_aQGaKjJXIM_vgU8oO5Wq9mOI",
-  authDomain: "my-dating-service.firebaseapp.com",
-  projectId: "my-dating-service",
-  storageBucket: "my-dating-service.firebasestorage.app",
-  messagingSenderId: "231488184905",
-  appId: "1:231488184905:web:d49b3e4f0ef35e524e5598"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-let currentData = [];
-
-const EXPORT_PASSWORD = "yuyeon_secure_777"; 
-
-window.checkAdmin = async function() {
-    const email = document.getElementById('admin-email').value;
-    const pw = document.getElementById('admin-password').value;
-    try { await signInWithEmailAndPassword(auth, email, pw); } catch (e) { alert("로그인 실패"); }
-};
-
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        document.getElementById('auth-section').style.display = 'none';
-        document.getElementById('report-section').style.display = 'block';
-        updateDashboard();
-    }
-});
-
-async function updateDashboard() {
-    try {
-        const snap = await getDocs(collection(db, "participants"));
-        currentData = []; snap.forEach(d => currentData.push({ id: d.id, ...d.data() }));
-
-        const voteMap = {};
-        currentData.forEach(p => { 
-            if(p.pickId1) voteMap[p.pickId1] = (voteMap[p.pickId1] || 0) + 1;
-            if(p.pickId2) voteMap[p.pickId2] = (voteMap[p.pickId2] || 0) + 1;
-        });
-
-        const listBody = document.getElementById('participant-list');
-        listBody.innerHTML = "";
-        currentData.sort((a,b) => a.myId - b.myId).forEach(p => {
-            listBody.innerHTML += `<tr><td>${p.myId}</td><td>${p.gender==='male'?'남':'여'}</td><td>${p.realName}</td><td>${p.phone}</td><td>${p.pickId1||'-'},${p.pickId2||'-'}</td><td style="color:#FF5252; font-weight:bold;">${voteMap[p.myId]||0}표</td></tr>`;
-        });
-
-        const males = currentData.filter(p => p.gender === 'male');
-        const females = currentData.filter(p => p.gender === 'female');
-        const miniMatchArea = document.getElementById('final-matches-mini');
-        miniMatchArea.innerHTML = "";
-        
-        let coupleCount = 0; let matchedIds = new Set();
-        males.forEach(m => {
-            females.forEach(f => {
-                if ([m.pickId1, m.pickId2].includes(f.myId) && [f.pickId1, f.pickId2].includes(m.myId)) {
-                    coupleCount++; matchedIds.add(m.myId); matchedIds.add(f.myId);
-                    miniMatchArea.innerHTML += `<div style='padding:10px; background:#f0f4ff; border-radius:12px; margin-bottom:8px; font-size:13px;'><b>${m.myId}(${m.realName}/${m.phone})</b> ❤️ <b>${f.myId}(${f.realName}/${f.phone})</b></div>`;
-                }
-            });
-        });
-
-        document.getElementById('stat-total').innerText = currentData.length;
-        document.getElementById('stat-gender').innerText = `${males.length}/${females.length}`;
-        document.getElementById('stat-couples').innerText = `${coupleCount}쌍`;
-        document.getElementById('stat-rate').innerText = `${currentData.length>0?Math.round((matchedIds.size/currentData.length)*100):0}%`;
-    } catch(e) { console.error(e); }
-}
-
-function verify() { return prompt("🔐 보안 인증: 2차 비밀번호를 입력하세요.") === EXPORT_PASSWORD; }
-
-document.getElementById('open-btn').onclick = async () => { if(confirm("결과를 공개(접수 마감)하시겠습니까?")) { await setDoc(doc(db, "settings", "matching_status"), { is_open: true }); alert("공개 및 접수 마감 완료"); } };
-document.getElementById('close-btn').onclick = async () => { if(confirm("결과를 차단(접수 재개)하시겠습니까?")) { await setDoc(doc(db, "settings", "matching_status"), { is_open: false }); alert("차단 및 접수 재개 완료"); } };
-document.getElementById('download-btn').onclick = () => { if(!verify()) return; /* CSV 다운로드 로직 동일 */ };
-document.getElementById('delete-btn').onclick = async () => { /* 백업 로직 동일 */ };
-document.getElementById('refresh-btn').onclick = updateDashboard;
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yuyeon Admin | 🔐</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <div class="admin-container">
+        <h1 class="serif-title">Admin Dashboard</h1>
+        <div id="auth-section" class="card" style="max-width:380px; margin:20px auto;">
+            <input type="email" id="admin-email" placeholder="관리자 이메일" style="margin-bottom:10px; width:100%;"><input type="password" id="admin-password" placeholder="비밀번호" style="margin-bottom:15px; width:100%;"><button onclick="checkAdmin()" style="width:100%; padding:15px; background:#1A237E; color:white; border-radius:10px; cursor:pointer;">로그인</button>
+        </div>
+        <div id="report-section" style="display: none;">
+            <div class="bento-grid">
+                <div class="bento-card card-large">
+                    <div><h4>매칭 성공 커플 💖</h4><p id="stat-couples" style="color:#FF5252; font-size: 42px;">0쌍</p></div>
+                    <div id="final-matches-mini" style="margin-top:20px; font-size: 13px; color:#555; text-align: left;"></div>
+                </div>
+                <div class="bento-card card-medium"><h4>종합 매칭률 📊</h4><p id="stat-rate">0%</p></div>
+                <div class="bento-card card-small"><h4>총 참가자 👥</h4><p id="stat-total">0명</p></div>
+                <div class="bento-card card-small"><h4>남성 / 여성 ⚖️</h4><p id="stat-gender" style="font-size: 20px;">0 / 0</p></div>
+            </div>
+            <div class="control-panel">
+                <button id="open-btn" style="background:#9b59b6;">🔓 결과 공개</button>
+                <button id="close-btn" style="background:#34495e;">🔒 공개 차단</button>
+                <button id="download-btn" style="background:#f39c12;">📥 현재 명단</button>
+                <button id="download-archive-btn" style="background:#8e44ad;">📂 전체 백업</button>
+                <button id="refresh-btn" style="background:#27ae60; grid-column: span 2;">🔄 데이터 새로고침</button>
+                <button id="delete-btn" style="background:#e74c3c; grid-column: span 2;">⚠️ 기수 백업 및 초기화</button>
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr><th>#</th><th>성별</th><th>이름</th><th>연락처</th><th>선택</th><th style="color:#FF5252;">득표 🔥</th><th>참여 후기 📝</th></tr>
+                    </thead>
+                    <tbody id="participant-list"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script type="module" src="./admin.js"></script>
+</body>
+</html>
