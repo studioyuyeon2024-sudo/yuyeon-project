@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Studio Yuyeon | 인연을 잇다</title>
+    <title>Studio Yuyeon | 유연한 인연</title>
     <link rel="stylesheet" href="./style.css">
 </head>
 <body>
@@ -28,10 +28,10 @@
                 <div class="field"><label>참여 후기 (선택)</label><textarea id="user-review" rows="2" placeholder="오늘 데이팅은 어떠셨나요?"></textarea></div>
                 <div class="field">
                     <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="privacy-check" style="width:18px; height:18px;"><span style="font-size:13px; font-weight:bold;">개인정보 수집 및 이용 동의 (필수)</span></label>
-                    <div class="privacy-content">
+                    <div class="privacy-content" style="font-size: 11px; text-align: left; height: 80px; overflow-y: auto; background: #f9f9f9; padding: 10px; border-radius: 10px;">
                         <strong>1. 수집 항목:</strong> 성명, 성별, 연락처, 매칭 번호, 후기<br>
                         <strong>2. 이용 목적:</strong> 매칭 결과 분석 및 참가자 안내<br>
-                        <strong>3. 보유 기간:</strong> <strong>행사 종료 및 결과 안내 즉시 파기</strong><br>
+                        <strong>3. 보유 기간:</strong> 행사 종료 즉시 파기<br>
                         <strong>4. 동의 거부:</strong> 거부 시 서비스 이용이 제한됩니다.
                     </div>
                 </div>
@@ -43,7 +43,7 @@
             </form>
         </div>
         <div id="result-section" style="display:none;">
-            <h2 id="status-message" class="serif-title" style="font-size:24px;">분석 완료</h2>
+            <h2 id="status-message" class="serif-title" style="font-size:24px;">결과 분석</h2>
             <div id="match-list-area"></div>
             <button onclick="location.reload()" style="width:100%; padding:15px; border:none; background:#eee; border-radius:12px;">처음으로</button>
         </div>
