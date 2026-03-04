@@ -8,18 +8,18 @@ body { background: #FDFBF6; font-family: 'Noto Sans KR', sans-serif; color: #333
 .serif-title { font-family: 'Playfair Display', serif; font-size: 30px; color: #1A237E; margin-bottom: 8px; }
 .subtitle { font-size: 13px; color: #888; margin-bottom: 30px; letter-spacing: 1.2px; }
 
-/* 참여자 페이지: 버블 그리드 가로 정렬 */
+/* [해결] 버블 그리드 - 번호가 가로로 나오게 하는 핵심 설정 */
 .bubble-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: 10px; }
 .bubble { aspect-ratio: 1; border-radius: 50%; background: #F8F9FA; border: 1px solid #E0E0E0; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; color: #666; transition: 0.2s; }
 .bubble.selected { background: #1A237E; color: white; border-color: #1A237E; font-weight: bold; transform: scale(1.1); }
 
-/* 카드 및 입력창 */
+/* 입력창 및 카드 */
 .card { background: #FFFFFF; border: 1px solid #F0F0F0; padding: 22px; border-radius: 20px; margin-bottom: 20px; text-align: left; }
 .field { margin-bottom: 18px; }
 label { font-weight: 500; font-size: 14px; color: #2C3E50; display: block; margin-bottom: 10px; }
 input, select, textarea { width: 100%; padding: 13px; border: 1px solid #E5E7EB; border-radius: 12px; font-size: 15px; box-sizing: border-box; background: #FAFAFA; }
 
-/* 참여자용 버튼 */
+/* 버튼 디자인 (모바일 최적화) */
 #submit-btn, #withdraw-btn, #check-result-btn, .secondary-btn { 
     width: 100%; padding: 18px; border: none; border-radius: 15px; font-weight: bold; cursor: pointer; font-size: 16px; box-sizing: border-box; margin-bottom: 10px;
 }
@@ -28,7 +28,7 @@ input, select, textarea { width: 100%; padding: 13px; border: 1px solid #E5E7EB;
 .secondary-btn { background: white; color: #555; border: 1px solid #ddd; font-size: 14px; padding: 15px 5px !important; white-space: nowrap; letter-spacing: -0.8px; display: flex; justify-content: center; align-items: center; }
 .secondary-btn.active { background: #FF5252; color: white; border-color: #FF5252; }
 
-/* 관리자용 벤토 그리드 */
+/* [반영] 관리자 벤토 그리드 디자인 */
 .bento-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
 .bento-card { background: white; padding: 25px; border-radius: 24px; box-shadow: 0 8px 30px rgba(0,0,0,0.04); text-align: left; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid #f0f0f0; transition: transform 0.2s; }
 .card-large { grid-column: span 2; grid-row: span 2; border-top: 5px solid #FF5252; }
@@ -36,12 +36,11 @@ input, select, textarea { width: 100%; padding: 13px; border: 1px solid #E5E7EB;
 .card-small { grid-column: span 1; border-top: 5px solid #27ae60; }
 .bento-card p { margin: 15px 0 0; font-size: 28px; font-weight: bold; color: #1A237E; }
 
-/* 관리자용 제어 버튼 */
 .control-panel { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 25px; }
 .control-panel button { padding: 22px 10px; border: none; border-radius: 18px; color: white; font-weight: bold; font-size: 17px; cursor: pointer; }
 
-/* 표 디자인 */
-.table-wrapper { width: 100%; overflow-x: auto; border-radius: 20px; border: 1px solid #eee; margin-top: 20px; }
+/* 표 가로 스크롤 */
+.table-wrapper { width: 100%; overflow-x: auto; border-radius: 20px; border: 1px solid #eee; }
 table { width: 100%; border-collapse: collapse; min-width: 600px; }
 th, td { padding: 15px; border: 1px solid #f9f9f9; font-size: 14px; text-align: center; }
 th { background: #1A237E; color: white; }
