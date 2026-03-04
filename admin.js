@@ -68,23 +68,47 @@ async function updateDashboard() {
 }
 
 // [핵심 업데이트] 기수 이름 입력 및 백업 초기화 로직
+// admin.js 의 delete-btn 부분을 이 코드로 교체하세요.
+
 document.getElementById('delete-btn').onclick = async () => {
     if (currentData.length === 0) return alert("데이터가 없습니다.");
+    
     const batchName = prompt("백업할 기수 이름을 입력하세요 (예: 유연 132기)", "유연 132기");
     if (!batchName) return;
 
     if (confirm(`[${batchName}] 명단으로 백업 후 현재 명단을 초기화하시겠습니까?`)) {
         try {
-            const dateStr = new Date().toISOString().split('T')[0];
+            const btn = document.getElementById('delete-btn');
+            btn.disabled = true;
+            btn.innerText = "⏳ 처리 중...";
+
+            // 1. 백업 창고(archive)로 복사
             const backupPromises = currentData.map(p => {
-                const backupId = `${batchName}_${p.phone}`;
-                return setDoc(doc(db, "archive", backupId), { ...p, batchName, archivedAt: new Date() });
+                // 기존 데이터에서 id 필드가 있으면 충돌할 수 있으므로 제거 후 저장
+                const { id, ...pureData } = p; 
+                const backupId = `${batchName}_${p.phone}_${new Date().getTime()}`;
+                return setDoc(doc(db, "archive", backupId), { 
+                    ...pureData, 
+                    batchName: batchName, 
+                    archivedAt: new Date() 
+                });
             });
             await Promise.all(backupPromises);
+
+            // 2. 원본 데이터(participants) 삭제
             const snap = await getDocs(collection(db, "participants"));
-            await Promise.all(snap.docs.map(d => deleteDoc(doc(db, "participants", d.id))));
-            alert("백업 및 초기화 완료!"); location.reload();
-        } catch (e) { alert("오류 발생"); }
+            const deletePromises = snap.docs.map(d => deleteDoc(doc(db, "participants", d.id)));
+            await Promise.all(deletePromises);
+
+            alert(`${batchName} 백업 및 초기화 완료!`);
+            location.reload();
+        } catch (e) {
+            console.error(e);
+            // 구체적인 에러 내용을 띄워줍니다.
+            alert("오류 발생: " + e.message); 
+            btn.disabled = false;
+            btn.innerText = "⚠️ 기수 백업 및 초기화";
+        }
     }
 };
 
