@@ -1,145 +1,40 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Studio Yuyeon Admin | 🔐</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
-        body { background: #FDFBF6; font-family: 'Noto Sans KR', sans-serif; padding: 20px; margin: 0; }
-        .admin-container { max-width: 1300px; margin: 0 auto; background: white; padding: 30px; border-radius: 30px; border-top: 6px solid #1A237E; box-shadow: 0 10px 30px rgba(0,0,0,0.05); display: none; }
-        #login-section { max-width: 400px; margin: 15vh auto; background: white; padding: 40px; border-radius: 30px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
-        .bento-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 30px; }
-        .bento-card { background: white; padding: 25px; border-radius: 24px; border: 1px solid #f0f0f0; }
-        .card-large { grid-column: span 2; grid-row: span 2; border-top: 5px solid #FF5252; }
-        .main-val { font-size: 36px; font-weight: bold; color: #1A237E; margin: 10px 0; }
-        .control-panel { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 25px; }
-        button { padding: 18px; border: none; border-radius: 15px; color: white; font-weight: bold; cursor: pointer; font-size: 15px; }
-        .btn-purple { background: #9b59b6; } .btn-dark { background: #34495e; } .btn-orange { background: #f39c12; } .btn-red { background: #e74c3c; } .btn-blue { background: #2980b9; grid-column: span 2; } .btn-green { background: #27ae60; grid-column: span 2; }
-        table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 20px; }
-        th, td { padding: 12px; border: 1px solid #f9f9f9; text-align: center; }
-        th { background: #1A237E; color: white; }
-    </style>
-</head>
-<body>
-    <div id="login-section">
-        <h2 style="font-family: 'Playfair Display';">Admin Login</h2>
-        <input type="email" id="email" style="width:100%; padding:15px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;" placeholder="이메일">
-        <input type="password" id="password" style="width:100%; padding:15px; margin-bottom:20px; border-radius:10px; border:1px solid #ddd;" placeholder="비밀번호">
-        <button id="login-btn" style="width:100%; background:#1A237E; color:white; padding:18px; border-radius:12px; border:none; font-weight:bold;">접속</button>
-    </div>
+/* admin.html 내 updateDashboard 함수 부분 */
+async function updateDashboard() {
+    const snap = await getDocs(collection(db, "participants"));
+    currentData = []; snap.forEach(d => currentData.push({ id: d.id, ...d.data() }));
+    
+    const voteMap = {}; currentData.forEach(p => { 
+        if(p.pickId1) voteMap[p.pickId1] = (voteMap[p.pickId1]||0)+1; 
+        if(p.pickId2) voteMap[p.pickId2] = (voteMap[p.pickId2]||0)+1; 
+    });
 
-    <div class="admin-container" id="admin-main">
-        <h1 style="font-family: 'Playfair Display'; text-align: center;">Studio Yuyeon Admin</h1>
-        <div class="bento-grid">
-            <div class="bento-card card-large">
-                <h4>매칭 커플 리스트 (성명/번호) 💖</h4>
-                <p id="stat-couples" class="main-val" style="color:#FF5252;">0쌍</p>
-                <div id="match-summary" style="font-size: 12px; color: #555; line-height: 1.8; margin-top:15px;"></div>
-            </div>
-            <div class="bento-card" style="grid-column: span 2; border-top: 5px solid #1A237E;"><h4>매칭률 📊</h4><p id="stat-rate" class="main-val">0%</p></div>
-            <div class="bento-card" style="border-top: 5px solid #27ae60;"><h4>총 참가자</h4><p id="stat-total" class="main-val">0명</p></div>
-            <div class="bento-card" style="border-top: 5px solid #f39c12;"><h4>남 / 여 성비</h4><p id="stat-gender" class="main-val" style="font-size: 20px;">0 / 0</p></div>
-        </div>
-
-        <div class="control-panel">
-            <button id="open-btn" class="btn-purple">🔓 결과 공개 (마감)</button>
-            <button id="close-btn" class="btn-dark">🔒 결과 차단 (재개)</button>
-            <button id="download-btn" class="btn-orange">📥 현재 명단 다운 (2차 비번)</button>
-            <button id="delete-btn" class="btn-red">⚠️ 백업 및 기수 초기화</button>
-            <button id="archive-btn" class="btn-blue">🏛️ 아카이브 전체 다운 (2차 비번)</button>
-            <button id="refresh-btn" class="btn-green">🔄 데이터 새로고침</button>
-        </div>
-
-        <div style="overflow-x: auto; border-radius: 20px; border: 1px solid #eee;">
-            <table>
-                <thead><tr><th>#</th><th>성별</th><th>이름</th><th>생일</th><th>연락처</th><th>픽</th><th>득표 🔥</th><th style="width:250px;">참여 후기 📝</th></tr></thead>
-                <tbody id="list-body"></tbody>
-            </table>
-        </div>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, getDocs, deleteDoc, doc, setDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        
-        const firebaseConfig = { apiKey: "AIzaSyCy0qWrPE_aQGaKjJXIM_vgU8oO5Wq9mOI", authDomain: "my-dating-service.firebaseapp.com", projectId: "my-dating-service", storageBucket: "my-dating-service.firebasestorage.app", messagingSenderId: "231488184905", appId: "1:231488184905:web:d49b3e4f0ef35e524e5598" };
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const SEC_PW = "2024";
-        let currentData = [];
-
-        document.getElementById('login-btn').onclick = async () => {
-            try { await signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value); }
-            catch (e) { alert("로그인 정보 오류"); }
-        };
-
-        onAuthStateChanged(auth, (user) => {
-            if (user) { document.getElementById('login-section').style.display = 'none'; document.getElementById('admin-main').style.display = 'block'; updateDashboard(); }
+    const list = document.getElementById('list-body');
+    list.innerHTML = "";
+    currentData.sort((a,b)=>a.myId - b.myId).forEach(p => {
+        // [수정] 후기(review) 데이터가 정확히 표출되도록 열 추가
+        list.innerHTML += `
+            <tr>
+                <td>${p.myId}</td>
+                <td>${p.gender=='male'?'남':'여'}</td>
+                <td>${p.realName}</td>
+                <td>${p.birth}</td>
+                <td>${p.phone}</td>
+                <td>${p.pickId1||''},${p.pickId2||''}</td>
+                <td style="color:#FF5252; font-weight:bold;">${voteMap[p.myId]||0}</td>
+                <td style="text-align:left; font-size:11px; color:#666;">${p.review||'-'}</td>
+            </tr>`;
+    });
+    
+    // 매칭 커플 리스트에 이름/연락처 포함 로직 (기존 유지)
+    const males = currentData.filter(p => p.gender === 'male');
+    const females = currentData.filter(p => p.gender === 'female');
+    const summary = document.getElementById('match-summary');
+    summary.innerHTML = "";
+    males.forEach(m => {
+        females.forEach(f => {
+            if ([m.pickId1, m.pickId2].includes(f.myId) && [f.pickId1, f.pickId2].includes(m.myId)) {
+                summary.innerHTML += `<div style="padding:5px; border-bottom:1px solid #eee;">💘 <b>${m.myId}(${m.realName}/${m.phone})</b> ↔ <b>${f.myId}(${f.realName}/${f.phone})</b></div>`;
+            }
         });
-
-        async function updateDashboard() {
-            const snap = await getDocs(collection(db, "participants"));
-            currentData = []; snap.forEach(d => currentData.push({ id: d.id, ...d.data() }));
-            const voteMap = {}; currentData.forEach(p => { if(p.pickId1) voteMap[p.pickId1] = (voteMap[p.pickId1]||0)+1; if(p.pickId2) voteMap[p.pickId2] = (voteMap[p.pickId2]||0)+1; });
-            
-            const list = document.getElementById('list-body'); list.innerHTML = "";
-            currentData.sort((a,b)=>a.myId - b.myId).forEach(p => {
-                // 후기(review) 데이터 매핑 확인
-                list.innerHTML += `<tr><td>${p.myId}</td><td>${p.gender=='male'?'남':'여'}</td><td>${p.realName}</td><td>${p.birth}</td><td>${p.phone}</td><td>${p.pickId1},${p.pickId2}</td><td style="color:#FF5252; font-weight:bold;">${voteMap[p.myId]||0}</td><td style="text-align:left; font-size:11px;">${p.review||'-'}</td></tr>`;
-            });
-            
-            const males = currentData.filter(p => p.gender === 'male'); const females = currentData.filter(p => p.gender === 'female');
-            const summary = document.getElementById('match-summary'); summary.innerHTML = "";
-            let couples = 0; let matchedIds = new Set();
-            
-            males.forEach(m => {
-                females.forEach(f => {
-                    if ([m.pickId1, m.pickId2].includes(f.myId) && [f.pickId1, f.pickId2].includes(m.myId)) {
-                        couples++; matchedIds.add(m.myId); matchedIds.add(f.myId);
-                        // 커플 리스트에 이름과 연락처 추가 노출
-                        summary.innerHTML += `<div style="padding:5px; border-bottom:1px solid #eee;">💘 <b>${m.myId}(${m.realName}/${m.phone})</b> ↔ <b>${f.myId}(${f.realName}/${f.phone})</b></div>`;
-                    }
-                });
-            });
-            document.getElementById('stat-couples').innerText = `${couples}쌍`;
-            document.getElementById('stat-total').innerText = currentData.length;
-            document.getElementById('stat-gender').innerText = `${males.length} / ${females.length}`;
-            document.getElementById('stat-rate').innerText = `${currentData.length>0?Math.round((matchedIds.size/currentData.length)*100):0}%`;
-        }
-
-        const verify = () => prompt("보안 비밀번호(2차)를 입력하세요.") === SEC_PW;
-
-        document.getElementById('download-btn').onclick = () => {
-            if(!verify()) return alert("인증 실패");
-            let csv = "\uFEFF번호,성별,이름,생일,연락처,픽1,픽2,후기\n";
-            currentData.forEach(p => csv += `${p.myId},${p.gender},${p.realName},${p.birth},${p.phone},${p.pickId1||''},${p.pickId2||''},"${(p.review||'').replace(/"/g, '""')}"\n`);
-            const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
-            link.download = `현재기수_명단_${new Date().toLocaleDateString()}.csv`; link.click();
-        };
-
-        document.getElementById('delete-btn').onclick = async () => {
-            const batchName = prompt("아카이브할 기수 명칭?");
-            if(!batchName) return;
-            const batch = writeBatch(db);
-            currentData.forEach(p => { batch.set(doc(db, "archive", `${batchName}_${p.myId}`), { ...p, batchName, archivedAt: new Date() }); batch.delete(doc(db, "participants", p.id)); });
-            await batch.commit(); alert("초기화 완료"); updateDashboard();
-        };
-
-        document.getElementById('archive-btn').onclick = async () => {
-            if(!verify()) return alert("인증 실패");
-            const snap = await getDocs(collection(db, "archive"));
-            let csv = "\uFEFF기수,번호,성별,이름,연락처,픽1,픽2,후기\n";
-            snap.forEach(d => { const p = d.data(); csv += `${p.batchName},${p.myId},${p.gender},${p.realName},${p.phone},${p.pickId1||''},${p.pickId2||''},"${p.review||''}"\n`; });
-            const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
-            link.download = `아카이브_전체_${new Date().toLocaleDateString()}.csv`; link.click();
-        };
-
-        document.getElementById('open-btn').onclick = async () => { await setDoc(doc(db, "settings", "matching_status"), { is_open: true }, { merge: true }); alert("마감 완료"); updateDashboard(); };
-        document.getElementById('close-btn').onclick = async () => { await setDoc(doc(db, "settings", "matching_status"), { is_open: false }, { merge: true }); alert("재개 완료"); updateDashboard(); };
-        document.getElementById('refresh-btn').onclick = updateDashboard;
-    </script>
-</body>
-</html>
+    });
+}
