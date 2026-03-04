@@ -1,98 +1,36 @@
-<div id="report-section" style="display: none;">
-    <div style="margin-bottom: 20px; display: flex; gap: 10px; justify-content: center;">
-        <button id="refresh-btn" style="background: #27ae60; flex: 1;">🔄 새로고침</button>
-        <button id="download-btn" style="background: #f39c12; flex: 1;">📥 엑셀로 저장</button>
-        <button id="delete-all-btn" style="background: #e74c3c; flex: 1;">⚠️ 전체 데이터 삭제</button>
-    </div>
-    
-    <h3>✅ 최종 매칭 결과</h3>
-    <div id="final-matches"></div>
-    ```
-
----
-
-### 2. `admin.js` 수정 (기능 구현)
-기존 코드 상단 `import` 부분에 `deleteDoc`과 `doc`을 추가하고, 하단에 두 가지 신규 함수를 넣어야 합니다.
-
-```javascript
-// 1. import 부분에 deleteDoc, doc 추가 확인!
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, collection, getDocs, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
-// ... (기존 firebaseConfig 및 초기화 코드 동일) ...
-
-let currentData = []; // 엑셀 다운로드를 위해 데이터를 전역 변수에 저장합니다.
-
-// [기능 1] 모든 데이터 삭제하기
-async function deleteAllData() {
-    if (!confirm("정말로 모든 참가자 데이터를 삭제하시겠습니까?\n삭제된 데이터는 복구할 수 없습니다.")) {
-        return;
-    }
-
-    try {
-        const querySnapshot = await getDocs(collection(db, "participants"));
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>유연 관리자 통제실 🔐</title>
+    <link rel="stylesheet" href="./style.css">
+    <style>
+        /* 관리자 페이지 전용 추가 스타일 */
+        .admin-container { max-width: 900px; width: 95%; margin: 30px auto; text-align: center; }
         
-        // 모든 문서를 하나씩 삭제합니다.
-        const deletePromises = querySnapshot.docs.map(document => 
-            deleteDoc(doc(db, "participants", document.id))
-        );
+        /* 인증 섹션 */
+        #auth-section { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        #admin-password { padding: 12px; width: 250px; border: 1px solid #ddd; border-radius: 8px; margin-right: 10px; }
         
-        await Promise.all(deletePromises);
-        alert("모든 데이터가 성공적으로 삭제되었습니다.");
-        location.reload(); // 화면 새로고침
-    } catch (err) {
-        alert("삭제 중 오류가 발생했습니다: " + err.message);
-    }
-}
+        /* 리포트 섹션 및 버튼 레이아웃 */
+        .control-panel { 
+            display: flex; gap: 10px; justify-content: center; margin-bottom: 30px; flex-wrap: wrap;
+        }
+        .control-panel button { flex: 1; min-width: 120px; max-width: 200px; margin: 0; }
+        
+        /* 데이터 테이블 스타일 */
+        .table-wrapper { overflow-x: auto; background: white; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th, td { border: 1px solid #eee; padding: 12px; text-align: center; }
+        th { background: #34495e; color: white; font-weight: 600; }
+        tr:nth-child(even) { background: #fdfdfd; }
 
-// [기능 2] 엑셀(CSV)로 저장하기
-function downloadExcel() {
-    if (currentData.length === 0) {
-        alert("다운로드할 데이터가 없습니다.");
-        return;
-    }
-
-    // CSV 헤더 설정
-    let csvContent = "\uFEFF"; // 한글 깨짐 방지용 BOM
-    csvContent += "번호,성별,이름,연락처,1지망,2지망,후기\n";
-
-    // 데이터 행 추가
-    currentData.forEach(p => {
-        const row = [
-            p.myId,
-            p.gender === 'male' ? '남' : '여',
-            p.realName,
-            p.phone,
-            p.pickId1,
-            p.pickId2 || '-',
-            `"${(p.review || '').replace(/"/g, '""')}"` // 후기에 쉼표가 있을 경우 대비
-        ].join(",");
-        csvContent += row + "\n";
-    });
-
-    // 파일 다운로드 트리거
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", `유연_참가자명단_${new Date().toLocaleDateString()}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-// 기존 loadAllData 함수 내부에 아래 한 줄을 추가하여 데이터를 보관하게 만듭니다.
-async function loadAllData() {
-    const querySnapshot = await getDocs(collection(db, "participants"));
-    const all = [];
-    querySnapshot.forEach(doc => all.push(doc.data()));
-    currentData = all; // 전역 변수에 저장
-    
-    // ... (기존 테이블 및 매칭 로직 동일) ...
-}
-
-// 버튼 이벤트 연결
-document.getElementById('refresh-btn').addEventListener('click', loadAllData);
-document.getElementById('download-btn').addEventListener('click', downloadExcel);
-document.getElementById('delete-all-btn').addEventListener('click', deleteAllData);
+        /* 매칭 카드 스타일 */
+        .match-card { 
+            background: #e3f2fd; padding: 15px; border-radius: 12px; margin-bottom: 12px; 
+            border-left: 6px solid #2196f3; text-align: left; font-size: 15px;
+        }
+        .match-card strong { color: #1565c0; }
+        
+        /* 버튼 색
