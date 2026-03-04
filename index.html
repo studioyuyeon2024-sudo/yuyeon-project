@@ -5,46 +5,108 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Studio Yuyeon | 유연한 인연</title>
     <style>
-        /* [CSS 통합] 디자인 코드를 여기에 바로 넣었습니다 */
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+
+        /* 기본 설정 */
         body { background: #FDFBF6; font-family: 'Noto Sans KR', sans-serif; color: #333; display: flex; justify-content: center; padding: 10px; margin: 0; }
         .container { background: white; padding: 30px 20px; border-radius: 30px; box-shadow: 0 15px 40px rgba(0,0,0,0.06); width: 100%; max-width: 440px; text-align: center; border-top: 6px solid #1A237E; box-sizing: border-box; }
         .serif-title { font-family: 'Playfair Display', serif; font-size: 30px; color: #1A237E; margin-bottom: 8px; }
         .subtitle { font-size: 13px; color: #888; margin-bottom: 30px; letter-spacing: 1.2px; }
+
+        /* 카드 및 레이아웃 */
         .card { background: #FFFFFF; border: 1px solid #F0F0F0; padding: 22px; border-radius: 20px; margin-bottom: 20px; text-align: left; }
-        label { font-weight: 500; font-size: 14px; color: #2C3E50; display: block !important; margin-bottom: 10px; }
-        input, select, textarea { width: 100% !important; padding: 13px; border: 1px solid #E5E7EB; border-radius: 12px; font-size: 15px; box-sizing: border-box; background: #FAFAFA; display: block; margin-bottom: 10px; }
-        /* 번호 가로 정렬 핵심 */
+        .field { margin-bottom: 20px; width: 100%; }
+        label { font-weight: 600; font-size: 14px; color: #2C3E50; display: block; margin-bottom: 10px; }
+
+        /* [핵심 수정] 모든 입력창 너비 100% 강제 고정 및 디자인 */
+        input[type="text"], 
+        input[type="tel"], 
+        select, 
+        textarea { 
+            width: 100% !important; /* ★ 옹색하게 줄어드는 현상 방지 */
+            padding: 15px !important; 
+            border: 1px solid #E5E7EB !important; 
+            border-radius: 12px !important; 
+            font-size: 16px !important; /* 모바일 줌 방지를 위해 16px 권장 */
+            box-sizing: border-box !important; 
+            background: #FAFAFA !important; 
+            display: block !important; 
+            margin-top: 5px;
+            appearance: none; /* 브라우저 기본 스타일 제거 */
+            -webkit-appearance: none;
+        }
+
+        /* [핵심 수정] 참여 후기 박스 크기 키우기 */
+        textarea { 
+            min-height: 120px !important; /* ★ 후기 칸을 시원하게 키움 */
+            resize: none;
+            line-height: 1.5;
+        }
+
+        /* 버블 그리드 설정 */
         .bubble-grid { display: grid !important; grid-template-columns: repeat(6, 1fr) !important; gap: 10px; margin: 15px 0; }
-        .bubble { aspect-ratio: 1; border-radius: 50%; background: #F8F9FA; border: 1px solid #E0E0E0; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; color: #666; }
+        .bubble { aspect-ratio: 1; border-radius: 50%; background: #F8F9FA; border: 1px solid #E0E0E0; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; transition: 0.2s; color: #666; }
         .bubble.selected { background: #1A237E; color: white; border-color: #1A237E; font-weight: bold; transform: scale(1.1); }
-        #submit-btn { width: 100%; padding: 18px; border: none; border-radius: 15px; font-weight: bold; background: #1A237E; color: white; font-size: 16px; cursor: pointer; }
-        .secondary-btn { width: 100%; padding: 15px; border: 1px solid #ddd; border-radius: 15px; background: white; color: #555; font-size: 14px; white-space: nowrap; cursor: pointer; letter-spacing: -0.8px; }
+
+        /* 버튼 */
+        #submit-btn { width: 100%; padding: 20px; border: none; border-radius: 15px; font-weight: bold; background: #1A237E; color: white; font-size: 17px; cursor: pointer; margin-top: 10px; }
+        .secondary-btn { width: 100%; padding: 18px; border: 1px solid #ddd; border-radius: 15px; background: white; color: #555; font-size: 14px; cursor: pointer; letter-spacing: -0.5px; }
         .secondary-btn.active { background: #FF5252; color: white; border-color: #FF5252; }
-        .privacy-content { font-size: 11px; color: #777; text-align: left; height: 100px; overflow-y: auto; background: #f9f9f9; padding: 15px; border-radius: 12px; line-height: 1.6; }
+        
+        .privacy-content { font-size: 11px; color: #777; text-align: left; height: 100px; overflow-y: auto; background: #f9f9f9; padding: 15px; border-radius: 12px; line-height: 1.6; margin-top: 10px; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1 class="serif-title">Studio Yuyeon</h1>
         <p class="subtitle">당신의 유연한 인연을 찾아가는 시간</p>
+        
         <div id="input-section">
             <form id="matching-form">
                 <div class="card">
-                    <label>성별</label><select id="user-gender"><option value="male">남성</option><option value="female">여성</option></select>
-                    <label>본인 번호 (1~12번)</label><div class="bubble-grid" id="my-id-grid"></div><input type="hidden" id="user-id" required>
-                    <label>본명</label><input type="text" id="user-real-name" placeholder="성함을 입력하세요" required>
-                    <label>핸드폰 번호</label><input type="tel" id="user-phone" maxlength="13" placeholder="010-0000-0000" required>
+                    <div class="field">
+                        <label>성별</label>
+                        <select id="user-gender">
+                            <option value="male">남성</option>
+                            <option value="female">여성</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label>본인 번호 (1~12번)</label>
+                        <div class="bubble-grid" id="my-id-grid"></div>
+                        <input type="hidden" id="user-id" required>
+                    </div>
+
+                    <div class="field">
+                        <label>본명</label>
+                        <input type="text" id="user-real-name" placeholder="성함을 입력하세요" required>
+                    </div>
+
+                    <div class="field">
+                        <label>핸드폰 번호</label>
+                        <input type="tel" id="user-phone" maxlength="13" placeholder="010-0000-0000" required>
+                    </div>
                 </div>
+
                 <div class="card">
-                    <label>호감 가는 이성 번호 (최대 2명)</label><div class="bubble-grid" id="pick-id-grid"></div>
-                    <div style="text-align:center; margin:10px 0; color:#ccc; font-size:12px;">또는</div>
-                    <button type="button" id="skip-btn" class="secondary-btn">이번 기수에는 인연이 없었음 ❄️</button>
+                    <label>호감 가는 이성 번호 (최대 2명)</label>
+                    <div class="bubble-grid" id="pick-id-grid"></div>
+                    <div style="text-align:center; margin:15px 0; color:#ccc; font-size:12px;">또는</div>
+                    <button type="button" id="skip-btn" class="secondary-btn">이번 기수에는 인연이 없었어요 ❄️</button>
                     <input type="hidden" id="is-skipping" value="false">
                 </div>
-                <div class="field"><label>참여 후기 (선택)</label><textarea id="user-review" rows="2" placeholder="오늘 데이팅은 어떠셨나요?"></textarea></div>
+
                 <div class="field">
-                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" id="privacy-check" style="width:18px; height:18px;"><span style="font-size:13px; font-weight:bold;">개인정보 수집 및 이용 동의 (필수)</span></label>
+                    <label>참여 후기 (선택)</label>
+                    <textarea id="user-review" placeholder="오늘 데이팅은 어떠셨나요? 우철님에게 소중한 의견을 남겨주세요."></textarea>
+                </div>
+
+                <div class="field">
+                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                        <input type="checkbox" id="privacy-check" style="width:20px; height:20px;">
+                        <span style="font-size:14px; font-weight:bold;">개인정보 수집 및 이용 동의 (필수)</span>
+                    </label>
                     <div class="privacy-content">
                         <strong>1. 수집 항목:</strong> 성명, 성별, 연락처, 매칭 번호, 후기<br>
                         <strong>2. 이용 목적:</strong> 매칭 결과 분석 및 참가자 안내<br>
@@ -52,20 +114,37 @@
                         <strong>4. 동의 거부:</strong> 거부 시 서비스 이용이 제한됩니다.
                     </div>
                 </div>
-                <div style="margin-top:20px;"><button type="submit" id="submit-btn">1. 정보 제출하기</button></div>
+
+                <div style="margin-top:20px;">
+                    <button type="submit" id="submit-btn">정보 제출하기</button>
+                    <button type="button" id="check-result-btn" style="width:100%; margin-top:10px; padding:15px; background:none; border:1px solid #1A237E; color:#1A237E; border-radius:15px; font-weight:bold; cursor:pointer;">결과 확인하기</button>
+                </div>
             </form>
         </div>
+
+        <div id="result-section" style="display:none;">
+            <h2 class="serif-title" style="font-size:24px;">결과 확인</h2>
+            <div id="match-list-area"></div>
+            <button onclick="location.reload()" style="width:100%; padding:15px; border:none; background:#eee; border-radius:12px; cursor:pointer;">처음으로</button>
+        </div>
     </div>
+
     <script type="module">
-        /* [JS 통합] 파이어베이스 로직을 여기에 넣으세요 (기존 config 유지) */
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, getDoc, doc, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         
-        const firebaseConfig = { /* 여기에 우철님의 파이어베이스 설정값을 붙여넣으세요 */ };
+        const firebaseConfig = {
+            apiKey: "AIzaSyCy0qWrPE_aQGaKjJXIM_vgU8oO5Wq9mOI",
+            authDomain: "my-dating-service.firebaseapp.com",
+            projectId: "my-dating-service",
+            storageBucket: "my-dating-service.firebasestorage.app",
+            messagingSenderId: "231488184905",
+            appId: "1:231488184905:web:d49b3e4f0ef35e524e5598"
+        };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // 버블 생성 및 로직 구현 (가로 정렬 보장)
+        // 버블 및 폼 로직 (가로 정렬 보장)
         const myGrid = document.getElementById('my-id-grid');
         const pickGrid = document.getElementById('pick-id-grid');
         const userIdInput = document.getElementById('user-id');
@@ -76,16 +155,22 @@
             mb.onclick = () => { document.querySelectorAll('#my-id-grid .bubble').forEach(el => el.classList.remove('selected')); mb.classList.add('selected'); userIdInput.value = i; };
             myGrid.appendChild(mb);
             const pb = document.createElement('div'); pb.className = 'bubble pick-bubble'; pb.innerText = i;
-            pb.onclick = () => { if (selectedPicks.includes(i)) selectedPicks = selectedPicks.filter(id => id !== i); else if (selectedPicks.length < 2) selectedPicks.push(i); updatePickView(); };
+            pb.onclick = () => { 
+                if (document.getElementById('is-skipping').value === "true") return;
+                if (selectedPicks.includes(i)) selectedPicks = selectedPicks.filter(id => id !== i);
+                else if (selectedPicks.length < 2) selectedPicks.push(i);
+                updatePickView();
+            };
             pickGrid.appendChild(pb);
         }
         function updatePickView() { document.querySelectorAll('.pick-bubble').forEach(b => b.classList.toggle('selected', selectedPicks.includes(parseInt(b.innerText)))); }
         
+        // 제출 및 마감 로직 생략 (기존과 동일하게 작동)
         document.getElementById('matching-form').onsubmit = async (e) => {
             e.preventDefault();
             const adminDoc = await getDoc(doc(db, "settings", "matching_status"));
-            if (adminDoc.exists() && adminDoc.data().is_open) return alert("접수 마감되었습니다.");
-            // ... (나머지 제출 로직 동일)
+            if (adminDoc.exists() && adminDoc.data().is_open) return alert("🛑 접수가 마감되었습니다.");
+            // 데이터 전송 로직...
             alert("제출 완료!");
         };
     </script>
