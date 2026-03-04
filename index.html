@@ -53,30 +53,25 @@
                     <textarea id="user-review" rows="3" placeholder="오늘 유연 데이팅은 어떠셨나요?"></textarea>
                 </div>
 
-<div class="card privacy-card">
-    <div class="field" style="margin-bottom: 5px;">
-        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
-            <input type="checkbox" id="privacy-check" style="width: 18px; height: 18px;">
-            <span style="font-size: 14px; font-weight: bold; color: #1A237E;">(필수) 개인정보 수집 및 이용 동의</span>
-        </label>
-    </div>
-    
-    <div class="privacy-content" style="font-size: 12px; color: #777; background: #f9f9f9; padding: 10px; border-radius: 8px; height: 80px; overflow-y: scroll; text-align: left; line-height: 1.5;">
-        <strong>1. 수집 항목:</strong> 성명, 성별, 연락처, 매칭 번호, 서비스 이용 기록<br>
-        <strong>2. 이용 목적:</strong> '스튜디오 유연' 로테이션 데이팅 매칭 결과 분석 및 안내<br>
-        <strong>3. 보유 기간:</strong> <strong>매칭 결과 안내 완료 후 즉시 파기</strong><br>
-        <strong>4. 동의 거부권:</strong> 귀하는 동의를 거부할 권리가 있으나, 거부 시 매칭 서비스 이용이 불가능합니다.
-    </div>
-</div>
+                <div class="card privacy-card">
+                    <div class="field" style="margin-bottom: 5px;">
+                        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                            <input type="checkbox" id="privacy-check" style="width: 18px; height: 18px;">
+                            <span style="font-size: 14px; font-weight: bold; color: #1A237E;">(필수) 개인정보 수집 및 이용 동의</span>
+                        </label>
+                    </div>
+                    <div class="privacy-content">
+                        <strong>1. 수집 항목:</strong> 성명, 성별, 연락처, 매칭 번호, 후기<br>
+                        <strong>2. 이용 목적:</strong> 매칭 결과 분석 및 참가자 안내<br>
+                        <strong>3. 보유 기간:</strong> <strong>행사 종료 및 결과 안내 즉시 파기</strong><br>
+                        <strong>4. 동의 거부:</strong> 거부 시 매칭 서비스 이용이 제한됩니다.
+                    </div>
+                </div>
 
-<div style="margin-top: 20px; display: flex; flex-direction: column; gap: 12px;">
-    <button type="submit" id="submit-btn" style="background: #1A237E; color: white; padding: 18px; border: none; border-radius: 15px; font-weight: bold; cursor: pointer;">1. 정보 제출하기</button>
-    <button type="button" id="check-result-btn" style="background: #FFFFFF; color: #1A237E; border: 2px solid #1A237E; padding: 15px; border-radius: 15px; font-weight: bold; cursor: pointer;">2. 결과 확인하기</button>
-</div>
-                
                 <div style="margin-top: 30px; display: flex; flex-direction: column; gap: 12px;">
-                    <button type="submit" id="submit-btn" style="background: #1A237E; color: white; padding: 18px; border: none; border-radius: 15px; font-weight: bold; cursor: pointer;">1. 정보 제출하기</button>
-                    <button type="button" id="check-result-btn" style="background: #FFFFFF; color: #1A237E; border: 2px solid #1A237E; padding: 15px; border-radius: 15px; font-weight: bold; cursor: pointer;">2. 결과 확인하기</button>
+                    <button type="submit" id="submit-btn">1. 정보 제출하기</button>
+                    <button type="button" id="withdraw-btn" style="display: none; background: #e74c3c;">제출 정보 회수하기 (다시 작성)</button>
+                    <button type="button" id="check-result-btn">2. 결과 확인하기</button>
                 </div>
             </form>
         </div>
@@ -88,13 +83,12 @@
             </div>
             <div id="match-list-area" style="margin-bottom: 20px;"></div>
             <div id="fail-box" class="schedule-box" style="display: none;">
-                <p>이번 기수에서는 아쉽게도 서로 선택이 일치하지 않았습니다.</p>
+                <p>아쉽게도 이번 기수에서는 서로 선택이 일치하지 않았습니다.</p>
                 <a href="https://studioyuyeon.com" target="_blank">👉 다음 기수 일정 확인하기</a>
             </div>
-            <button onclick="location.reload()" class="retry-btn" style="width: 100%; padding: 15px; border: none; border-radius: 12px; cursor: pointer; background: #eee;">처음으로 돌아가기</button>
+            <button onclick="location.reload()" class="retry-btn">처음으로 돌아가기</button>
         </div>
     </div>
-
     <script type="module" src="./script.js"></script>
 </body>
 </html>
