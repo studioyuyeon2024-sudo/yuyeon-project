@@ -20,50 +20,52 @@
             font-size: 16px !important; box-sizing: border-box !important; background: #FAFAFA !important; display: block !important; margin-bottom: 10px;
             appearance: none; -webkit-appearance: none;
         }
-        textarea { min-height: 120px !important; resize: none; line-height: 1.6; }
 
         .bubble-grid { display: grid !important; grid-template-columns: repeat(6, 1fr) !important; gap: 10px; margin: 15px 0; }
         .bubble { aspect-ratio: 1; border-radius: 50%; background: #F8F9FA; border: 1px solid #E0E0E0; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; color: #666; transition: 0.2s; }
         .bubble.selected { background: #1A237E; color: white; border-color: #1A237E; font-weight: bold; transform: scale(1.1); }
 
+        /* [해결] 개인정보 동의 영역 레이아웃 정교화 */
+        .privacy-section { margin: 20px 0; text-align: left; }
+        .privacy-row { display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 12px; }
+        .privacy-row input[type="checkbox"] { width: 22px !important; height: 22px !important; margin: 0 !important; cursor: pointer; flex-shrink: 0; }
+        .privacy-row span { font-size: 15px; font-weight: bold; color: #1A237E; line-height: 1; }
+        .privacy-content { font-size: 11px; color: #777; height: 100px; overflow-y: auto; background: #f9f9f9; padding: 15px; border-radius: 12px; line-height: 1.6; border: 1px solid #eee; }
+
         #submit-btn { width: 100%; padding: 20px; border: none; border-radius: 15px; font-weight: bold; background: #1A237E; color: white; font-size: 17px; cursor: pointer; margin-top: 10px; }
-        .secondary-btn { width: 100%; padding: 18px; border: 1px solid #ddd; border-radius: 15px; background: white; color: #555; font-size: 14px; cursor: pointer; }
-        
-        /* 개인정보 동의 영역 */
-        .privacy-row { display: flex; align-items: center; gap: 10px; cursor: pointer; margin: 15px 0 10px; }
-        .privacy-row input { width: 22px; height: 22px; margin: 0; flex-shrink: 0; }
-        .privacy-content { font-size: 11px; color: #777; text-align: left; height: 100px; overflow-y: auto; background: #f9f9f9; padding: 15px; border-radius: 12px; line-height: 1.6; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1 class="serif-title">Studio Yuyeon</h1>
         <p class="subtitle">당신의 유연한 인연을 찾아가는 시간</p>
-        <div id="input-section">
-            <form id="matching-form">
-                <div class="card">
-                    <label>성별</label><select id="user-gender"><option value="male">남성</option><option value="female">여성</option></select>
-                    <label>본인 번호 (1~12번)</label><div class="bubble-grid" id="my-id-grid"></div><input type="hidden" id="user-id" required>
-                    <label>본명</label><input type="text" id="user-real-name" placeholder="성함을 입력하세요" required>
-                    <label>생년월일</label><input type="tel" id="user-birth" maxlength="10" placeholder="1900-00-00" required>
-                    <label>핸드폰 번호</label><input type="tel" id="user-phone" maxlength="13" placeholder="010-0000-0000" required>
-                </div>
-                <div class="card">
-                    <label>호감 가는 이성 번호 (최대 2명)</label><div class="bubble-grid" id="pick-id-grid"></div>
-                </div>
-                <div class="card"><label>참여 후기 (선택)</label><textarea id="user-review" placeholder="오늘 데이팅은 어떠셨나요?"></textarea></div>
-                
-                <label class="privacy-row"><input type="checkbox" id="privacy-check"><span style="font-size:14px; font-weight:bold;">개인정보 수집 및 이용 동의 (필수)</span></label>
+        <form id="matching-form">
+            <div class="card">
+                <label>성별</label><select id="user-gender"><option value="male">남성</option><option value="female">여성</option></select>
+                <label>본인 번호 (1~12번)</label><div class="bubble-grid" id="my-id-grid"></div><input type="hidden" id="user-id" required>
+                <label>본명</label><input type="text" id="user-real-name" placeholder="성함을 입력하세요" required>
+                <label>생년월일</label><input type="tel" id="user-birth" maxlength="10" placeholder="1900-00-00" required>
+                <label>핸드폰 번호</label><input type="tel" id="user-phone" maxlength="13" placeholder="010-0000-0000" required>
+            </div>
+            
+            <div class="card"><label>호감 이성 번호 (최대 2명)</label><div class="bubble-grid" id="pick-id-grid"></div></div>
+            <div class="card"><label>참여 후기 (선택)</label><textarea id="user-review" placeholder="오늘 데이팅은 어떠셨나요?"></textarea></div>
+            
+            <div class="privacy-section">
+                <label class="privacy-row">
+                    <input type="checkbox" id="privacy-check">
+                    <span>개인정보 수집 및 이용 동의 (필수)</span>
+                </label>
                 <div class="privacy-content">
                     <strong>1. 수집 항목:</strong> 성명, 성별, 생년월일, 연락처, 매칭 번호, 후기<br>
                     <strong>2. 이용 목적:</strong> 매칭 결과 분석 및 참가자 안내<br>
                     <strong>3. 보유 기간:</strong> <strong>행사 종료 및 결과 안내 즉시 파기</strong><br>
-                    <strong>4. 동의 거부:</strong> 거부 시 매칭 서비스 이용이 제한됩니다.
+                    <strong>4. 동의 거부:</strong> 거부 시 서비스 이용이 제한됩니다.
                 </div>
+            </div>
 
-                <button type="submit" id="submit-btn">정보 제출하기</button>
-            </form>
-        </div>
+            <button type="submit" id="submit-btn">정보 제출하기</button>
+        </form>
     </div>
 
     <script type="module">
@@ -74,25 +76,26 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // 입력 포맷팅 로직
-        const formatInput = (el, pattern) => {
+        // [기능] 자동 하이픈 및 숫자 제한
+        const applyFormat = (id, type) => {
+            const el = document.getElementById(id);
             el.addEventListener('input', (e) => {
                 let val = e.target.value.replace(/[^0-9]/g, '');
-                if (pattern === 'birth') {
+                if (type === 'birth') {
                     if (val.length <= 4) e.target.value = val;
                     else if (val.length <= 6) e.target.value = val.slice(0, 4) + '-' + val.slice(4);
                     else e.target.value = val.slice(0, 4) + '-' + val.slice(4, 6) + '-' + val.slice(6, 8);
-                } else if (pattern === 'phone') {
+                } else {
                     if (val.length <= 3) e.target.value = val;
                     else if (val.length <= 7) e.target.value = val.slice(0, 3) + '-' + val.slice(3);
                     else e.target.value = val.slice(0, 3) + '-' + val.slice(3, 7) + '-' + val.slice(7, 11);
                 }
             });
         };
-        formatInput(document.getElementById('user-birth'), 'birth');
-        formatInput(document.getElementById('user-phone'), 'phone');
+        applyFormat('user-birth', 'birth');
+        applyFormat('user-phone', 'phone');
 
-        // 번호 선택 그리드
+        // 번호 선택 로직
         const myGrid = document.getElementById('my-id-grid');
         const pickGrid = document.getElementById('pick-id-grid');
         const userIdInput = document.getElementById('user-id');
@@ -110,13 +113,11 @@
 
         document.getElementById('matching-form').onsubmit = async (e) => {
             e.preventDefault();
-            const btn = document.getElementById('submit-btn'); btn.disabled = true; btn.innerText = "상태 확인 중...";
-
-            const adminSnap = await getDoc(doc(db, "settings", "matching_status"));
-            if (adminSnap.exists() && adminSnap.data().is_open) {
-                alert("🛑 접수가 마감되었습니다."); btn.disabled = false; btn.innerText = "정보 제출하기"; return;
-            }
+            const btn = document.getElementById('submit-btn'); btn.disabled = true;
+            const snap = await getDoc(doc(db, "settings", "matching_status"));
+            if (snap.exists() && snap.data().is_open) { alert("접수 마감!"); btn.disabled = false; return; }
             if (!document.getElementById('privacy-check').checked) { alert("동의 필요!"); btn.disabled = false; return; }
+            if (!userIdInput.value) { alert("번호 선택!"); btn.disabled = false; return; }
 
             await addDoc(collection(db, "participants"), {
                 gender: document.getElementById('user-gender').value,
@@ -129,7 +130,7 @@
                 review: document.getElementById('user-review').value,
                 createdAt: new Date()
             });
-            alert("✅ 제출 성공!"); btn.innerText = "제출 완료";
+            alert("제출 완료!"); btn.innerText = "제출 성공";
         };
     </script>
 </body>
