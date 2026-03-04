@@ -16,7 +16,7 @@ const db = getFirestore(app);
 // 관리자 암호 체크 (임시로 'yuyeon123' 설정)
 window.checkAdmin = function() {
     const pw = document.getElementById('admin-password').value;
-    if(pw === "yuyeon123") {
+    if(pw === "dbdus2024") {
         document.getElementById('auth-section').style.display = 'none';
         document.getElementById('report-section').style.display = 'block';
         loadAllData();
