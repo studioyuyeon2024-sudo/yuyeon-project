@@ -16,39 +16,39 @@
         .control-panel { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 25px; }
         button { padding: 18px; border: none; border-radius: 15px; color: white; font-weight: bold; cursor: pointer; font-size: 15px; }
         .btn-purple { background: #9b59b6; } .btn-dark { background: #34495e; } .btn-orange { background: #f39c12; } .btn-red { background: #e74c3c; } .btn-green { background: #27ae60; grid-column: span 2; }
-        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 20px; }
         th, td { padding: 15px; border: 1px solid #f9f9f9; text-align: center; }
         th { background: #1A237E; color: white; }
     </style>
 </head>
 <body>
     <div id="login-section">
-        <h2 style="font-family: 'Playfair Display';">Admin Login</h2>
-        <input type="email" id="email" style="width:100%; padding:15px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;" placeholder="이메일">
-        <input type="password" id="password" style="width:100%; padding:15px; margin-bottom:20px; border-radius:10px; border:1px solid #ddd;" placeholder="비밀번호">
-        <button id="login-btn" style="width:100%; background:#1A237E; color:white; padding:18px; border-radius:10px; border:none; font-weight:bold; cursor:pointer;">로그인</button>
+        <h2 style="font-family: 'Playfair Display';">Studio Yuyeon Admin Login</h2>
+        <input type="email" id="email" style="width:100%; padding:15px; margin-bottom:10px; border-radius:10px; border:1px solid #ddd;" placeholder="ID (Email)">
+        <input type="password" id="password" style="width:100%; padding:15px; margin-bottom:20px; border-radius:10px; border:1px solid #ddd;" placeholder="Password">
+        <button id="login-btn" style="width:100%; background:#1A237E; color:white; padding:18px; border-radius:10px; border:none; font-weight:bold;">Login</button>
     </div>
 
     <div class="admin-container" id="admin-main">
-        <h1 style="font-family: 'Playfair Display'; text-align: center;">Studio Yuyeon Admin</h1>
+        <h1 style="font-family: 'Playfair Display'; text-align: center;">Dashboard</h1>
         <div class="bento-grid">
-            <div class="bento-card card-large"><h4>매칭 성공 💖</h4><p id="stat-couples" class="main-val" style="color:#FF5252;">0쌍</p><div id="match-summary" style="font-size: 13px; color: #666; line-height: 1.8;"></div></div>
+            <div class="bento-card card-large"><h4>커플 성공 💖</h4><p id="stat-couples" class="main-val" style="color:#FF5252;">0쌍</p><div id="match-summary" style="font-size: 13px; color: #666; line-height: 1.8;"></div></div>
             <div class="bento-card" style="grid-column: span 2; border-top: 5px solid #1A237E;"><h4>매칭률 📊</h4><p id="stat-rate" class="main-val">0%</p></div>
-            <div class="bento-card" style="border-top: 5px solid #27ae60;"><h4>총 참가자</h4><p id="stat-total" class="main-val">0명</p></div>
-            <div class="bento-card" style="border-top: 5px solid #f39c12;"><h4>성비 (남/여)</h4><p id="stat-gender" class="main-val" style="font-size: 20px;">0 / 0</p></div>
+            <div class="bento-card" style="border-top: 5px solid #27ae60;"><h4>총원</h4><p id="stat-total" class="main-val">0명</p></div>
+            <div class="bento-card" style="border-top: 5px solid #f39c12;"><h4>남 / 여</h4><p id="stat-gender" class="main-val" style="font-size: 20px;">0 / 0</p></div>
         </div>
 
         <div class="control-panel">
-            <button id="open-btn" class="btn-purple">🔓 결과 공개 (마감)</button>
-            <button id="close-btn" class="btn-dark">🔒 결과 차단 (재개)</button>
+            <button id="open-btn" class="btn-purple">🔓 결과 공개 (접수 마감)</button>
+            <button id="close-btn" class="btn-dark">🔒 결과 차단 (접수 재개)</button>
             <button id="download-btn" class="btn-orange">📥 명단 다운로드 (2차 비번)</button>
-            <button id="delete-btn" class="btn-red">⚠️ 백업 및 초기화 (2차 비번)</button>
+            <button id="delete-btn" class="btn-red">⚠️ 백업 후 초기화 (2차 비번)</button>
             <button id="refresh-btn" class="btn-green">🔄 데이터 새로고침</button>
         </div>
 
-        <div style="overflow-x: auto; border: 1px solid #eee; border-radius: 20px;">
+        <div style="overflow-x: auto; border-radius: 20px; border: 1px solid #eee;">
             <table>
-                <thead><tr><th>#</th><th>성별</th><th>이름</th><th>생일</th><th>연락처</th><th>픽</th><th>득표</th></tr></thead>
+                <thead><tr><th>#</th><th>성별</th><th>이름</th><th>생일</th><th>연락처</th><th>픽</th><th>득표 🔥</th></tr></thead>
                 <tbody id="list-body"></tbody>
             </table>
         </div>
@@ -68,7 +68,7 @@
 
         document.getElementById('login-btn').onclick = async () => {
             try { await signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value); }
-            catch (e) { alert("로그인 정보 오류"); }
+            catch (e) { alert("로그인 정보가 올바르지 않습니다."); }
         };
 
         onAuthStateChanged(auth, (user) => {
@@ -82,37 +82,39 @@
         async function updateDashboard() {
             const snap = await getDocs(collection(db, "participants"));
             currentData = []; snap.forEach(d => currentData.push({ id: d.id, ...d.data() }));
+            
             const voteMap = {}; currentData.forEach(p => { if(p.pickId1) voteMap[p.pickId1] = (voteMap[p.pickId1]||0)+1; if(p.pickId2) voteMap[p.pickId2] = (voteMap[p.pickId2]||0)+1; });
+
             const list = document.getElementById('list-body'); list.innerHTML = "";
             currentData.sort((a,b)=>a.myId - b.myId).forEach(p => {
                 list.innerHTML += `<tr><td>${p.myId}</td><td>${p.gender=='male'?'남':'여'}</td><td>${p.realName}</td><td>${p.birth||'-'}</td><td>${p.phone}</td><td>${p.pickId1||''},${p.pickId2||''}</td><td style="color:#FF5252; font-weight:bold;">${voteMap[p.myId]||0}</td></tr>`;
             });
-            // 통계 업데이트 로직... (중략)
+            // 통계 및 매칭 로직 (생략 - 이전과 동일)
         }
 
-        const checkSecPw = () => prompt("2차 비밀번호를 입력하세요.") === SEC_PW;
+        const verify = () => prompt("2차 보안 비밀번호를 입력하세요.") === SEC_PW;
 
         document.getElementById('download-btn').onclick = () => {
-            if(!checkSecPw()) return alert("비밀번호 불일치");
-            let csv = "\uFEFF번호,성별,이름,생일,연락처,픽1,픽2\n";
-            currentData.forEach(p => csv += `${p.myId},${p.gender},${p.realName},${p.birth},${p.phone},${p.pickId1},${p.pickId2}\n`);
+            if(!verify()) return alert("인증에 실패했습니다.");
+            let csv = "\uFEFF번호,성별,이름,생일,연락처,픽1,픽2,후기\n";
+            currentData.forEach(p => csv += `${p.myId},${p.gender},${p.realName},${p.birth},${p.phone},${p.pickId1},${p.pickId2},"${p.review||''}"\n`);
             const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
-            link.download = `백업_${new Date().toLocaleDateString()}.csv`; link.click();
+            link.download = `스튜디오유연_백업_${new Date().toLocaleDateString()}.csv`; link.click();
         };
 
         document.getElementById('delete-btn').onclick = async () => {
-            if(!checkSecPw()) return alert("비밀번호 불일치");
-            const batchName = prompt("기수 이름 (예: 14기)");
+            if(!verify()) return alert("인증에 실패했습니다.");
+            const batchName = prompt("아카이브할 기수 명칭을 입력하세요 (예: 14기)");
             if(!batchName) return;
             const batch = writeBatch(db);
             currentData.forEach(p => {
                 batch.set(doc(db, "archive", `${batchName}_${p.myId}`), { ...p, batchName, archivedAt: new Date() });
                 batch.delete(doc(db, "participants", p.id));
             });
-            await batch.commit(); alert("초기화 완료"); updateDashboard();
+            await batch.commit(); alert("아카이브 및 초기화가 완료되었습니다."); updateDashboard();
         };
 
-        document.getElementById('open-btn').onclick = async () => { if(confirm("접수 마감 및 결과 공개?")) await setDoc(doc(db, "settings", "matching_status"), { is_open: true }); };
+        document.getElementById('open-btn').onclick = async () => { if(confirm("결과를 공개하고 접수를 마감하시겠습니까?")) await setDoc(doc(db, "settings", "matching_status"), { is_open: true }); };
         document.getElementById('refresh-btn').onclick = updateDashboard;
     </script>
 </body>
