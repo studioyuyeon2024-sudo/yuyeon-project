@@ -18,14 +18,13 @@
         input, select, textarea { 
             width: 100% !important; padding: 15px !important; border: 1px solid #E5E7EB !important; border-radius: 12px !important; 
             font-size: 16px !important; box-sizing: border-box !important; background: #FAFAFA !important; display: block !important; margin-bottom: 10px;
-            appearance: none; -webkit-appearance: none;
         }
 
         .bubble-grid { display: grid !important; grid-template-columns: repeat(6, 1fr) !important; gap: 10px; margin: 15px 0; }
         .bubble { aspect-ratio: 1; border-radius: 50%; background: #F8F9FA; border: 1px solid #E0E0E0; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; color: #666; transition: 0.2s; }
         .bubble.selected { background: #1A237E; color: white; border-color: #1A237E; font-weight: bold; transform: scale(1.1); }
 
-        /* [해결] 개인정보 동의 영역 레이아웃 정교화 */
+        /* 개인정보 동의 영역 레이아웃 교정 */
         .privacy-section { margin: 20px 0; text-align: left; }
         .privacy-row { display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 12px; }
         .privacy-row input[type="checkbox"] { width: 22px !important; height: 22px !important; margin: 0 !important; cursor: pointer; flex-shrink: 0; }
@@ -76,7 +75,7 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // [기능] 자동 하이픈 및 숫자 제한
+        // 입력 제한 및 자동 하이픈 (숫자만 허용)
         const applyFormat = (id, type) => {
             const el = document.getElementById(id);
             el.addEventListener('input', (e) => {
@@ -95,33 +94,43 @@
         applyFormat('user-birth', 'birth');
         applyFormat('user-phone', 'phone');
 
-        // 번호 선택 로직
-        const myGrid = document.getElementById('my-id-grid');
-        const pickGrid = document.getElementById('pick-id-grid');
-        const userIdInput = document.getElementById('user-id');
-        let selectedPicks = [];
-
-        for (let i = 1; i <= 12; i++) {
-            const mb = document.createElement('div'); mb.className = 'bubble'; mb.innerText = i;
-            mb.onclick = () => { document.querySelectorAll('#my-id-grid .bubble').forEach(el => el.classList.remove('selected')); mb.classList.add('selected'); userIdInput.value = i; };
-            myGrid.appendChild(mb);
-            const pb = document.createElement('div'); pb.className = 'bubble pick-bubble'; pb.innerText = i;
-            pb.onclick = () => { if (selectedPicks.includes(i)) selectedPicks = selectedPicks.filter(id => id !== i); else if (selectedPicks.length < 2) selectedPicks.push(i); updatePickView(); };
-            pickGrid.appendChild(pb);
-        }
-        function updatePickView() { document.querySelectorAll('.pick-bubble').forEach(b => b.classList.toggle('selected', selectedPicks.includes(parseInt(b.innerText)))); }
+        // 번호 선택 그리드 생성
+        const setupGrid = (gridId, targetId, limit) => {
+            const grid = document.getElementById(gridId);
+            const selected = [];
+            for (let i = 1; i <= 12; i++) {
+                const b = document.createElement('div'); b.className = 'bubble'; b.innerText = i;
+                b.onclick = () => {
+                    if (limit === 1) {
+                        document.querySelectorAll(`#${gridId} .bubble`).forEach(x => x.classList.remove('selected'));
+                        b.classList.add('selected'); document.getElementById(targetId).value = i;
+                    } else {
+                        if (selected.includes(i)) {
+                            selected.splice(selected.indexOf(i), 1); b.classList.remove('selected');
+                        } else if (selected.length < limit) {
+                            selected.push(i); b.classList.add('selected');
+                        }
+                    }
+                };
+                grid.appendChild(b);
+            }
+            return selected;
+        };
+        const selectedPicks = setupGrid('pick-id-grid', '', 2);
+        setupGrid('my-id-grid', 'user-id', 1);
 
         document.getElementById('matching-form').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submit-btn'); btn.disabled = true;
+            
             const snap = await getDoc(doc(db, "settings", "matching_status"));
-            if (snap.exists() && snap.data().is_open) { alert("접수 마감!"); btn.disabled = false; return; }
-            if (!document.getElementById('privacy-check').checked) { alert("동의 필요!"); btn.disabled = false; return; }
-            if (!userIdInput.value) { alert("번호 선택!"); btn.disabled = false; return; }
+            if (snap.exists() && snap.data().is_open) { alert("🛑 현재 기수 접수가 마감되었습니다."); btn.disabled = false; return; }
+            if (!document.getElementById('privacy-check').checked) { alert("개인정보 동의가 필요합니다."); btn.disabled = false; return; }
+            if (!document.getElementById('user-id').value) { alert("본인 번호를 선택해 주세요."); btn.disabled = false; return; }
 
             await addDoc(collection(db, "participants"), {
                 gender: document.getElementById('user-gender').value,
-                myId: Number(userIdInput.value),
+                myId: Number(document.getElementById('user-id').value),
                 realName: document.getElementById('user-real-name').value,
                 birth: document.getElementById('user-birth').value,
                 phone: document.getElementById('user-phone').value,
@@ -130,7 +139,7 @@
                 review: document.getElementById('user-review').value,
                 createdAt: new Date()
             });
-            alert("제출 완료!"); btn.innerText = "제출 성공";
+            alert("✅ 제출 완료! 좋은 인연이 닿기를 응원합니다."); btn.innerText = "제출 성공";
         };
     </script>
 </body>
