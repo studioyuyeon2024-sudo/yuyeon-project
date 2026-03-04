@@ -21,7 +21,7 @@ const EXPORT_PASSWORD = "2024";
 window.checkAdmin = async function() {
     const email = document.getElementById('admin-email').value;
     const pw = document.getElementById('admin-password').value;
-    try { await signInWithEmailAndPassword(auth, email, pw); } catch (e) { alert("로그인 실패: 이메일과 비밀번호를 확인하세요."); }
+    try { await signInWithEmailAndPassword(auth, email, pw); } catch (e) { alert("로그인 실패: 정보를 확인하세요."); }
 };
 
 onAuthStateChanged(auth, (user) => {
@@ -79,13 +79,13 @@ document.getElementById('download-archive-btn').onclick = async () => {
         let csv = "\uFEFF기수,번호,성별,이름,연락처,후기\n";
         snap.forEach(d => { const p = d.data(); csv += `${p.batchName},${p.myId},${p.gender==='male'?'남':'여'},${p.realName},${p.phone},"${(p.review||'').replace(/"/g, '""')}"\n`; });
         const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
-        link.download = "유연_전체아카이브.csv"; link.click();
+        link.download = "유연_전체백업.csv"; link.click();
     } catch(e) { alert("백업 오류: " + e.message); }
 };
 
 document.getElementById('delete-btn').onclick = async () => {
-    const batch = prompt("기수 이름 (예: 유연 132기)");
-    if (!batch || !confirm(`[${batch}] 명단으로 백업 후 현재 데이터를 삭제하시겠습니까?`)) return;
+    const batch = prompt("백업할 기수 이름을 입력하세요", "유연 1기");
+    if (!batch || !confirm(`[${batch}] 명단으로 백업 후 초기화하시겠습니까?`)) return;
     try {
         const btn = document.getElementById('delete-btn'); btn.disabled = true; btn.innerText = "⏳ 처리 중...";
         const backupPromises = currentData.map(p => {
@@ -95,8 +95,8 @@ document.getElementById('delete-btn').onclick = async () => {
         await Promise.all(backupPromises);
         const snap = await getDocs(collection(db, "participants"));
         await Promise.all(snap.docs.map(d => deleteDoc(doc(db, "participants", d.id))));
-        alert("백업 및 초기화 완료!"); location.reload();
-    } catch(e) { alert("오류 원인: " + e.message); btn.disabled = false; btn.innerText = "⚠️ 기수 백업 및 초기화"; }
+        alert(`${batch} 백업 및 초기화 완료!`); location.reload();
+    } catch(e) { alert("초기화 오류 원인: " + e.message); btn.disabled = false; btn.innerText = "⚠️ 기수 백업 및 초기화"; }
 };
 
 document.getElementById('refresh-btn').onclick = updateDashboard;
