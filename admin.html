@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>유연 관리자 통제실 🔐</title>
+    <link rel="stylesheet" href="./style.css">
+    <style>
+        .admin-container { max-width: 800px; width: 95%; margin: 20px auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; font-size: 13px; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: center; }
+        th { background: #34495e; color: white; }
+        .match-card { background: #e1f5fe; padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 5px solid #03a9f4; text-align: left; }
+    </style>
+</head>
+<body>
+    <div class="admin-container">
+        <h2>스튜디오 유연 전체 리포트 📊</h2>
+        
+        <div id="auth-section">
+            <input type="password" id="admin-password" placeholder="관리자 암호를 입력하세요">
+            <button onclick="checkAdmin()">접속하기</button>
+        </div>
+
+        <div id="report-section" style="display: none;">
+            <button id="refresh-btn" style="background: #27ae60; margin-bottom: 20px;">새로고침 및 분석 시작</button>
+            
+            <h3>✅ 최종 매칭 결과</h3>
+            <div id="final-matches"></div>
+
+            <h3>👥 전체 참가자 명단</h3>
+            <table id="participant-table">
+                <thead>
+                    <tr>
+                        <th>번호</th>
+                        <th>성별</th>
+                        <th>이름</th>
+                        <th>연락처</th>
+                        <th>1지망</th>
+                        <th>2지망</th>
+                        <th>후기</th>
+                    </tr>
+                </thead>
+                <tbody id="participant-list"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="module" src="./admin.js"></script>
+</body>
+</html>
