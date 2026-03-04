@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let selectedPicks = [];
 
+    // 버블 생성
     for (let i = 1; i <= 12; i++) {
         const mb = document.createElement('div');
         mb.className = 'bubble'; mb.innerText = i;
@@ -51,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // 하이픈 자동생성
     phoneInput.addEventListener('input', (e) => {
         let val = e.target.value.replace(/[^0-9]/g, '');
         if (val.length <= 3) e.target.value = val;
@@ -58,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
         else e.target.value = val.slice(0, 3) + '-' + val.slice(3, 7) + '-' + val.slice(7, 11);
     });
 
+    // 제출 회수 로직
     withdrawBtn.onclick = async () => {
         const phone = phoneInput.value;
         if (phone.length < 13) return alert("번호를 정확히 입력해주세요.");
@@ -74,6 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { alert("오류: " + e.message); }
     };
 
+    // 정보 제출 로직
     document.getElementById('matching-form').onsubmit = async (e) => {
         e.preventDefault();
         if (!privacyCheck.checked) return alert("개인정보 동의가 필요합니다.");
@@ -107,31 +111,53 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { alert("오류: " + e.message); }
     };
 
+    // 결과 확인 로직 (버그 수정 포인트!)
     document.getElementById('check-result-btn').onclick = async () => {
-        const adminDoc = await getDoc(doc(db, "settings", "matching_status"));
-        if (!adminDoc.exists() || !adminDoc.data().is_open) return alert("아직 결과 공개 전입니다!");
-        
-        const snap = await getDocs(collection(db, "participants"));
-        const all = []; snap.forEach(d => all.push(d.data()));
-        const myId = Number(userIdInput.value);
-        const opposites = all.filter(p => p.gender !== document.getElementById('user-gender').value);
+        try {
+            const adminDoc = await getDoc(doc(db, "settings", "matching_status"));
+            if (!adminDoc.exists() || !adminDoc.data().is_open) return alert("아직 결과 공개 전입니다!");
+            
+            // 분석 시작!
+            const snap = await getDocs(collection(db, "participants"));
+            const all = []; snap.forEach(d => all.push(d.data()));
+            
+            const myId = Number(userIdInput.value);
+            const myGender = document.getElementById('user-gender').value;
+            const opposites = all.filter(p => p.gender !== myGender);
 
-        const votes = opposites.filter(p => p.pickId1 === myId || p.pickId2 === myId).length;
-        const matched = opposites.filter(p => (p.pickId1 === myId || p.pickId2 === myId) && selectedPicks.includes(p.myId));
+            // 득표수와 매칭 상대 계산
+            const votes = opposites.filter(p => p.pickId1 === myId || p.pickId2 === myId).length;
+            const matched = opposites.filter(p => (p.pickId1 === myId || p.pickId2 === myId) && selectedPicks.includes(p.myId));
 
-        document.getElementById('input-section').style.display = 'none';
-        document.getElementById('result-section').style.display = 'block';
-        document.getElementById('vote-count').innerText = votes;
-        const list = document.getElementById('match-list-area');
-        list.innerHTML = "";
-        if (matched.length > 0) {
-            matched.forEach(p => {
-                const div = document.createElement('div');
-                div.style.cssText = "background:#e3f2fd; padding:15px; border-radius:12px; margin-bottom:10px; font-weight:bold; border-left:5px solid #1A237E;";
-                div.innerHTML = `💖 ${p.myId}번 상대방과 매칭되었습니다!`;
-                list.appendChild(div);
-            });
-        } else { document.getElementById('fail-box').style.display = 'block'; }
+            // 화면 전환
+            document.getElementById('input-section').style.display = 'none';
+            document.getElementById('result-section').style.display = 'block';
+            
+            // 데이터 표출 (여기서 status-message를 꼭 바꿔줘야 합니다)
+            document.getElementById('vote-count').innerText = votes;
+            const statusMsg = document.getElementById('status-message');
+            const matchListArea = document.getElementById('match-list-area');
+            const failBox = document.getElementById('fail-box');
+
+            matchListArea.innerHTML = ""; // 초기화
+
+            if (matched.length > 0) {
+                statusMsg.innerText = "매칭 성공! 🎉";
+                matched.forEach(p => {
+                    const div = document.createElement('div');
+                    div.style.cssText = "background:#e3f2fd; padding:15px; border-radius:12px; margin-bottom:10px; font-weight:bold; border-left:5px solid #1A237E;";
+                    div.innerHTML = `💖 ${p.myId}번 상대방과 매칭되었습니다!`;
+                    matchListArea.appendChild(div);
+                });
+                failBox.style.display = 'none';
+            } else {
+                statusMsg.innerText = "분석 완료";
+                failBox.style.display = 'block';
+            }
+        } catch (err) {
+            console.error(err);
+            alert("결과 분석 중 오류가 발생했습니다: " + err.message);
+        }
     };
 
     skipBtn.onclick = () => {
