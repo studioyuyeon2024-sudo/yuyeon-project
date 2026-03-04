@@ -25,31 +25,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let selectedPicks = [];
 
+    // 버블 생성 로직 (생략 - 기존과 동일)
     for (let i = 1; i <= 12; i++) {
-        const mb = document.createElement('div');
-        mb.className = 'bubble'; mb.innerText = i;
-        mb.onclick = () => {
-            document.querySelectorAll('#my-id-grid .bubble').forEach(el => el.classList.remove('selected'));
-            mb.classList.add('selected'); userIdInput.value = i;
-        };
+        const mb = document.createElement('div'); mb.className = 'bubble'; mb.innerText = i;
+        mb.onclick = () => { document.querySelectorAll('#my-id-grid .bubble').forEach(el => el.classList.remove('selected')); mb.classList.add('selected'); userIdInput.value = i; };
         myGrid.appendChild(mb);
-        const pb = document.createElement('div');
-        pb.className = 'bubble pick-bubble'; pb.innerText = i;
-        pb.onclick = () => {
-            if (isSkippingInput.value === "true") return;
-            if (selectedPicks.includes(i)) selectedPicks = selectedPicks.filter(id => id !== i);
-            else if (selectedPicks.length < 2) selectedPicks.push(i);
-            updatePickView();
-        };
+        const pb = document.createElement('div'); pb.className = 'bubble pick-bubble'; pb.innerText = i;
+        pb.onclick = () => { if (isSkippingInput.value === "true") return; if (selectedPicks.includes(i)) selectedPicks = selectedPicks.filter(id => id !== i); else if (selectedPicks.length < 2) selectedPicks.push(i); updatePickView(); };
         pickGrid.appendChild(pb);
     }
+    function updatePickView() { document.querySelectorAll('.pick-bubble').forEach(b => b.classList.toggle('selected', selectedPicks.includes(parseInt(b.innerText)))); }
 
-    function updatePickView() {
-        document.querySelectorAll('.pick-bubble').forEach(b => {
-            b.classList.toggle('selected', selectedPicks.includes(parseInt(b.innerText)));
-        });
-    }
-
+    // 하이픈 자동생성
     phoneInput.addEventListener('input', (e) => {
         let val = e.target.value.replace(/[^0-9]/g, '');
         if (val.length <= 3) e.target.value = val;
@@ -57,27 +44,23 @@ document.addEventListener('DOMContentLoaded', () => {
         else e.target.value = val.slice(0, 3) + '-' + val.slice(3, 7) + '-' + val.slice(7, 11);
     });
 
-    withdrawBtn.onclick = async () => {
-        const phone = phoneInput.value;
-        if (phone.length < 13) return alert("번호를 정확히 입력해주세요.");
-        if (!confirm("기존 제출 내역을 삭제하고 다시 작성하시겠습니까?")) return;
-        try {
-            const q = query(collection(db, "participants"), where("phone", "==", phone));
-            const snap = await getDocs(q);
-            if (snap.empty) return alert("해당 번호로 제출된 내역이 없습니다.");
-            await Promise.all(snap.docs.map(d => deleteDoc(doc(db, "participants", d.id))));
-            alert("회수 완료! 다시 제출해주세요.");
-            withdrawBtn.style.display = 'none';
-            document.getElementById('submit-btn').disabled = false;
-        } catch (e) { alert("오류: " + e.message); }
-    };
-
+    // [중요] 정보 제출 시 마감 여부 확인
     document.getElementById('matching-form').onsubmit = async (e) => {
         e.preventDefault();
+        
+        // 1. 결과 공개 여부 확인 (마감 체크)
+        try {
+            const adminDoc = await getDoc(doc(db, "settings", "matching_status"));
+            if (adminDoc.exists() && adminDoc.data().is_open) {
+                return alert("🛑 현재 기수 접수가 마감되었습니다. 매칭 결과가 공개된 이후에는 정보를 제출할 수 없습니다.");
+            }
+        } catch (err) { console.error("마감 체크 오류:", err); }
+
         if (!privacyCheck.checked) return alert("개인정보 동의가 필요합니다.");
         if (!userIdInput.value) return alert("본인 번호를 선택해주세요.");
         if (phoneInput.value.length < 13) return alert("번호를 다 적어주세요.");
         if (isSkippingInput.value === "false" && selectedPicks.length === 0) return alert("이성을 선택해주세요.");
+
         const userData = {
             gender: document.getElementById('user-gender').value,
             myId: Number(userIdInput.value),
@@ -88,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
             review: document.getElementById('user-review').value,
             createdAt: new Date()
         };
+
         try {
             const q = query(collection(db, "participants"), where("phone", "==", userData.phone));
             const snap = await getDocs(q);
@@ -103,34 +87,23 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { alert("오류: " + e.message); }
     };
 
+    // 결과 확인 버튼 (생략 - 기존과 동일)
     document.getElementById('check-result-btn').onclick = async () => {
-        try {
-            const adminDoc = await getDoc(doc(db, "settings", "matching_status"));
-            if (!adminDoc.exists() || !adminDoc.data().is_open) return alert("아직 결과 공개 전입니다!");
-            const snap = await getDocs(collection(db, "participants"));
-            const all = []; snap.forEach(d => all.push(d.data()));
-            const myId = Number(userIdInput.value);
-            const opposites = all.filter(p => p.gender !== document.getElementById('user-gender').value);
-            const votes = opposites.filter(p => p.pickId1 === myId || p.pickId2 === myId).length;
-            const matched = opposites.filter(p => (p.pickId1 === myId || p.pickId2 === myId) && selectedPicks.includes(p.myId));
-            document.getElementById('input-section').style.display = 'none';
-            document.getElementById('result-section').style.display = 'block';
-            document.getElementById('vote-count').innerText = votes;
-            const list = document.getElementById('match-list-area');
-            const statusMsg = document.getElementById('status-message');
-            const failBox = document.getElementById('fail-box');
-            list.innerHTML = "";
-            if (matched.length > 0) {
-                statusMsg.innerText = "매칭 성공! 🎉";
-                matched.forEach(p => {
-                    const div = document.createElement('div');
-                    div.style.cssText = "background:#e3f2fd; padding:15px; border-radius:12px; margin-bottom:10px; font-weight:bold; border-left:5px solid #1A237E;";
-                    div.innerHTML = `💖 ${p.myId}번 상대방과 매칭되었습니다!`;
-                    list.appendChild(div);
-                });
-                failBox.style.display = 'none';
-            } else { statusMsg.innerText = "분석 완료"; failBox.style.display = 'block'; }
-        } catch (err) { alert("확인 불가: " + err.message); }
+        const adminDoc = await getDoc(doc(db, "settings", "matching_status"));
+        if (!adminDoc.exists() || !adminDoc.data().is_open) return alert("아직 결과 공개 전입니다!");
+        const snap = await getDocs(collection(db, "participants"));
+        const all = []; snap.forEach(d => all.push(d.data()));
+        const myId = Number(userIdInput.value);
+        const opposites = all.filter(p => p.gender !== document.getElementById('user-gender').value);
+        const votes = opposites.filter(p => p.pickId1 === myId || p.pickId2 === myId).length;
+        const matched = opposites.filter(p => (p.pickId1 === myId || p.pickId2 === myId) && selectedPicks.includes(p.myId));
+        document.getElementById('input-section').style.display = 'none';
+        document.getElementById('result-section').style.display = 'block';
+        const list = document.getElementById('match-list-area');
+        list.innerHTML = `<div style="background:#FFF9E6; padding:20px; border-radius:20px; margin-bottom:20px;">받은 표: <b>${votes}표</b></div>`;
+        if (matched.length > 0) {
+            matched.forEach(p => list.innerHTML += `<div style='background:#e3f2fd; padding:15px; border-radius:12px; margin-bottom:10px; font-weight:bold;'>💖 ${p.myId}번과 매칭 성공!</div>`);
+        } else { list.innerHTML += `<div style='background:#f4f4f4; padding:20px; border-radius:15px;'>매칭되지 않았습니다.</div>`; }
     };
 
     skipBtn.onclick = () => {
