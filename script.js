@@ -33,7 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
             mb.classList.add('selected'); userIdInput.value = i;
         };
         myGrid.appendChild(mb);
-
         const pb = document.createElement('div');
         pb.className = 'bubble pick-bubble'; pb.innerText = i;
         pb.onclick = () => {
@@ -70,7 +69,6 @@ document.addEventListener('DOMContentLoaded', () => {
             alert("회수 완료! 다시 제출해주세요.");
             withdrawBtn.style.display = 'none';
             document.getElementById('submit-btn').disabled = false;
-            document.getElementById('submit-btn').innerText = "1. 정보 제출하기";
         } catch (e) { alert("오류: " + e.message); }
     };
 
@@ -79,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!privacyCheck.checked) return alert("개인정보 동의가 필요합니다.");
         if (!userIdInput.value) return alert("본인 번호를 선택해주세요.");
         if (phoneInput.value.length < 13) return alert("번호를 다 적어주세요.");
-
+        if (isSkippingInput.value === "false" && selectedPicks.length === 0) return alert("이성을 선택해주세요.");
         const userData = {
             gender: document.getElementById('user-gender').value,
             myId: Number(userIdInput.value),
@@ -90,7 +88,6 @@ document.addEventListener('DOMContentLoaded', () => {
             review: document.getElementById('user-review').value,
             createdAt: new Date()
         };
-
         try {
             const q = query(collection(db, "participants"), where("phone", "==", userData.phone));
             const snap = await getDocs(q);
@@ -110,24 +107,19 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const adminDoc = await getDoc(doc(db, "settings", "matching_status"));
             if (!adminDoc.exists() || !adminDoc.data().is_open) return alert("아직 결과 공개 전입니다!");
-            
             const snap = await getDocs(collection(db, "participants"));
             const all = []; snap.forEach(d => all.push(d.data()));
             const myId = Number(userIdInput.value);
             const opposites = all.filter(p => p.gender !== document.getElementById('user-gender').value);
-
             const votes = opposites.filter(p => p.pickId1 === myId || p.pickId2 === myId).length;
             const matched = opposites.filter(p => (p.pickId1 === myId || p.pickId2 === myId) && selectedPicks.includes(p.myId));
-
             document.getElementById('input-section').style.display = 'none';
             document.getElementById('result-section').style.display = 'block';
             document.getElementById('vote-count').innerText = votes;
-            
             const list = document.getElementById('match-list-area');
             const statusMsg = document.getElementById('status-message');
             const failBox = document.getElementById('fail-box');
             list.innerHTML = "";
-
             if (matched.length > 0) {
                 statusMsg.innerText = "매칭 성공! 🎉";
                 matched.forEach(p => {
@@ -137,10 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     list.appendChild(div);
                 });
                 failBox.style.display = 'none';
-            } else {
-                statusMsg.innerText = "분석 완료";
-                failBox.style.display = 'block';
-            }
+            } else { statusMsg.innerText = "분석 완료"; failBox.style.display = 'block'; }
         } catch (err) { alert("확인 불가: " + err.message); }
     };
 
