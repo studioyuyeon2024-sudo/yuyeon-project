@@ -6,45 +6,37 @@
     <title>Studio Yuyeon | 유연한 인연</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
-        
         body { background: #FDFBF6; font-family: 'Noto Sans KR', sans-serif; color: #333; display: flex; justify-content: center; padding: 10px; margin: 0; }
         .container { background: white; padding: 30px 20px; border-radius: 30px; box-shadow: 0 15px 40px rgba(0,0,0,0.06); width: 100%; max-width: 440px; text-align: center; border-top: 6px solid #1A237E; box-sizing: border-box; }
         .serif-title { font-family: 'Playfair Display', serif; font-size: 30px; color: #1A237E; margin-bottom: 8px; }
-        .subtitle { font-size: 13px; color: #888; margin-bottom: 30px; letter-spacing: 1.2px; }
-
-        .card { background: #FFFFFF; border: 1px solid #F0F0F0; padding: 22px; border-radius: 20px; margin-bottom: 20px; text-align: left; box-sizing: border-box; width: 100%; }
-        label { font-weight: 600; font-size: 14px; color: #2C3E50; display: block; margin-bottom: 8px; }
-
-        input, select, textarea { 
-            width: 100% !important; padding: 15px !important; border: 1px solid #E5E7EB !important; border-radius: 12px !important; 
-            font-size: 16px !important; box-sizing: border-box !important; background: #FAFAFA !important; display: block !important; margin-bottom: 10px;
-        }
-
+        .card { background: #FFFFFF; border: 1px solid #F0F0F0; padding: 22px; border-radius: 20px; margin-bottom: 20px; text-align: left; }
+        label { font-weight: 600; font-size: 14px; display: block; margin-bottom: 8px; }
+        input, select, textarea { width: 100% !important; padding: 15px !important; border: 1px solid #E5E7EB !important; border-radius: 12px !important; font-size: 16px !important; box-sizing: border-box; background: #FAFAFA !important; display: block; margin-bottom: 10px; }
         .bubble-grid { display: grid !important; grid-template-columns: repeat(6, 1fr) !important; gap: 10px; margin: 15px 0; }
-        .bubble { aspect-ratio: 1; border-radius: 50%; background: #F8F9FA; border: 1px solid #E0E0E0; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; color: #666; transition: 0.2s; }
-        .bubble.selected { background: #1A237E; color: white; border-color: #1A237E; font-weight: bold; transform: scale(1.1); }
+        .bubble { aspect-ratio: 1; border-radius: 50%; background: #F8F9FA; border: 1px solid #E0E0E0; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; color: #666; }
+        .bubble.selected { background: #1A237E; color: white; font-weight: bold; transform: scale(1.1); }
+        
+        /* 실시간 상태 알림 바 */
+        #status-bar { display: none; background: #FF5252; color: white; padding: 10px; border-radius: 10px; font-size: 13px; font-weight: bold; margin-bottom: 15px; animation: blink 2s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
 
-        /* [해결] 개인정보 동의 영역 레이아웃 교정 */
-        .privacy-section { margin: 20px 0; text-align: left; width: 100%; box-sizing: border-box; }
-        .privacy-row { display: flex !important; align-items: center !important; gap: 12px !important; cursor: pointer; margin-bottom: 12px; }
-        .privacy-row input[type="checkbox"] { width: 22px !important; height: 22px !important; margin: 0 !important; cursor: pointer; flex-shrink: 0; }
-        .privacy-row span { font-size: 15px; font-weight: bold; color: #1A237E; line-height: 1.2; }
+        .privacy-section { margin: 20px 0; text-align: left; }
+        .privacy-row { display: flex; align-items: center; gap: 12px; cursor: pointer; margin-bottom: 12px; }
+        .privacy-row input[type="checkbox"] { width: 22px !important; height: 22px !important; margin: 0 !important; flex-shrink: 0; }
+        .privacy-row span { font-size: 15px; font-weight: bold; color: #1A237E; }
         .privacy-content { font-size: 11px; color: #777; height: 100px; overflow-y: auto; background: #f9f9f9; padding: 15px; border-radius: 12px; line-height: 1.6; border: 1px solid #eee; }
 
-        #submit-btn { width: 100%; padding: 20px; border: none; border-radius: 15px; font-weight: bold; background: #1A237E; color: white; font-size: 17px; cursor: pointer; margin-top: 10px; }
-        
-        /* [해결] 회수하기 버튼 디자인 및 배치 */
+        #submit-btn { width: 100%; padding: 20px; border: none; border-radius: 15px; font-weight: bold; background: #1A237E; color: white; font-size: 17px; cursor: pointer; }
         #withdraw-btn { width: 100%; padding: 15px; border: none; border-radius: 15px; font-weight: bold; background: #e74c3c; color: white; font-size: 14px; cursor: pointer; margin-top: 10px; display: none; }
-        
         #check-result-btn { width: 100%; padding: 18px; border: 1.5px solid #1A237E; border-radius: 15px; font-weight: bold; background: white; color: #1A237E; font-size: 16px; cursor: pointer; margin-top: 10px; }
-        
         .next-schedule-box { background: #1A237E; color: white; padding: 25px 20px; border-radius: 20px; margin-top: 20px; text-decoration: none; display: block; text-align: center; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1 class="serif-title">Studio Yuyeon</h1>
-        <p class="subtitle">당신의 유연한 인연을 찾아가는 시간</p>
+        <div id="status-bar">📢 매칭 결과가 공개되었습니다! 결과를 확인하세요.</div>
+        
         <div id="input-section">
             <form id="matching-form">
                 <div class="card">
@@ -52,29 +44,16 @@
                     <label>본인 번호 (1~12번)</label><div class="bubble-grid" id="my-id-grid"></div><input type="hidden" id="user-id" required>
                     <label>본명</label><input type="text" id="user-real-name" placeholder="성함을 입력하세요" required>
                     <label>생년월일</label><input type="tel" id="user-birth" maxlength="10" placeholder="1900-00-00" required>
-                    <label>핸드폰 번호 (입력 시 자동 조회)</label><input type="tel" id="user-phone" maxlength="13" placeholder="010-0000-0000" required>
+                    <label>핸드폰 번호</label><input type="tel" id="user-phone" maxlength="13" placeholder="010-0000-0000" required>
                 </div>
-                <div class="card">
-                    <label>호감 이성 번호 (최대 2명)</label><div class="bubble-grid" id="pick-id-grid"></div>
-                </div>
+                <div class="card"><label>호감 이성 번호 (최대 2명)</label><div class="bubble-grid" id="pick-id-grid"></div></div>
                 <div class="card"><label>참여 후기 (선택)</label><textarea id="user-review" placeholder="오늘 데이팅은 어떠셨나요?"></textarea></div>
-                
-                <div class="privacy-section">
-                    <label class="privacy-row">
-                        <input type="checkbox" id="privacy-check">
-                        <span>개인정보 수집 및 이용 동의 (필수)</span>
-                    </label>
-                    <div class="privacy-content">
-                        <strong>1. 수집 항목:</strong> 성명, 성별, 생년월일, 연락처, 매칭 번호, 후기<br>
-                        <strong>2. 이용 목적:</strong> 매칭 결과 분석 및 참가자 안내<br>
-                        <strong>3. 보유 기간:</strong> <strong>행사 종료 및 결과 안내 즉시 파기</strong><br>
-                        <strong>4. 동의 거부:</strong> 거부 시 서비스 이용이 제한됩니다.
-                    </div>
-                </div>
+                <label class="privacy-row"><input type="checkbox" id="privacy-check"><span>개인정보 수집 및 이용 동의 (필수)</span></label>
+                <div class="privacy-content">행사 종료 및 결과 안내 즉시 모든 데이터는 파기됩니다.</div>
 
-                <button type="submit" id="submit-btn">정보 제출하기</button>
-                <button type="button" id="withdraw-btn">⚠️ 이미 제출하셨나요? 정보 회수하기</button>
-                <button type="button" id="check-result-btn">결과 확인하기 (마감 후 공개)</button>
+                <button type="submit" id="submit-btn" style="margin-top:20px;">정보 제출하기</button>
+                <button type="button" id="withdraw-btn">⚠️ 정보 회수하고 다시 쓰기</button>
+                <button type="button" id="check-result-btn">결과 확인하기</button>
             </form>
         </div>
         <div id="result-section" style="display:none;">
@@ -86,41 +65,49 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, getDoc, doc, getDocs, query, where, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDoc, doc, getDocs, query, where, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         
         const firebaseConfig = { apiKey: "AIzaSyCy0qWrPE_aQGaKjJXIM_vgU8oO5Wq9mOI", authDomain: "my-dating-service.firebaseapp.com", projectId: "my-dating-service", storageBucket: "my-dating-service.firebasestorage.app", messagingSenderId: "231488184905", appId: "1:231488184905:web:d49b3e4f0ef35e524e5598" };
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        const phoneInput = document.getElementById('user-phone');
-        const withdrawBtn = document.getElementById('withdraw-btn');
+        const statusBar = document.getElementById('status-bar');
+        const submitBtn = document.getElementById('submit-btn');
 
-        // [핵심] 핸드폰 번호 입력 시 실시간 조회하여 회수 버튼 노출
-        phoneInput.addEventListener('input', async (e) => {
-            let val = e.target.value.replace(/[^0-9]/g, '');
-            // 자동 하이픈 로직
-            if (val.length <= 3) e.target.value = val;
-            else if (val.length <= 7) e.target.value = val.slice(0, 3) + '-' + val.slice(3);
-            else e.target.value = val.slice(0, 3) + '-' + val.slice(3, 7) + '-' + val.slice(7, 11);
-
-            // 11자리가 다 입력되면 DB 조회
-            if (val.length === 11) {
-                const q = query(collection(db, "participants"), where("phone", "==", e.target.value));
-                const snap = await getDocs(q);
-                if (!snap.empty) withdrawBtn.style.display = 'block';
-                else withdrawBtn.style.display = 'none';
+        // [핵심] 실시간 상태 감시: 관리자가 버튼 누르면 즉시 반응
+        onSnapshot(doc(db, "settings", "matching_status"), (snapshot) => {
+            if (snapshot.exists()) {
+                const isOpen = snapshot.data().is_open;
+                if (isOpen) {
+                    statusBar.style.display = 'block';
+                    submitBtn.innerText = "접수 마감 (결과 확인 가능)";
+                    submitBtn.style.background = "#999";
+                } else {
+                    statusBar.style.display = 'none';
+                    submitBtn.innerText = "정보 제출하기";
+                    submitBtn.style.background = "#1A237E";
+                }
             }
         });
 
-        // 생년월일 하이픈
-        document.getElementById('user-birth').addEventListener('input', (e) => {
-            let val = e.target.value.replace(/[^0-9]/g, '');
-            if (val.length <= 4) e.target.value = val;
-            else if (val.length <= 6) e.target.value = val.slice(0, 4) + '-' + val.slice(4);
-            else e.target.value = val.slice(0, 4) + '-' + val.slice(4, 6) + '-' + val.slice(6, 8);
-        });
+        // 자동 하이픈 & 숫자 제한 로직
+        const applyFormat = (id, type) => {
+            document.getElementById(id).addEventListener('input', (e) => {
+                let val = e.target.value.replace(/[^0-9]/g, '');
+                if (type === 'birth') {
+                    if (val.length <= 4) e.target.value = val;
+                    else if (val.length <= 6) e.target.value = val.slice(0, 4) + '-' + val.slice(4);
+                    else e.target.value = val.slice(0, 4) + '-' + val.slice(4, 6) + '-' + val.slice(6, 8);
+                } else {
+                    if (val.length <= 3) e.target.value = val;
+                    else if (val.length <= 7) e.target.value = val.slice(0, 3) + '-' + val.slice(3);
+                    else e.target.value = val.slice(0, 3) + '-' + val.slice(3, 7) + '-' + val.slice(7, 11);
+                }
+            });
+        };
+        applyFormat('user-birth', 'birth'); applyFormat('user-phone', 'phone');
 
-        // 번호 선택 로직 (생략 없이 통합)
+        // 번호 선택 그리드
         let selectedPicks = [];
         const setupGrid = (gridId, targetId, limit) => {
             const grid = document.getElementById(gridId);
@@ -140,78 +127,71 @@
         };
         setupGrid('my-id-grid', 'user-id', 1); setupGrid('pick-id-grid', '', 2);
 
-        // 정보 제출
+        // 회수하기 버튼 실시간 노출
+        document.getElementById('user-phone').addEventListener('blur', async (e) => {
+            if (e.target.value.length === 13) {
+                const q = query(collection(db, "participants"), where("phone", "==", e.target.value));
+                const snap = await getDocs(q);
+                if (!snap.empty) document.getElementById('withdraw-btn').style.display = 'block';
+            }
+        });
+
+        // 제출
         document.getElementById('matching-form').onsubmit = async (e) => {
             e.preventDefault();
-            const btn = document.getElementById('submit-btn'); btn.disabled = true;
-
             const adminSnap = await getDoc(doc(db, "settings", "matching_status"));
-            if (adminSnap.exists() && adminSnap.data().is_open) { alert("🛑 현재 기수 마감되었습니다."); btn.disabled = false; return; }
-            if (!document.getElementById('privacy-check').checked) { alert("동의 필요!"); btn.disabled = false; return; }
-
-            const phone = phoneInput.value;
-            const q = query(collection(db, "participants"), where("phone", "==", phone));
-            const existing = await getDocs(q);
-            if (!existing.empty) { 
-                alert("이미 제출된 번호입니다. '회수하기' 버튼을 눌러 기존 정보를 삭제 후 다시 제출해 주세요."); 
-                btn.disabled = false; return; 
-            }
-
+            if (adminSnap.exists() && adminSnap.data().is_open) return alert("🛑 접수가 마감되었습니다.");
+            
             await addDoc(collection(db, "participants"), {
                 gender: document.getElementById('user-gender').value,
                 myId: Number(document.getElementById('user-id').value),
                 realName: document.getElementById('user-real-name').value,
                 birth: document.getElementById('user-birth').value,
-                phone: phone,
+                phone: document.getElementById('user-phone').value,
                 pickId1: selectedPicks[0] || null, pickId2: selectedPicks[1] || null,
                 review: document.getElementById('user-review').value, createdAt: new Date()
             });
             alert("✅ 제출 성공!"); location.reload();
         };
 
-        // 정보 회수하기 로직
-        withdrawBtn.onclick = async () => {
-            if (!confirm("⚠️ 제출하신 정보를 삭제하고 다시 작성하시겠습니까?")) return;
-            const q = query(collection(db, "participants"), where("phone", "==", phoneInput.value));
+        // 정보 회수
+        document.getElementById('withdraw-btn').onclick = async () => {
+            if (!confirm("⚠️ 제출 정보를 삭제하시겠습니까?")) return;
+            const q = query(collection(db, "participants"), where("phone", "==", document.getElementById('user-phone').value));
             const snap = await getDocs(q);
             await Promise.all(snap.docs.map(d => deleteDoc(doc(db, "participants", d.id))));
-            alert("회수 완료! 이제 다시 제출하실 수 있습니다.");
-            location.reload();
+            alert("회수 완료!"); location.reload();
         };
 
-        // 결과 확인하기
+        // 결과 확인 (익명성 강화)
         document.getElementById('check-result-btn').onclick = async () => {
             const adminSnap = await getDoc(doc(db, "settings", "matching_status"));
-            if (!adminSnap.exists() || !adminSnap.data().is_open) return alert("결과 공개 전입니다!");
+            if (!adminSnap.exists() || !adminSnap.data().is_open) return alert("아직 결과 공개 전입니다!");
             
             const myId = Number(document.getElementById('user-id').value);
-            if (!myId) return alert("본인 번호를 선택해 주세요.");
+            if (!myId) return alert("먼저 본인 번호를 선택해 주세요.");
 
             const snap = await getDocs(collection(db, "participants"));
             const all = []; snap.forEach(d => all.push(d.data()));
             const opposites = all.filter(p => p.gender !== document.getElementById('user-gender').value);
             const votes = opposites.filter(p => p.pickId1 === myId || p.pickId2 === myId).length;
-            const matched = opposites.filter(p => (p.pickId1 === myId || p.pickId2 === myId) && [selectedPicks[0], selectedPicks[1]].includes(p.myId));
+            const matched = opposites.filter(p => (p.pickId1 === myId || p.pickId2 === myId) && selectedPicks.includes(p.myId));
             
             document.getElementById('input-section').style.display = 'none';
             document.getElementById('result-section').style.display = 'block';
             const area = document.getElementById('match-list-area');
             
+            area.innerHTML = `<div style="background:#FFF9E6; padding:20px; border-radius:20px; margin-bottom:20px;">나의 득표수: <b>${votes}표</b></div>`;
+            
             if (matched.length > 0) {
-                area.innerHTML = `
-                    <div style="margin-bottom:25px;">
-                        <h3 style="color:#FF5252;">🎉 축하합니다! 🎉</h3>
-                        <p style="font-size:15px; color:#555;">용기 내어 선택한 마음이 상대에게 전달되었습니다.</p>
-                    </div>
-                    <div style="background:#FFF9E6; padding:15px; border-radius:15px; margin-bottom:15px;">나의 득표수: <b>${votes}표</b></div>`;
-                matched.forEach(p => area.innerHTML += `<div style='background:linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%); padding:20px; border-radius:12px; margin-bottom:10px; font-weight:bold;'>💖 ${p.myId}번님과 매칭 성공!</div>`);
+                area.innerHTML += `<h3 style="color:#FF5252;">🎉 매칭 성공! 축하합니다.</h3>`;
+                matched.forEach(p => area.innerHTML += `<div style='background:linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%); padding:20px; border-radius:15px; margin-bottom:12px; font-weight:bold;'>💖 ${p.myId}번님과 매칭되었습니다!</div>`);
             } else {
-                area.innerHTML = `
-                    <div style="background:#FFF9E6; padding:15px; border-radius:15px; margin-bottom:15px;">나의 득표수: <b>${votes}표</b></div>
+                area.innerHTML += `
                     <div style='background:#f4f4f4; padding:20px; border-radius:15px; margin-bottom:20px; color:#666;'>아쉽게도 이번 기수에는 매칭되지 않았습니다.</div>
                     <a href="https://litt.ly/studioyuyeon" target="_blank" class="next-schedule-box">
                         <strong>🗓️ 다음 일정 확인하기</strong>
-                        <span>새로운 인연이 기다리는 다음 기수 일정을 확인해 보세요!</span>
+                        <span>새로운 인연을 만날 수 있는 다음 기수를 예약하세요!</span>
                     </a>`;
             }
         };
