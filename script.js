@@ -2,12 +2,12 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebas
 import { getFirestore, collection, addDoc, getDocs, getDoc, doc, query, where, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCy0qWrPE_aQGaKjJXIM_vgU8oO5Wq9mOI",
-  authDomain: "my-dating-service.firebaseapp.com",
-  projectId: "my-dating-service",
-  storageBucket: "my-dating-service.firebasestorage.app",
-  messagingSenderId: "231488184905",
-  appId: "1:231488184905:web:d49b3e4f0ef35e524e5598"
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.firebasestorage.app",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -45,10 +45,10 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         try {
             const adminDoc = await getDoc(doc(db, "settings", "matching_status"));
-            if (adminDoc.exists() && adminDoc.data().is_open) return alert("🛑 접수가 마감되었습니다.");
+            if (adminDoc.exists() && adminDoc.data().is_open) return alert("접수 마감!");
         } catch (err) { console.error(err); }
 
-        if (!document.getElementById('privacy-check').checked) return alert("개인정보 동의 필수!");
+        if (!document.getElementById('privacy-check').checked) return alert("동의 필수!");
         if (!userIdInput.value) return alert("본인 번호 선택!");
 
         const userData = {
@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const q = query(collection(db, "participants"), where("phone", "==", userData.phone));
             const snap = await getDocs(q);
-            if (!snap.empty) { alert("이미 제출된 번호입니다."); withdrawBtn.style.display = 'block'; return; }
+            if (!snap.empty) { alert("이미 제출됨!"); withdrawBtn.style.display = 'block'; return; }
             await addDoc(collection(db, "participants"), userData);
             alert("제출 완료!");
             document.getElementById('submit-btn').disabled = true;
@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.getElementById('check-result-btn').onclick = async () => {
         const adminDoc = await getDoc(doc(db, "settings", "matching_status"));
-        if (!adminDoc.exists() || !adminDoc.data().is_open) return alert("아직 결과 공개 전입니다!");
+        if (!adminDoc.exists() || !adminDoc.data().is_open) return alert("결과 공개 전!");
         const snap = await getDocs(collection(db, "participants"));
         const all = []; snap.forEach(d => all.push(d.data()));
         const myId = Number(userIdInput.value);
