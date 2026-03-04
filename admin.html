@@ -2,42 +2,75 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>유연 관리자 통제실 🔐</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studio Yuyeon | 관리자 통제실 🔐</title>
     <link rel="stylesheet" href="./style.css">
     <style>
-        .admin-container { max-width: 900px; margin: 30px auto; text-align: center; }
-        .control-panel { display: flex; gap: 10px; justify-content: center; margin-bottom: 30px; }
-        .control-panel button { padding: 12px 20px; border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: bold; }
+        .admin-container { max-width: 1000px; margin: 30px auto; text-align: center; padding: 0 20px; }
+        .control-panel { display: flex; gap: 10px; justify-content: center; margin-bottom: 30px; flex-wrap: wrap; }
+        .control-panel button { padding: 12px 20px; border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        
+        /* 통계 대시보드 스타일 */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .stats-card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-top: 4px solid #1A237E; }
+        .stats-card h4 { margin: 0; font-size: 14px; color: #888; }
+        .stats-card p { margin: 10px 0 0; font-size: 24px; font-weight: bold; color: #1A237E; }
+
+        /* 버튼 색상 */
         #open-btn { background: #9b59b6; } #close-btn { background: #34495e; }
         #refresh-btn { background: #27ae60; } #download-btn { background: #f39c12; } #delete-btn { background: #e74c3c; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: center; }
-        th { background: #34495e; color: white; }
+        
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 15px; overflow: hidden; margin-top: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        th, td { border: 1px solid #eee; padding: 15px; text-align: center; font-size: 14px; }
+        th { background: #1A237E; color: white; }
+        .match-card-admin { background: #f0f4ff; padding: 15px; border-radius: 12px; margin-bottom: 10px; text-align: left; border-left: 5px solid #1A237E; }
     </style>
 </head>
 <body>
     <div class="admin-container">
-        <h1>스튜디오 유연 리포트 📊</h1>
-        <div id="auth-section">
-            <input type="password" id="admin-password" placeholder="비밀번호 입력" style="padding: 10px;">
-            <button onclick="checkAdmin()" style="padding: 10px;">접속</button>
+        <h1 class="serif-title">Studio Yuyeon Report</h1>
+        
+        <div id="auth-section" class="card" style="max-width: 350px; margin: 0 auto;">
+            <p style="margin-bottom: 15px;">관리자 암호를 입력하세요.</p>
+            <input type="password" id="admin-password" placeholder="Password" style="width: 100%; margin-bottom: 15px;">
+            <button onclick="checkAdmin()" style="width: 100%; background: #1A237E; color: white; border: none; padding: 15px; border-radius: 10px; cursor: pointer;">접속하기</button>
         </div>
 
         <div id="report-section" style="display: none;">
+            
+            <div class="stats-grid">
+                <div class="stats-card"><h4>총 참가자</h4><p id="stat-total">0명</p></div>
+                <div class="stats-card"><h4>남성 / 여성</h4><p id="stat-gender">0 / 0</p></div>
+                <div class="stats-card"><h4>매칭 커플</h4><p id="stat-couples" style="color: #FF5252;">0쌍</p></div>
+                <div class="stats-card"><h4>매칭 성공률</h4><p id="stat-rate">0%</p></div>
+            </div>
+
             <div class="control-panel">
-                <button id="open-btn">🔓 결과 공개 승인</button>
-                <button id="close-btn">🔒 결과 공개 차단</button>
+                <button id="open-btn">🔓 결과 공개</button>
+                <button id="close-btn">🔒 공개 차단</button>
                 <button id="refresh-btn">🔄 새로고침</button>
                 <button id="download-btn">📥 엑셀 저장</button>
-                <button id="delete-btn">⚠️ 초기화</button>
+                <button id="delete-btn">⚠️ 전체 초기화</button>
             </div>
-            <h3>👥 참가자 명단</h3>
-            <table>
-                <thead>
-                    <tr><th>번호</th><th>성별</th><th>이름</th><th>연락처</th><th>픽1</th><th>픽2</th><th>후기</th></tr>
-                </thead>
-                <tbody id="participant-list"></tbody>
-            </table>
+
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 40px 0;">
+
+            <div style="text-align: left; margin-bottom: 40px;">
+                <h3 style="color: #1A237E;">💖 매칭된 커플 명단</h3>
+                <div id="final-matches-admin">데이터를 불러오는 중...</div>
+            </div>
+
+            <div style="text-align: left;">
+                <h3 style="color: #1A237E;">👥 전체 참가자 상세 정보</h3>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr><th>번호</th><th>성별</th><th>이름</th><th>연락처</th><th>픽1</th><th>픽2</th><th>후기</th></tr>
+                        </thead>
+                        <tbody id="participant-list"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
     <script type="module" src="./admin.js"></script>
