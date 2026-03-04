@@ -10,7 +10,7 @@
         .control-panel { display: flex; gap: 10px; justify-content: center; margin-bottom: 30px; flex-wrap: wrap; }
         .control-panel button { padding: 12px 20px; border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: bold; transition: 0.3s; }
         
-        /* 통계 대시보드 스타일 */
+        /* 통계 대시보드 */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 30px; }
         .stats-card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); border-top: 4px solid #1A237E; }
         .stats-card h4 { margin: 0; font-size: 14px; color: #888; }
@@ -19,7 +19,8 @@
         /* 버튼 색상 */
         #open-btn { background: #9b59b6; } #close-btn { background: #34495e; }
         #refresh-btn { background: #27ae60; } #download-btn { background: #f39c12; } #delete-btn { background: #e74c3c; }
-        
+        #logout-btn { background: #95a5a6; margin-top: 20px; }
+
         table { width: 100%; border-collapse: collapse; background: white; border-radius: 15px; overflow: hidden; margin-top: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
         th, td { border: 1px solid #eee; padding: 15px; text-align: center; font-size: 14px; }
         th { background: #1A237E; color: white; }
@@ -28,12 +29,13 @@
 </head>
 <body>
     <div class="admin-container">
-        <h1 class="serif-title">Studio Yuyeon Report</h1>
+        <h1 class="serif-title">Studio Yuyeon Admin</h1>
         
-        <div id="auth-section" class="card" style="max-width: 350px; margin: 0 auto;">
-            <p style="margin-bottom: 15px;">관리자 암호를 입력하세요.</p>
-            <input type="password" id="admin-password" placeholder="Password" style="width: 100%; margin-bottom: 15px;">
-            <button onclick="checkAdmin()" style="width: 100%; background: #1A237E; color: white; border: none; padding: 15px; border-radius: 10px; cursor: pointer;">접속하기</button>
+        <div id="auth-section" class="card" style="max-width: 350px; margin: 40px auto; padding: 30px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+            <h3 style="margin-bottom: 20px;">관리자 로그인</h3>
+            <input type="email" id="admin-email" placeholder="관리자 이메일" style="width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box;">
+            <input type="password" id="admin-password" placeholder="비밀번호" style="width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 8px; border: 1px solid #ddd; box-sizing: border-box;">
+            <button onclick="checkAdmin()" style="width: 100%; background: #1A237E; color: white; border: none; padding: 15px; border-radius: 10px; cursor: pointer; font-weight: bold;">접속하기</button>
         </div>
 
         <div id="report-section" style="display: none;">
@@ -46,8 +48,8 @@
             </div>
 
             <div class="control-panel">
-                <button id="open-btn">🔓 결과 공개</button>
-                <button id="close-btn">🔒 공개 차단</button>
+                <button id="open-btn">🔓 결과 공개 승인</button>
+                <button id="close-btn">🔒 결과 공개 차단</button>
                 <button id="refresh-btn">🔄 새로고침</button>
                 <button id="download-btn">📥 엑셀 저장</button>
                 <button id="delete-btn">⚠️ 전체 초기화</button>
@@ -56,12 +58,12 @@
             <hr style="border: 0; border-top: 1px solid #eee; margin: 40px 0;">
 
             <div style="text-align: left; margin-bottom: 40px;">
-                <h3 style="color: #1A237E;">💖 매칭된 커플 명단</h3>
+                <h3 style="color: #1A237E;">💖 실시간 매칭 커플</h3>
                 <div id="final-matches-admin">데이터를 불러오는 중...</div>
             </div>
 
             <div style="text-align: left;">
-                <h3 style="color: #1A237E;">👥 전체 참가자 상세 정보</h3>
+                <h3 style="color: #1A237E;">👥 전체 참가자 상세 명단</h3>
                 <div style="overflow-x: auto;">
                     <table>
                         <thead>
@@ -71,6 +73,8 @@
                     </table>
                 </div>
             </div>
+
+            <button id="logout-btn" onclick="handleLogout()" style="padding: 10px 20px; border: none; border-radius: 8px; color: white; cursor: pointer;">로그아웃</button>
         </div>
     </div>
     <script type="module" src="./admin.js"></script>
