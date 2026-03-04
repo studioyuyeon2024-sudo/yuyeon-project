@@ -205,3 +205,22 @@ input:focus, textarea:focus {
     .bubble-grid { gap: 6px; }
     .bubble { font-size: 13px; }
 }
+
+/* style.css 하단에 추가 */
+.privacy-card {
+    border-top: 2px solid #E8EAF6 !important;
+    background: #fff;
+}
+
+.privacy-content::-webkit-scrollbar {
+    width: 4px;
+}
+
+.privacy-content::-webkit-scrollbar-thumb {
+    background: #CCC;
+    border-radius: 10px;
+}
+
+#privacy-check:checked + span {
+    color: #1A237E;
+}
