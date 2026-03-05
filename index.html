@@ -16,7 +16,6 @@
         .bubble { aspect-ratio: 1; border-radius: 50%; background: #F8F9FA; border: 1px solid #E0E0E0; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; transition: 0.2s; }
         .bubble.selected { background: #1A237E !important; color: white !important; font-weight: bold; transform: scale(1.1); }
         
-        /* 인연 없음 버튼 스타일 */
         .no-match-btn { width: 100%; padding: 15px; border-radius: 12px; background: #F8F9FA; border: 1px solid #E0E0E0; font-size: 14px; color: #666; cursor: pointer; text-align: center; transition: 0.2s; margin-top: 5px; }
         .no-match-btn.active { background: #34495e; color: white; border-color: #34495e; font-weight: bold; }
 
@@ -37,7 +36,6 @@
         .msg-wrapper.me .msg { background: #1A237E; color: white; border-bottom-right-radius: 2px; }
         .msg-wrapper.other .msg { background: #FFFFFF; color: #333; border: 1px solid #E5E7EB; border-bottom-left-radius: 2px; }
         
-        /* 약관 디자인 */
         .privacy-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; margin-bottom: 12px; }
         .privacy-header span { color: #1A237E; font-size: 14px; font-weight: bold; }
         .privacy-header input[type="checkbox"] { width: 22px !important; height: 22px !important; margin: 0 !important; cursor: pointer; }
@@ -82,22 +80,22 @@
                     <div class="privacy-box">
                         <div class="privacy-text">
                             <strong>1. 수집 항목:</strong> 성명, 성별, 생년월일, 연락처, 매칭 번호, 참여 후기<br>
-                            <strong>2. 이용 목적:</strong> 매칭 결과 분석, 서비스 제공 및 스튜디오 유연 안내 소식 발송<br>
-                            <strong>3. 보유 기간:</strong> 참여일로부터 1년간 보관 후 파기 (사용자 요청 시 즉시 삭제)<br>
+                            <strong>2. 이용 목적:</strong> 매칭 결과 분석, 서비스 제공 및 <strong>스튜디오 유연 안내 소식 발송</strong><br>
+                            <strong>3. 보유 기간:</strong> <strong>참여일로부터 1년간 보관</strong> 후 파기<br>
                             <strong>4. 거부 권리:</strong> 동의를 거부할 수 있으나, 거부 시 결과 조회가 불가능합니다.
                         </div>
                     </div>
                 </div>
 
                 <button type="submit" class="btn-main" id="submit-btn">정보 제출하기</button>
-                <button type="button" id="withdraw-btn" style="width:100%; padding:15px; border:none; border-radius:15px; background:#e74c3c; color:white; font-size:14px; margin-top:10px; display:none;">⚠️ 정보 회수하고 다시 쓰기</button>
+                <button type="button" id="withdraw-btn" style="width:100%; padding:15px; border:none; border-radius:15px; background:#e74c3c; color:white; font-size:14px; margin-top:10px; display:none;">⚠️ 내 정보 회수하고 다시 쓰기</button>
                 <button type="button" class="btn-main" id="check-result-btn" style="background:white; color:#1A237E; border:1.5px solid #1A237E;">결과 확인하기</button>
             </form>
         </div>
 
         <div id="result-modal" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; padding: 20px;">
             <div style="background: white; padding: 30px; border-radius: 25px; width: 100%; max-width: 350px; text-align: center;">
-                <h3 style="color: #1A237E;">결과 조회</h3>
+                <h3 style="color: #1A237E; margin-bottom: 10px;">결과 조회</h3>
                 <input type="tel" id="verify-phone" maxlength="13" placeholder="010-0000-0000">
                 <button id="confirm-verify-btn" class="btn-main">결과 보기</button>
                 <p onclick="document.getElementById('result-modal').style.display='none'" style="margin-top: 15px; color: #aaa; cursor: pointer;">닫기</p>
@@ -145,7 +143,7 @@
 
         phoneInput.value = "010-";
 
-        // 자동 하이픈 로직
+        // 자동 하이픈 및 고정 로직
         const applyFormat = (input, type) => {
             input.addEventListener('input', (e) => {
                 let v = e.target.value.replace(/[^0-9]/g, '');
@@ -172,9 +170,28 @@
                 document.getElementById('status-bar').style.display = (isResultsRevealed && document.getElementById('result-section').style.display === 'none') ? 'block' : 'none';
                 document.getElementById('submit-btn').innerText = isResultsRevealed ? "접수 마감됨" : "정보 제출하기";
                 document.getElementById('submit-btn').disabled = isResultsRevealed;
+                // 결과가 공개되면 회수 버튼 강제 숨김
+                if (isResultsRevealed) withdrawBtn.style.display = 'none';
                 updateTakenIds();
             }
         });
+
+        // 연락처 입력 시 회수 기능 복구
+        phoneInput.addEventListener('blur', async (e) => {
+            if (e.target.value.length === 13 && !isResultsRevealed) {
+                const q = query(collection(db, "participants"), where("phone", "==", e.target.value));
+                const snap = await getDocs(q);
+                withdrawBtn.style.display = !snap.empty ? 'block' : 'none';
+            } else { withdrawBtn.style.display = 'none'; }
+        });
+
+        withdrawBtn.onclick = async () => {
+            if (!confirm("⚠️ 제출하신 정보를 삭제하시겠습니까? 삭제 후 다시 작성이 가능합니다.")) return;
+            const q = query(collection(db, "participants"), where("phone", "==", phoneInput.value));
+            const snap = await getDocs(q);
+            await Promise.all(snap.docs.map(d => deleteDoc(doc(db, "participants", d.id))));
+            alert("정보가 회수되었습니다!"); location.reload();
+        };
 
         async function updateTakenIds() {
             const q = query(collection(db, "participants"), where("gender", "==", genderSelect.value));
@@ -188,8 +205,6 @@
             const myGrid = document.getElementById('my-id-grid');
             const pickGrid = document.getElementById('pick-id-grid');
             myGrid.innerHTML = ""; pickGrid.innerHTML = "";
-            
-            // 본인 번호 그리드
             for (let i = 1; i <= currentTotalCount; i++) {
                 const mb = document.createElement('div'); mb.className = 'bubble'; mb.innerText = i;
                 mb.onclick = () => {
@@ -198,10 +213,6 @@
                     mb.classList.add('selected'); document.getElementById('user-id').value = i;
                 };
                 myGrid.appendChild(mb);
-            }
-
-            // 호감 번호 그리드
-            for (let i = 1; i <= currentTotalCount; i++) {
                 const pb = document.createElement('div'); pb.className = 'bubble'; pb.innerText = i;
                 pb.onclick = () => {
                     if (noMatchBtn.classList.contains('active')) return;
@@ -213,7 +224,6 @@
             }
         };
 
-        // '인연 없음' 상호 배타 로직
         noMatchBtn.onclick = () => {
             noMatchBtn.classList.toggle('active');
             if (noMatchBtn.classList.contains('active')) {
@@ -223,31 +233,26 @@
 
         document.getElementById('matching-form').onsubmit = async (e) => {
             e.preventDefault();
-            if (isResultsRevealed) return alert("제출이 마감되었습니다.");
+            if (isResultsRevealed) return alert("접수가 이미 마감되었습니다.");
             if (!document.getElementById('privacy-check').checked) return alert("개인정보 동의를 체크해 주세요.");
-            
             const myNum = Number(document.getElementById('user-id').value);
             if(!myNum) return alert("본인의 번호를 선택해 주세요.");
-            
-            const picks = Array.from(document.querySelectorAll('#pick-id-grid .bubble.selected')).map(b => Number(b.innerText));
-            if (picks.length === 0 && !noMatchBtn.classList.contains('active')) return alert("호감 번호를 선택하거나 '인연 없음'을 눌러주세요.");
-
             const gender = genderSelect.value;
             const qId = query(collection(db, "participants"), where("gender", "==", gender), where("myId", "==", myNum));
             const snapId = await getDocs(qId);
             if (!snapId.empty) return alert("⚠️ 이미 제출된 번호입니다.");
-            
+            const picks = Array.from(document.querySelectorAll('#pick-id-grid .bubble.selected')).map(b => Number(b.innerText));
             await addDoc(collection(db, "participants"), {
                 gender, myId: myNum, realName: document.getElementById('user-real-name').value,
-                phone: phoneInput.value, createdAt: serverTimestamp(), pickId1: picks[0] || null, pickId2: picks[1] || null
+                birth: document.getElementById('user-birth').value, phone: phoneInput.value, createdAt: serverTimestamp(), pickId1: picks[0] || null, pickId2: picks[1] || null
             });
             alert("제출 완료!"); location.reload();
         };
 
-        // 결과 확인 및 채팅방 식별 로직은 이전 고유 ID(gender_id) 체계를 유지하여 undefined를 방지합니다.
         document.getElementById('check-result-btn').onclick = () => {
             if (!isResultsRevealed) return alert("결과 공개 전입니다!");
             document.getElementById('result-modal').style.display = 'flex';
+            verifyPhoneInput.value = "010-"; verifyPhoneInput.focus();
         };
 
         document.getElementById('confirm-verify-btn').onclick = async () => {
@@ -316,6 +321,7 @@
                 });
             } catch (e) { alert("전송 실패"); }
         };
+        chatInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') document.getElementById('send-msg-btn').click(); });
     </script>
 </body>
 </html>
