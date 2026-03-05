@@ -11,24 +11,29 @@
         .serif-title { font-family: 'Playfair Display', serif; font-size: 30px; color: #1A237E; margin-bottom: 8px; }
         .card { background: #FFFFFF; border: 1px solid #F0F0F0; padding: 22px; border-radius: 20px; margin-bottom: 20px; text-align: left; width: 100%; box-sizing: border-box; }
         label { font-weight: 600; font-size: 14px; color: #2C3E50; display: block; margin-bottom: 8px; }
-        input, select, textarea { width: 100% !important; padding: 15px !important; border: 1px solid #E5E7EB !important; border-radius: 12px !important; font-size: 16px !important; box-sizing: border-box; background: #FAFAFA !important; display: block; margin-bottom: 10px; }
+        input, select, textarea { width: 100% !important; padding: 15px !important; border: 1px solid #E5E7EB !important; border-radius: 12px !important; font-size: 16px !important; box-sizing: border-box; background: #FAFAFA !important; margin-bottom: 10px; }
         .bubble-grid { display: grid !important; grid-template-columns: repeat(6, 1fr) !important; gap: 10px; margin: 15px 0; }
         .bubble { aspect-ratio: 1; border-radius: 50%; background: #F8F9FA; border: 1px solid #E0E0E0; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; transition: 0.2s; }
         .bubble.selected { background: #1A237E !important; color: white !important; font-weight: bold; transform: scale(1.1); }
         #status-bar { display: none; background: #FF5252; color: white; padding: 10px; border-radius: 10px; font-size: 13px; font-weight: bold; margin-bottom: 15px; animation: blink 2s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
         
-        /* 채팅방 스타일 최적화 */
+        /* 채팅방 스타일 고도화 */
         #chat-section { display: none; text-align: left; }
-        #chat-box { height: 450px; overflow-y: auto; border: 1px solid #eee; padding: 15px; border-radius: 20px; background: #f9f9fb; margin-bottom: 15px; display: flex; flex-direction: column; gap: 12px; }
-        .msg { max-width: 75%; padding: 10px 14px; border-radius: 18px; font-size: 14px; line-height: 1.5; word-break: break-all; }
-        /* 내 메시지는 오른쪽(남색) */
-        .msg.me { align-self: flex-end; background: #1A237E; color: white; border-bottom-right-radius: 2px; }
-        /* 상대 메시지는 왼쪽(회색) */
-        .msg.other { align-self: flex-start; background: #E9ECEF; color: #333; border-bottom-left-radius: 2px; }
+        #chat-box { height: 480px; overflow-y: auto; border: 1px solid #eee; padding: 15px; border-radius: 20px; background: #f9f9fb; margin-bottom: 15px; display: flex; flex-direction: column; gap: 15px; }
+        
+        .msg-wrapper { display: flex; flex-direction: column; gap: 4px; max-width: 80%; }
+        .msg-wrapper.me { align-self: flex-end; align-items: flex-end; }
+        .msg-wrapper.other { align-self: flex-start; align-items: flex-start; }
+        
+        .msg-label { font-size: 10px; color: #888; font-weight: bold; margin: 0 4px; }
+        .msg { padding: 10px 14px; border-radius: 18px; font-size: 14px; line-height: 1.5; word-break: break-all; }
+        
+        .msg-wrapper.me .msg { background: #1A237E; color: white; border-bottom-right-radius: 2px; }
+        .msg-wrapper.other .msg { background: #E9ECEF; color: #333; border-bottom-left-radius: 2px; }
+        
         #cookie-notice { font-size: 11px; color: #1A237E; text-align: center; margin-bottom: 10px; font-weight: bold; line-height: 1.5; }
 
-        /* 개인정보 약관 박스 복구 */
         .privacy-box { border: 1.5px solid #E5E7EB; border-radius: 15px; background: #F9FAFB; padding: 15px; margin-top: 10px; }
         .privacy-text { font-size: 11px; color: #666; height: 100px; overflow-y: auto; line-height: 1.6; text-align: left; }
         
@@ -66,9 +71,9 @@
                     <div class="privacy-box">
                         <div class="privacy-text">
                             <strong>1. 수집 항목:</strong> 성명, 성별, 생년월일, 연락처, 매칭 번호, 참여 후기<br>
-                            <strong>2. 이용 목적:</strong> 매칭 결과 분석 및 <strong>기수 모집(마케팅) 안내</strong><br>
-                            <strong>3. 보유 기간:</strong> <strong>수집일로부터 1년간 보관</strong> 후 파기 (사용자 요청 시 즉시 삭제)<br>
-                            <strong>4. 거부 권리:</strong> 귀하는 동의를 거부할 수 있으나, 거부 시 서비스 이용이 제한됩니다.
+                            <strong>2. 이용 목적:</strong> 매칭 결과 분석, 서비스 제공 및 <strong>스튜디오 유연 마케팅/이벤트 안내</strong><br>
+                            <strong>3. 보유 기간:</strong> <strong>참여일로부터 1년간 보관</strong> 후 즉시 파기 (요청 시 즉시 삭제 가능)<br>
+                            <strong>4. 거부 권리:</strong> 귀하는 동의를 거부할 수 있으나, 거부 시 결과 조회가 불가능합니다.
                         </div>
                     </div>
                 </div>
@@ -123,7 +128,6 @@
         let currentTotalCount = 0, isResultsRevealed = false;
         const COOKIE_LIMIT = 500;
 
-        // 010 자동 입력 로직
         phoneInput.value = "010-";
         const setupPhoneFormat = (input) => {
             input.addEventListener('input', (e) => {
@@ -193,7 +197,6 @@
             myId = Number(myData.myId); myGender = myData.gender;
             myCreatedAt = myData.createdAt.toDate(); 
 
-            // 3일 경과 계산
             const now = new Date();
             const diffDays = (now - myCreatedAt) / (1000 * 60 * 60 * 24);
             const isTimeExpired = diffDays > 3;
@@ -231,6 +234,10 @@
         };
 
         window.enterChat = (chatId, otherId) => {
+            const currentUserId = String(myId);
+            const otherGender = myGender === 'male' ? '여' : '남';
+            const meGender = myGender === 'male' ? '남' : '여';
+            
             currentChatId = chatId;
             document.getElementById('result-section').style.display = 'none';
             document.getElementById('chat-section').style.display = 'block';
@@ -242,18 +249,29 @@
                 let myMsgCount = 0;
                 snap.forEach(msgDoc => {
                     const msgData = msgDoc.data();
-                    // 타입 보정을 위한 toString() 비교
-                    const isMe = msgData.senderId.toString() === myId.toString();
+                    const isMe = String(msgData.senderId) === currentUserId;
                     if (isMe) myMsgCount++;
-                    const div = document.createElement('div');
-                    div.className = `msg ${isMe ? 'me' : 'other'}`;
-                    div.innerText = msgData.text;
-                    chatBox.appendChild(div);
+                    
+                    // [수정] 식별 라벨 및 말풍선 구조 개선
+                    const wrapper = document.createElement('div');
+                    wrapper.className = `msg-wrapper ${isMe ? 'me' : 'other'}`;
+                    
+                    const label = document.createElement('div');
+                    label.className = 'msg-label';
+                    label.innerText = isMe ? `${meGender} ${myId}번 (나)` : `${otherGender} ${otherId}번`;
+                    
+                    const msgDiv = document.createElement('div');
+                    msgDiv.className = 'msg';
+                    msgDiv.innerText = msgData.text;
+                    
+                    wrapper.appendChild(label);
+                    wrapper.appendChild(msgDiv);
+                    chatBox.appendChild(wrapper);
                 });
                 
                 const now = new Date();
                 const diffDays = (now - myCreatedAt) / (1000 * 60 * 60 * 24);
-                document.getElementById('cookie-notice').innerHTML = `🍪 쿠키 잔량: ${COOKIE_LIMIT - myMsgCount}개 | 남은 시간: ${Math.max(0, (3 - diffDays).toFixed(1))}일<br>대화 쿠키를 모두 사용하시거나 3일이 경과하면 대화창이 종료됩니다 :)`;
+                document.getElementById('cookie-notice').innerHTML = `🍪 쿠키 잔량: ${COOKIE_LIMIT - myMsgCount}개 | 남은 시간: ${Math.max(0, (3 - diffDays).toFixed(1))}일<br>대화 쿠키를 모두 사용하시거나 3일이 경과하면 종료됩니다 :)`;
                 
                 if (myMsgCount >= COOKIE_LIMIT || diffDays > 3) {
                     chatInput.disabled = true;
@@ -268,7 +286,7 @@
             if (!text || !currentChatId || chatInput.disabled) return;
             chatInput.value = "";
             await addDoc(collection(db, "chats", currentChatId, "messages"), {
-                senderId: myId.toString(), text: text, createdAt: serverTimestamp()
+                senderId: String(myId), text: text, createdAt: serverTimestamp()
             });
         };
         chatInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') document.getElementById('send-msg-btn').click(); });
