@@ -38,6 +38,10 @@
         
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:15px; flex-wrap: wrap; gap: 10px;">
             <div id="live-status" style="padding:10px 15px; border-radius:12px; font-weight:bold; font-size:14px;">상태 확인 중...</div>
+            <div style="background:#E3F2FD; padding:10px 15px; border-radius:12px; font-weight:bold; font-size:14px;">
+                현재 기수: <input type="text" id="set-batch-name" style="padding:5px; border-radius:5px; width:120px;" placeholder="기수명 입력">
+                <button id="save-batch-btn" style="padding:5px 10px; background:#1A237E; color:white; border:none; border-radius:5px; cursor:pointer;">변경</button>
+            </div>
             <div style="background:#f4f4f4; padding:10px 15px; border-radius:12px; font-weight:bold; font-size:14px;">
                 인원: 
                 <select id="set-total-count" style="padding:5px; border-radius:5px; font-weight:bold;">
@@ -52,10 +56,7 @@
                 <p id="stat-couples" class="main-val" style="color:#FF5252; margin:5px 0;">0쌍</p>
                 <div id="match-summary" style="font-size: 13px; line-height: 1.5; max-height: 300px; overflow-y: auto; background:#fcfcfc; border-radius:15px; padding:5px;"></div>
             </div>
-            <div class="bento-card" style="border-top: 5px solid #E67E22; grid-column: span 2;">
-                <h4 style="margin-top:0;">미제출자 번호 ⚠️</h4>
-                <div id="stat-missing" style="font-size: 14px; font-weight: bold; color: #E67E22; margin-top:10px;"></div>
-            </div>
+            <div class="bento-card" style="border-top: 5px solid #E67E22; grid-column: span 2;"><h4 style="margin-top:0;">미제출자 번호 ⚠️</h4><div id="stat-missing" style="font-size: 14px; font-weight: bold; color: #E67E22; margin-top:10px;"></div></div>
             <div class="bento-card" style="border-top: 5px solid #27ae60;"><h4 style="margin-top:0;">제출자</h4><p id="stat-total" class="main-val">0명</p></div>
             <div class="bento-card" style="border-top: 5px solid #f39c12;"><h4 style="margin-top:0;">성비</h4><p id="stat-gender" class="main-val" style="font-size: 22px;">0/0</p></div>
         </div>
@@ -70,27 +71,20 @@
             <button id="refresh-btn" class="panel-btn btn-green">🔄 제출현황 새로고침</button>
         </div>
 
-        <div class="table-wrapper">
-            <table>
-                <thead><tr><th>#</th><th>성</th><th>이름</th><th>연락처</th><th>픽</th><th>득표 🔥</th><th style="width:150px;">후기 📝</th></tr></thead>
-                <tbody id="list-body"></tbody>
-            </table>
-        </div>
+        <div class="table-wrapper"><table><thead><tr><th>#</th><th>성</th><th>이름</th><th>연락처</th><th>픽</th><th>득표 🔥</th><th style="width:150px;">후기 📝</th></tr></thead><tbody id="list-body"></tbody></table></div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, setDoc, onSnapshot, writeBatch, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, onSnapshot, writeBatch, deleteDoc, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         
         const firebaseConfig = { apiKey: "AIzaSyCy0qWrPE_aQGaKjJXIM_vgU8oO5Wq9mOI", authDomain: "my-dating-service.firebaseapp.com", projectId: "my-dating-service", storageBucket: "my-dating-service.firebasestorage.app", messagingSenderId: "231488184905", appId: "1:231488184905:web:d49b3e4f0ef35e524e5598" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
         const SEC_PW = "2024";
-        let currentData = [];
-        let voteMap = {}; 
-        let totalLimit = 12;
+        let currentData = [], voteMap = {}, totalLimit = 12, currentBatchName = "기본기수";
 
         document.getElementById('login-btn').onclick = async () => {
             try { await signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value); }
@@ -106,8 +100,12 @@
             }
         });
 
-        document.getElementById('set-total-count').onchange = async (e) => {
-            await setDoc(doc(db, "settings", "matching_status"), { total_count: Number(e.target.value) }, { merge: true });
+        document.getElementById('save-batch-btn').onclick = async () => {
+            const name = document.getElementById('set-batch-name').value.trim();
+            if(!name) return alert("기수명을 입력하세요.");
+            await setDoc(doc(db, "settings", "matching_status"), { batch_name: name }, { merge: true });
+            alert(`기수가 [${name}]으로 설정되었습니다.`);
+            location.reload();
         };
 
         function initRealtimeSync() {
@@ -115,7 +113,9 @@
                 if (snap.exists()) {
                     const data = snap.data();
                     totalLimit = data.total_count || 12;
+                    currentBatchName = data.batch_name || "기본기수";
                     document.getElementById('set-total-count').value = totalLimit;
+                    document.getElementById('set-batch-name').value = currentBatchName;
                     const tag = document.getElementById('live-status');
                     tag.innerText = data.is_open ? "🔴 결과 공개 중" : "🟢 접수 중";
                     tag.style.background = data.is_open ? "#FF5252" : "#27ae60";
@@ -125,125 +125,74 @@
         }
 
         async function updateDashboard() {
-            const snap = await getDocs(collection(db, "participants"));
+            const snap = await getDocs(query(collection(db, "participants"), where("batchName", "==", currentBatchName)));
             currentData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            
-            voteMap = {}; 
-            currentData.forEach(p => { 
-                if(p.pickId1) voteMap[p.pickId1] = (voteMap[p.pickId1]||0)+1; 
-                if(p.pickId2) voteMap[p.pickId2] = (voteMap[p.pickId2]||0)+1; 
-            });
-
+            voteMap = {}; currentData.forEach(p => { if(p.pickId1) voteMap[p.pickId1] = (voteMap[p.pickId1]||0)+1; if(p.pickId2) voteMap[p.pickId2] = (voteMap[p.pickId2]||0)+1; });
             const list = document.getElementById('list-body'); list.innerHTML = "";
             currentData.sort((a,b) => Number(a.myId) - Number(b.myId)).forEach(p => {
                 const pickText = (p.pickId1 || p.pickId2) ? `${p.pickId1||''}${p.pickId2 ? ', '+p.pickId2 : ''}` : '<span style="color:#aaa;">인연없음</span>';
                 list.innerHTML += `<tr><td>${p.myId}</td><td>${p.gender=='male'?'남':'여'}</td><td>${p.realName}</td><td>${p.phone}</td><td>${pickText}</td><td style="color:#FF5252; font-weight:bold;">${voteMap[p.myId]||0}</td><td style="text-align:left; font-size:11px;">${p.review||'-'}</td></tr>`;
             });
-
             const males = currentData.filter(p => p.gender === 'male');
             const females = currentData.filter(p => p.gender === 'female');
-            const mIds = males.map(p => Number(p.myId)); 
-            const fIds = females.map(p => Number(p.myId));
+            const mIds = males.map(p => Number(p.myId)); const fIds = females.map(p => Number(p.myId));
             const missM = []; const missF = [];
-            for(let i=1; i<=totalLimit; i++) {
-                if(!mIds.includes(i)) missM.push(i);
-                if(!fIds.includes(i)) missF.push(i);
-            }
+            for(let i=1; i<=totalLimit; i++) { if(!mIds.includes(i)) missM.push(i); if(!fIds.includes(i)) missF.push(i); }
             document.getElementById('stat-missing').innerHTML = `남: ${missM.join(',')}<br>여: ${missF.join(',')}`;
-
             const summary = document.getElementById('match-summary'); summary.innerHTML = "";
             let couples = 0;
-            males.forEach(m => {
-                females.forEach(f => {
-                    const mPicks = [m.pickId1, m.pickId2].map(id => Number(id));
-                    const fPicks = [f.pickId1, f.pickId2].map(id => Number(id));
-                    if (mPicks.includes(Number(f.myId)) && fPicks.includes(Number(m.myId))) {
-                        couples++;
-                        summary.innerHTML += `
-                            <div style="padding:10px; border-bottom:1.5 solid #f0f0f0; background:white; margin-bottom:8px; border-radius:12px;">
-                                <div style="color:#2196F3; font-weight:bold; font-size:12.5px;">남 ${m.myId}번 ${m.realName}</div>
-                                <div style="text-align:center; color:#FF5252; font-size:10px; font-weight:bold;">↕ 매칭 ↕</div>
-                                <div style="color:#E91E63; font-weight:bold; font-size:12.5px;">여 ${f.myId}번 ${f.realName}</div>
-                            </div>`;
-                    }
-                });
-            });
+            males.forEach(m => { females.forEach(f => {
+                if ([Number(m.pickId1), Number(m.pickId2)].includes(Number(f.myId)) && [Number(f.pickId1), Number(f.pickId2)].includes(Number(m.myId))) {
+                    couples++; summary.innerHTML += `<div style="padding:10px; border-bottom:1px solid #f0f0f0;">남 ${m.myId}번 ${m.realName} ↕ 여 ${f.myId}번 ${f.realName}</div>`;
+                }
+            }); });
             document.getElementById('stat-couples').innerText = `${couples}쌍`;
             document.getElementById('stat-total').innerText = `${currentData.length}명`;
             document.getElementById('stat-gender').innerText = `${males.length}/${females.length}`;
         }
 
-        const verify = () => prompt("보안 비밀번호를 입력하세요.") === SEC_PW;
+        const verifyPW = () => prompt("보안 비밀번호를 입력하세요.") === SEC_PW;
 
-        // [수정] 생년월일 항목 추가 및 CSV 포맷 최적화
         document.getElementById('download-btn').onclick = () => {
-            if(!verify()) return alert("인증 실패");
-            if(currentData.length === 0) return alert("데이터 없음");
-
+            if(!verifyPW()) return;
             let csv = "\uFEFF번호,성별,이름,생년월일,연락처,득표수,후기\n";
             currentData.sort((a,b) => Number(a.myId) - Number(b.myId)).forEach(p => {
-                const votes = voteMap[p.myId] || 0;
-                const review = (p.review || "-").replace(/"/g, '""'); // 따옴표 이스케이프
-                csv += `${p.myId},${p.gender=='male'?'남':'여'},${p.realName},${p.birth || '-'},${p.phone},${votes},"${review}"\n`;
+                csv += `${p.myId},${p.gender=='male'?'남':'여'},${p.realName},${p.birth || '-'},${p.phone},${voteMap[p.myId]||0},"${(p.review || "-").replace(/"/g, '""')}"\n`;
             });
-
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
-            link.download = `현재기수명단_${new Date().toLocaleDateString()}.csv`;
-            link.click();
+            const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+            link.download = `${currentBatchName}_명단.csv`; link.click();
         };
 
-        // [수정] 아카이브 상세 정보 다운로드 (생년월일 포함)
         document.getElementById('archive-download-btn').onclick = async () => {
-            if(!verify()) return alert("인증 실패");
+            if(!verifyPW()) return;
             const snap = await getDocs(collection(db, "archive"));
-            if(snap.empty) return alert("아카이브 데이터 없음");
-
             let csv = "\uFEFF기수,번호,성별,이름,생년월일,연락처,득표수,후기\n";
-            snap.forEach(d => { 
-                const p = d.data(); 
-                const review = (p.review || "-").replace(/"/g, '""');
-                csv += `${p.batchName},${p.myId},${p.gender=='male'?'남':'여'},${p.realName},${p.birth || '-'},${p.phone},${p.voteCount || 0},"${review}"\n`; 
-            });
-
-            const link = document.createElement("a");
-            link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
-            link.download = `아카이브기록_${new Date().toLocaleDateString()}.csv`;
-            link.click();
+            snap.forEach(d => { const p = d.data(); csv += `${p.batchName},${p.myId},${p.gender=='male'?'남':'여'},${p.realName},${p.birth || '-'},${p.phone},${p.voteCount || 0},"${(p.review || "-").replace(/"/g, '""')}"\n`; });
+            const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+            link.download = `전체아카이브.csv`; link.click();
         };
 
-        // [수정] 백업 시 비밀번호 확인 절차 제거
         document.getElementById('delete-btn').onclick = async () => {
-            if(currentData.length === 0) return alert("백업할 데이터가 없습니다.");
-            const batchName = prompt("백업할 기수 이름 (예: 유연 133기)");
-            if(!batchName) return; 
-            if(!confirm("⚠️ 현재 데이터를 아카이브하고 초기화하시겠습니까?")) return;
-
+            if(currentData.length === 0) return alert("데이터 없음");
+            if(!confirm(`⚠️ 현재 [${currentBatchName}] 데이터를 백업하고 초기화하시겠습니까?`)) return;
             try {
                 const batch = writeBatch(db);
                 currentData.forEach(p => {
-                    const finalVoteCount = voteMap[p.myId] || 0;
-                    batch.set(doc(db, "archive", `${batchName}_${p.gender}_${p.myId}`), { 
-                        ...p, 
-                        batchName, 
-                        voteCount: finalVoteCount, 
-                        archivedAt: new Date() 
-                    });
+                    batch.set(doc(db, "archive", `${currentBatchName}_${p.gender}_${p.myId}`), { ...p, voteCount: (voteMap[p.myId]||0), archivedAt: new Date() });
                     batch.delete(doc(db, "participants", p.id));
                 });
-                await batch.commit();
-                alert("백업 및 초기화 완료!"); updateDashboard();
+                await batch.commit(); alert("백업 완료!"); updateDashboard();
             } catch (e) { alert("오류: " + e.message); }
         };
 
         document.getElementById('delete-chats-btn').onclick = async () => {
-            if(!verify()) return alert("인증 실패");
-            if(!confirm("⚠️ 유령 데이터와 모든 대화 내용을 뿌리까지 삭제하시겠습니까?")) return;
+            if(!verifyPW()) return;
+            if(!confirm("⚠️ 유령 데이터까지 뿌리째 삭제하시겠습니까?")) return;
             try {
-                alert("데이터 정밀 소거 중...");
+                alert("정밀 소거 중...");
                 for (let m = 1; m <= totalLimit; m++) {
                     for (let f = 1; f <= totalLimit; f++) {
-                        const chatId = `${m}_${f}`;
+                        const chatId = `${currentBatchName}_${m}_${f}`;
                         const msgSnap = await getDocs(collection(db, "chats", chatId, "messages"));
                         if (!msgSnap.empty) {
                             const batch = writeBatch(db);
@@ -257,14 +206,8 @@
             } catch (e) { console.error(e); }
         };
 
-        document.getElementById('open-btn').onclick = async () => { 
-            if (confirm("결과를 공개하시겠습니까?")) {
-                await setDoc(doc(db, "settings", "matching_status"), { is_open: true }, { merge: true }); 
-                alert("결과 공개됨");
-            }
-        };
-
-        document.getElementById('close-btn').onclick = async () => { await setDoc(doc(db, "settings", "matching_status"), { is_open: false }, { merge: true }); alert("접수 재개됨"); };
+        document.getElementById('open-btn').onclick = async () => { await setDoc(doc(db, "settings", "matching_status"), { is_open: true }, { merge: true }); alert("공개됨"); };
+        document.getElementById('close-btn').onclick = async () => { await setDoc(doc(db, "settings", "matching_status"), { is_open: false }, { merge: true }); alert("차단됨"); };
         document.getElementById('refresh-btn').onclick = updateDashboard;
     </script>
 </body>
