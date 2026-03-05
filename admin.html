@@ -155,4 +155,96 @@
                         <td>${p.phone}</td>
                         <td>${p.pickId1 || ''}, ${p.pickId2 || ''}</td>
                         <td style="color:#FF5252; font-weight:bold;">${voteMap[p.myId] || 0}</td>
-                        <td style="text-align:left; font-size:11px; color:#666;">${p.review || '-
+                        <td style="text-align:left; font-size:11px; color:#666;">${p.review || '-'}</td>
+                    </tr>`;
+            });
+
+            // 매칭 커플 추출 (상호 선택 로직)
+            const males = currentData.filter(p => p.gender === 'male');
+            const females = currentData.filter(p => p.gender === 'female');
+            const summary = document.getElementById('match-summary');
+            summary.innerHTML = "";
+            let couples = 0; let matchedIds = new Set();
+
+            males.forEach(m => {
+                females.forEach(f => {
+                    const mPicks = [m.pickId1, m.pickId2];
+                    const fPicks = [f.pickId1, f.pickId2];
+                    if (mPicks.includes(f.myId) && fPicks.includes(m.myId)) {
+                        couples++; matchedIds.add(m.myId); matchedIds.add(f.myId);
+                        summary.innerHTML += `
+                            <div style="padding:8px; background:#f9f9f9; border-radius:10px; margin-bottom:5px; border-left:4px solid #FF5252;">
+                                💘 <b>${m.myId}(${m.realName}/${m.phone})</b> ↔ <b>${f.myId}(${f.realName}/${f.phone})</b>
+                            </div>`;
+                    }
+                });
+            });
+
+            document.getElementById('stat-couples').innerText = `${couples}쌍`;
+            document.getElementById('stat-total').innerText = `${currentData.length}명`;
+            document.getElementById('stat-gender').innerText = `${males.length} / ${females.length}`;
+            const rate = currentData.length > 0 ? Math.round((matchedIds.size / currentData.length) * 100) : 0;
+            document.getElementById('stat-rate').innerText = `${rate}%`;
+        }
+
+        // 4. [기능] 버튼 액션들 (2차 비밀번호 2024 적용)
+        const verify = () => prompt("보안 비밀번호(2차)를 입력하세요.") === SEC_PW;
+
+        document.getElementById('open-btn').onclick = async () => {
+            if(confirm("결과를 공개하고 참여자 접수를 마감하시겠습니까?")) {
+                await setDoc(doc(db, "settings", "matching_status"), { is_open: true }, { merge: true });
+                alert("공개 완료!");
+            }
+        };
+
+        document.getElementById('close-btn').onclick = async () => {
+            if(confirm("결과를 숨기고 접수를 다시 받으시겠습니까?")) {
+                await setDoc(doc(db, "settings", "matching_status"), { is_open: false }, { merge: true });
+                alert("접수 재개 완료!");
+            }
+        };
+
+        document.getElementById('download-btn').onclick = () => {
+            if(!verify()) return alert("인증 실패");
+            let csv = "\uFEFF번호,성별,이름,생일,연락처,픽1,픽2,후기\n";
+            currentData.forEach(p => csv += `${p.myId},${p.gender},${p.realName},${p.birth},${p.phone},${p.pickId1||''},${p.pickId2||''},"${(p.review||'').replace(/"/g, '""')}"\n`);
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
+            link.download = `스튜디오유연_현재명단_${new Date().toLocaleDateString()}.csv`; link.click();
+        };
+
+        document.getElementById('archive-download-btn').onclick = async () => {
+            if(!verify()) return alert("인증 실패");
+            alert("전체 데이터를 불러오는 중입니다...");
+            const snap = await getDocs(collection(db, "archive"));
+            let csv = "\uFEFF기수,번호,성별,이름,생일,연락처,픽1,픽2,후기\n";
+            snap.forEach(d => {
+                const p = d.data();
+                csv += `${p.batchName},${p.myId},${p.gender},${p.realName},${p.birth},${p.phone},${p.pickId1||''},${p.pickId2||''},"${(p.review||'').replace(/"/g, '""')}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a"); link.href = URL.createObjectURL(blob);
+            link.download = `스튜디오유연_전체아카이브_${new Date().toLocaleDateString()}.csv`; link.click();
+        };
+
+        document.getElementById('delete-btn').onclick = async () => {
+            const batchName = prompt("아카이브할 기수 명칭을 입력하세요 (예: 14기)");
+            if(!batchName) return;
+            if(!confirm("⚠️ 모든 데이터를 백업하고 초기화하시겠습니까? 이 작업은 되돌릴 수 없습니다.")) return;
+
+            try {
+                const batch = writeBatch(db);
+                currentData.forEach(p => {
+                    batch.set(doc(db, "archive", `${batchName}_${p.myId}_${p.phone}`), { ...p, batchName, archivedAt: new Date() });
+                    batch.delete(doc(db, "participants", p.id));
+                });
+                await batch.commit();
+                alert(`${batchName} 아카이브 및 초기화 완료!`);
+                updateDashboard();
+            } catch (e) { alert("오류 발생: " + e.message); }
+        };
+
+        document.getElementById('refresh-btn').onclick = updateDashboard;
+    </script>
+</body>
+</html>
