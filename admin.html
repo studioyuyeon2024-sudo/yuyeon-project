@@ -6,29 +6,23 @@
     <title>Studio Yuyeon Admin | 🔐</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
-        
         body { background: #FDFBF6; font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 20px; box-sizing: border-box; }
         .admin-container { width: 100%; max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 30px; border-top: 8px solid #1A237E; box-shadow: 0 10px 30px rgba(0,0,0,0.05); display: none; }
-        
         #login-section { max-width: 400px; margin: 15vh auto; background: white; padding: 40px; border-radius: 30px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); text-align: center; }
         .login-input { width: 100%; padding: 15px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 12px; font-size: 16px; box-sizing: border-box; }
         .login-btn { width: 100%; padding: 18px; border: none; border-radius: 12px; background: #1A237E; color: white; font-weight: bold; cursor: pointer; }
-
         .bento-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin: 30px 0; }
         .bento-card { background: white; padding: 25px; border-radius: 24px; border: 1px solid #f0f0f0; text-align: left; }
         .card-large { grid-column: span 2; grid-row: span 2; border-top: 5px solid #FF5252; }
         .main-val { font-size: 32px; font-weight: bold; color: #1A237E; margin: 10px 0; }
-        
         .control-panel { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 25px; }
         .panel-btn { padding: 18px; border: none; border-radius: 15px; color: white; font-weight: bold; cursor: pointer; font-size: 14px; transition: 0.2s; }
         .panel-btn:hover { opacity: 0.8; transform: translateY(-2px); }
         .btn-purple { background: #9b59b6; } .btn-dark { background: #34495e; } .btn-orange { background: #f39c12; } .btn-red { background: #e74c3c; } .btn-blue { background: #2980b9; grid-column: span 2; } .btn-green { background: #27ae60; grid-column: span 2; }
-
         .table-wrapper { overflow-x: auto; border-radius: 20px; border: 1px solid #eee; margin-top: 20px; }
         table { width: 100%; border-collapse: collapse; font-size: 12px; }
         th, td { padding: 15px; border: 1px solid #f9f9f9; text-align: center; }
         th { background: #1A237E; color: white; }
-
         @media (max-width: 768px) {
             body { padding: 10px; }
             .admin-container { padding: 15px; border-radius: 15px; }
@@ -232,6 +226,7 @@
             if(!confirm("⚠️ 모든 채팅방과 메시지를 '영구히' 삭제하시겠습니까?\n이 작업은 데이터베이스의 실제 용량을 비우는 작업입니다.")) return;
             
             try {
+                // 1. 모든 채팅방(chats) 목록 가져오기
                 const chatSnap = await getDocs(collection(db, "chats"));
                 if (chatSnap.empty) return alert("삭제할 대화 내역이 없습니다.");
 
@@ -242,7 +237,7 @@
                 for (const chatDoc of chatSnap.docs) {
                     const chatId = chatDoc.id;
                     
-                    // 1. 하위 'messages' 컬렉션의 모든 메시지 삭제
+                    // 2. 하위 'messages' 컬렉션의 모든 메시지 먼저 삭제
                     const msgSnap = await getDocs(collection(db, "chats", chatId, "messages"));
                     if (!msgSnap.empty) {
                         const batch = writeBatch(db);
@@ -250,15 +245,15 @@
                             batch.delete(doc(db, "chats", chatId, "messages", mDoc.id));
                             deletedMsgs++;
                         });
-                        await batch.commit(); // 메시지 삭제 확정
+                        await batch.commit(); // 하위 메시지 삭제 확정
                     }
                     
-                    // 2. 메시지가 비워진 상위 대화방 문서 삭제
+                    // 3. 알맹이가 비워진 상위 대화방 문서 삭제
                     await deleteDoc(doc(db, "chats", chatId));
                     deletedRooms++;
                 }
 
-                alert(`✅ 청소 완료!\n- 삭제된 대화방: ${deletedRooms}개\n- 삭제된 메시지: ${deletedMsgs}개\n이제 데이터베이스에서 완전히 사라졌습니다.`);
+                alert(`✅ 청소 완료!\n- 삭제된 대화방: ${deletedRooms}개\n- 삭제된 메시지: ${deletedMsgs}개\n이제 데이터베이스에서 유령 데이터가 모두 사라졌습니다.`);
                 location.reload(); 
             } catch (e) { 
                 console.error(e);
