@@ -18,11 +18,11 @@
         .bubble.selected { background: #1A237E !important; color: white !important; border-color: #1A237E; font-weight: bold; transform: scale(1.1); }
         #status-bar { display: none; background: #FF5252; color: white; padding: 10px; border-radius: 10px; font-size: 13px; font-weight: bold; margin-bottom: 15px; animation: blink 2s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
-        .privacy-section { margin: 20px 0; text-align: left; }
-        .privacy-row { display: flex !important; align-items: center !important; gap: 12px !important; cursor: pointer; margin-bottom: 12px; }
-        .privacy-row input[type="checkbox"] { width: 22px !important; height: 22px !important; margin: 0 !important; cursor: pointer; flex-shrink: 0; }
-        .privacy-row span { font-size: 15px; font-weight: bold; color: #1A237E; line-height: 1.2; }
-        .privacy-content { font-size: 11px; color: #777; height: 120px; overflow-y: auto; background: #f9f9f9; padding: 15px; border-radius: 12px; line-height: 1.6; border: 1px solid #eee; }
+        
+        /* 결과 확인 모달(확인창) 디자인 */
+        #result-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
+        .modal-content { background: white; padding: 30px; border-radius: 25px; width: 100%; max-width: 350px; text-align: center; }
+
         #submit-btn { width: 100%; padding: 20px; border: none; border-radius: 15px; font-weight: bold; background: #1A237E; color: white; font-size: 17px; cursor: pointer; margin-top: 10px; }
         #withdraw-btn { width: 100%; padding: 15px; border: none; border-radius: 15px; font-weight: bold; background: #e74c3c; color: white; font-size: 14px; cursor: pointer; margin-top: 10px; display: none; }
         #check-result-btn { width: 100%; padding: 18px; border: 1.5px solid #1A237E; border-radius: 15px; font-weight: bold; background: white; color: #1A237E; font-size: 16px; cursor: pointer; margin-top: 10px; }
@@ -33,6 +33,7 @@
     <div class="container">
         <h1 class="serif-title">Studio Yuyeon</h1>
         <div id="status-bar">📢 매칭 결과가 공개되었습니다! 결과를 확인하세요.</div>
+        
         <div id="input-section">
             <form id="matching-form">
                 <div class="card">
@@ -61,6 +62,17 @@
                 <button type="button" id="check-result-btn">결과 확인하기</button>
             </form>
         </div>
+
+        <div id="result-modal">
+            <div class="modal-content">
+                <h3 style="color: #1A237E; margin-bottom: 20px;">결과 조회</h3>
+                <p style="font-size: 13px; color: #666; margin-bottom: 15px;">제출하셨던 휴대폰 번호를 입력해 주세요.</p>
+                <input type="tel" id="verify-phone" maxlength="13" placeholder="010-0000-0000" style="text-align: center; font-size: 18px; letter-spacing: 1px;">
+                <button id="confirm-verify-btn" style="width: 100%; padding: 15px; border: none; border-radius: 12px; background: #1A237E; color: white; font-weight: bold; cursor: pointer;">결과 보기</button>
+                <p onclick="document.getElementById('result-modal').style.display='none'" style="margin-top: 15px; color: #888; font-size: 12px; cursor: pointer; text-decoration: underline;">취소</p>
+            </div>
+        </div>
+
         <div id="result-section" style="display:none;">
             <h2 class="serif-title" style="font-size:24px;">매칭 결과</h2>
             <div id="match-list-area"></div>
@@ -79,6 +91,7 @@
         const genderSelect = document.getElementById('user-gender');
         const userIdInput = document.getElementById('user-id');
         const phoneInput = document.getElementById('user-phone');
+        const verifyPhoneInput = document.getElementById('verify-phone');
         const withdrawBtn = document.getElementById('withdraw-btn');
         
         let currentTotalCount = 0;
@@ -99,12 +112,11 @@
                     isFirstLoad = false;
                 }
                 
-                // 결과 확인 창이 아닐 때만 상태 바를 보여줌
                 if (document.getElementById('result-section').style.display !== 'block') {
                     document.getElementById('status-bar').style.display = isResultsRevealed ? 'block' : 'none';
                 }
                 
-                document.getElementById('submit-btn').innerText = isResultsRevealed ? "접수 마감 (결과 확인 가능)" : "정보 제출하기";
+                document.getElementById('submit-btn').innerText = isResultsRevealed ? "제출 마감 (결과 확인 가능)" : "정보 제출하기";
                 document.getElementById('submit-btn').style.background = isResultsRevealed ? "#999" : "#1A237E";
                 
                 if (isResultsRevealed) withdrawBtn.style.display = 'none';
@@ -143,6 +155,19 @@
         };
 
         genderSelect.onchange = updateTakenIds;
+
+        // 휴대폰 번호 포맷팅 공통 로직
+        const formatPhone = (input) => {
+            input.addEventListener('input', (e) => {
+                let v = e.target.value.replace(/[^0-9]/g, '');
+                if (v.length <= 3) e.target.value = v;
+                else if (v.length <= 7) e.target.value = v.slice(0, 3) + '-' + v.slice(3);
+                else e.target.value = v.slice(0, 3) + '-' + v.slice(3, 7) + '-' + v.slice(7, 11);
+            });
+        };
+        formatPhone(phoneInput);
+        formatPhone(verifyPhoneInput); // [신규] 조회용 입력창에도 적용
+
         phoneInput.addEventListener('blur', async (e) => {
             if (e.target.value.length === 13 && !isResultsRevealed) {
                 const q = query(collection(db, "participants"), where("phone", "==", e.target.value));
@@ -191,20 +216,42 @@
             alert("회수 완료!"); location.reload();
         };
 
-        document.getElementById('check-result-btn').onclick = async () => {
-            const adminSnap = await getDoc(doc(db, "settings", "matching_status"));
-            if (!adminSnap.exists() || !adminSnap.data().is_open) return alert("결과 공개 전입니다!");
-            const myId = Number(userIdInput.value);
-            if (!myId) return alert("본인 번호를 선택해 주세요.");
-            const snap = await getDocs(collection(db, "participants"));
-            const all = snap.docs.map(d => d.data());
-            const opposites = all.filter(p => p.gender !== genderSelect.value);
-            const votes = opposites.filter(p => p.pickId1 === myId || p.pickId2 === myId).length;
-            const matched = opposites.filter(p => (p.pickId1 === myId || p.pickId2 === myId) && selectedPicks.includes(p.myId));
+        // [수정] 결과 확인 버튼 클릭 시 모달창 띄우기
+        document.getElementById('check-result-btn').onclick = () => {
+            if (!isResultsRevealed) return alert("결과 공개 전입니다!");
+            document.getElementById('result-modal').style.display = 'flex';
+            verifyPhoneInput.focus();
+        };
+
+        // [신규] 휴대폰 번호로 실제 결과 조회 로직
+        document.getElementById('confirm-verify-btn').onclick = async () => {
+            const phone = verifyPhoneInput.value;
+            if (phone.length < 13) return alert("올바른 휴대폰 번호를 입력해 주세요.");
+
+            // 1. 내 정보 찾기
+            const q = query(collection(db, "participants"), where("phone", "==", phone));
+            const snap = await getDocs(q);
             
+            if (snap.empty) return alert("등록된 정보가 없습니다. 번호를 다시 확인해 주세요.");
+            
+            const myData = snap.docs[0].data();
+            const myId = myData.myId;
+            const myGender = myData.gender;
+            const myPicks = [myData.pickId1, myData.pickId2];
+
+            // 2. 전체 데이터 가져와 매칭 확인
+            const allSnap = await getDocs(collection(db, "participants"));
+            const all = allSnap.docs.map(d => d.data());
+            const opposites = all.filter(p => p.gender !== myGender);
+            
+            const votes = opposites.filter(p => p.pickId1 === myId || p.pickId2 === myId).length;
+            const matched = opposites.filter(p => (p.pickId1 === myId || p.pickId2 === myId) && myPicks.includes(p.myId));
+            
+            // 3. UI 전환
+            document.getElementById('result-modal').style.display = 'none';
             document.getElementById('input-section').style.display = 'none';
+            document.getElementById('status-bar').style.display = 'none';
             document.getElementById('result-section').style.display = 'block';
-            document.getElementById('status-bar').style.display = 'none'; // [수정] 결과 확인 창에서 상태 바 숨김
             
             const area = document.getElementById('match-list-area');
             area.innerHTML = `<div style="background:#FFF9E6; padding:20px; border-radius:20px; margin-bottom:20px; border:1px solid #FFE082;">나의 득표수: <b>${votes}표</b></div>`;
@@ -213,7 +260,6 @@
                 area.innerHTML += `<h3 style="color:#FF5252;">🎉 매칭 성공! 축하합니다.</h3>`;
                 matched.forEach(p => area.innerHTML += `<div style='background:linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%); padding:20px; border-radius:15px; margin-bottom:12px; font-weight:bold;'>💖 ${p.myId}번님과 매칭되었습니다!</div>`);
             } else {
-                // [수정] 미매칭 문구 변경
                 area.innerHTML += `
                     <div style='background:#f4f4f4; padding:25px 20px; border-radius:15px; margin-bottom:20px; color:#666; line-height:1.6;'>
                         다음번에 더 좋은 인연으로 뵐게요<br>소중한 시간 유연과 함께해주셔서 감사해요
@@ -222,12 +268,7 @@
             }
         };
 
-        phoneInput.oninput = (e) => {
-            let v = e.target.value.replace(/[^0-9]/g, '');
-            if (v.length <= 3) e.target.value = v;
-            else if (v.length <= 7) e.target.value = v.slice(0, 3) + '-' + v.slice(3);
-            else e.target.value = v.slice(0, 3) + '-' + v.slice(3, 7) + '-' + v.slice(7, 11);
-        };
+        // 생년월일 포맷팅
         document.getElementById('user-birth').oninput = (e) => {
             let v = e.target.value.replace(/[^0-9]/g, '');
             if (v.length > 4) v = v.slice(0,4) + '-' + v.slice(4,6) + (v.length > 6 ? '-' + v.slice(6,8) : '');
