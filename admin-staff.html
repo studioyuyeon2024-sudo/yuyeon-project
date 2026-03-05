@@ -8,40 +8,52 @@
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
         body { background: #FDFBF6; font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 20px; box-sizing: border-box; }
         .admin-container { width: 100%; max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 30px; border-top: 8px solid #27ae60; box-shadow: 0 10px 30px rgba(0,0,0,0.05); display: none; }
-        #login-section { max-width: 400px; margin: 15vh auto; background: white; padding: 40px; border-radius: 30px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); text-align: center; }
+        
+        /* 로그인 섹션 디자인 유지 및 확장 */
+        #login-section { max-width: 400px; margin: 10vh auto; background: white; padding: 40px; border-radius: 30px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); text-align: center; }
         .login-input { width: 100%; padding: 15px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 12px; font-size: 16px; box-sizing: border-box; }
-        .login-btn { width: 100%; padding: 18px; border: none; border-radius: 12px; background: #27ae60; color: white; font-weight: bold; cursor: pointer; }
+        .batch-input { width: 100%; padding: 15px; margin-bottom: 20px; border: 2px solid #27ae60; border-radius: 12px; font-size: 16px; font-weight: bold; box-sizing: border-box; color: #27ae60; }
+        .login-btn { width: 100%; padding: 18px; border: none; border-radius: 12px; background: #27ae60; color: white; font-weight: bold; cursor: pointer; font-size: 16px; }
+
         .bento-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin: 30px 0; }
         .bento-card { background: white; padding: 25px; border-radius: 24px; border: 1px solid #f0f0f0; text-align: left; }
         .main-val { font-size: 32px; font-weight: bold; color: #27ae60; margin: 10px 0; }
         .control-panel { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 25px; }
         .panel-btn { padding: 18px; border: none; border-radius: 15px; color: white; font-weight: bold; cursor: pointer; font-size: 14px; transition: 0.2s; }
         .btn-purple { background: #9b59b6; } .btn-dark { background: #34495e; } .btn-green { background: #27ae60; grid-column: span 2; }
+        
         .table-wrapper { overflow-x: auto; border-radius: 20px; border: 1px solid #eee; margin-top: 20px; }
         table { width: 100%; border-collapse: collapse; font-size: 12px; }
         th, td { padding: 15px; border: 1px solid #f9f9f9; text-align: center; }
         th { background: #27ae60; color: white; }
+        
+        .logout-btn { background: none; border: 1px solid #ccc; color: #888; padding: 5px 10px; border-radius: 8px; cursor: pointer; font-size: 12px; }
     </style>
 </head>
 <body>
     <div id="login-section">
-        <h1 style="font-family: 'Playfair Display'; color: #27ae60;">Staff Admin</h1>
+        <h1 style="font-family: 'Playfair Display'; color: #27ae60;">Staff Login</h1>
+        <p style="font-size:13px; color:#888; margin-bottom:20px;">계정 정보와 관리할 기수명을 입력하세요.</p>
         <input type="email" id="email" class="login-input" placeholder="이메일">
         <input type="password" id="password" class="login-input" placeholder="비밀번호">
-        <button id="login-btn" class="login-btn">스태프 접속</button>
+        <input type="text" id="batch-name-input" class="batch-input" placeholder="관리할 기수명 (예: 목요일기수)">
+        <button id="login-btn" class="login-btn">스태프 대시보드 접속</button>
     </div>
 
     <div class="admin-container" id="admin-main">
-        <h1 style="font-family: 'Playfair Display'; text-align: center; color: #27ae60;">Studio Yuyeon STAFF</h1>
-        
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:15px;">
+            <h1 style="font-family: 'Playfair Display'; color: #27ae60; margin:0;">Studio Yuyeon STAFF</h1>
+            <button onclick="location.reload()" class="logout-btn">로그아웃/기수변경</button>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:15px; flex-wrap: wrap; gap: 10px;">
             <div id="live-status" style="padding:10px 15px; border-radius:12px; font-weight:bold; font-size:14px;">상태 확인 중...</div>
-            <div id="current-batch-display" style="font-weight:bold; color:#1A237E; background:#E3F2FD; padding:10px; border-radius:10px;">기수: -</div>
+            <div id="current-batch-display" style="font-weight:bold; color:#1A237E; background:#E3F2FD; padding:10px 15px; border-radius:10px; font-size:14px;">기수: -</div>
         </div>
 
         <div class="bento-grid">
             <div class="bento-card" style="grid-column: span 2; border-top: 5px solid #FF5252;">
-                <h4>실시간 커플 매칭 💖</h4>
+                <h4>실시간 커플 매칭 (연락처 포함) 💖</h4>
                 <p id="stat-couples" class="main-val" style="color:#FF5252;">0쌍</p>
                 <div id="match-summary" style="font-size: 13px; line-height: 1.6; max-height: 250px; overflow-y: auto;"></div>
             </div>
@@ -59,22 +71,41 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getFirestore, collection, getDocs, doc, setDoc, onSnapshot, query, where } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         
         const firebaseConfig = { apiKey: "AIzaSyCy0qWrPE_aQGaKjJXIM_vgU8oO5Wq9mOI", authDomain: "my-dating-service.firebaseapp.com", projectId: "my-dating-service", storageBucket: "my-dating-service.firebasestorage.app", messagingSenderId: "231488184905", appId: "1:231488184905:web:d49b3e4f0ef35e524e5598" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        let currentData = [], totalLimit = 12, currentBatchName = "기본기수";
+        
+        let currentData = [], totalLimit = 12;
+        let staffSelectedBatch = ""; // 스태프가 입력한 기수명 저장 변수
 
         document.getElementById('login-btn').onclick = async () => {
-            try { await signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value); }
-            catch (e) { alert("로그인 실패!"); }
+            const email = document.getElementById('email').value;
+            const pw = document.getElementById('password').value;
+            const batch = document.getElementById('batch-name-input').value.trim();
+
+            if(!batch) return alert("관리할 기수명을 정확히 입력해주세요.");
+
+            try { 
+                await signInWithEmailAndPassword(auth, email, pw);
+                staffSelectedBatch = batch; // 기수명 저장
+            } catch (e) { alert("로그인 실패! 계정 정보를 확인하세요."); }
         };
 
         onAuthStateChanged(auth, (user) => {
-            if (user) { document.getElementById('login-section').style.display = 'none'; document.getElementById('admin-main').style.display = 'block'; initRealtimeSync(); }
+            // 사용자가 로그인되어 있고, 기수명까지 입력된 경우에만 대시보드 표시
+            if (user && staffSelectedBatch) { 
+                document.getElementById('login-section').style.display = 'none'; 
+                document.getElementById('admin-main').style.display = 'block'; 
+                document.getElementById('current-batch-display').innerText = `관리 기수: ${staffSelectedBatch}`;
+                initRealtimeSync(); 
+            } else if (user && !staffSelectedBatch) {
+                // 기수명 없이 로그인된 예외 상황 처리 (새로고침 등)
+                signOut(auth);
+            }
         });
 
         function initRealtimeSync() {
@@ -82,8 +113,6 @@
                 if (snap.exists()) {
                     const data = snap.data();
                     totalLimit = data.total_count || 12;
-                    currentBatchName = data.batch_name || "기본기수";
-                    document.getElementById('current-batch-display').innerText = `기수: ${currentBatchName}`;
                     const tag = document.getElementById('live-status');
                     tag.innerText = data.is_open ? "🔴 결과 공개 중" : "🟢 접수 중";
                     tag.style.background = data.is_open ? "#FF5252" : "#27ae60";
@@ -94,20 +123,28 @@
         }
 
         async function updateDashboard() {
-            const snap = await getDocs(query(collection(db, "participants"), where("batchName", "==", currentBatchName)));
+            // 스태프가 로그인 시 입력한 기수명으로만 필터링
+            const snap = await getDocs(query(collection(db, "participants"), where("batchName", "==", staffSelectedBatch)));
             currentData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            const voteMap = {}; currentData.forEach(p => { if(p.pickId1) voteMap[p.pickId1] = (voteMap[p.pickId1]||0)+1; if(p.pickId2) voteMap[p.pickId2] = (voteMap[p.pickId2]||0)+1; });
+            
+            const voteMap = {}; 
+            currentData.forEach(p => { 
+                if(p.pickId1) voteMap[p.pickId1] = (voteMap[p.pickId1]||0)+1; 
+                if(p.pickId2) voteMap[p.pickId2] = (voteMap[p.pickId2]||0)+1; 
+            });
+
             const list = document.getElementById('list-body'); list.innerHTML = "";
             currentData.sort((a,b) => Number(a.myId) - Number(b.myId)).forEach(p => {
                 list.innerHTML += `<tr><td>${p.myId}</td><td>${p.gender=='male'?'남':'여'}</td><td>${p.realName}</td><td>${p.phone}</td><td>${p.pickId1||''}${p.pickId2?', '+p.pickId2:''}</td><td style="color:#FF5252; font-weight:bold;">${voteMap[p.myId]||0}</td></tr>`;
             });
+
             const males = currentData.filter(p => p.gender === 'male');
             const females = currentData.filter(p => p.gender === 'female');
-            const missM = []; const missF = [];
             const mIds = males.map(p => Number(p.myId)); const fIds = females.map(p => Number(p.myId));
+            const missM = []; const missF = [];
             for(let i=1; i<=totalLimit; i++) { if(!mIds.includes(i)) missM.push(i); if(!fIds.includes(i)) missF.push(i); }
             document.getElementById('stat-missing').innerHTML = `남: ${missM.join(',')}<br>여: ${missF.join(',')}`;
-            
+
             const summary = document.getElementById('match-summary'); summary.innerHTML = "";
             let couples = 0;
             males.forEach(m => { females.forEach(f => {
@@ -123,9 +160,8 @@
             document.getElementById('stat-couples').innerText = `${couples}쌍`;
         }
 
-        // 스태프용 결과 제어 버튼 복구
         document.getElementById('open-btn').onclick = async () => { 
-            if(confirm("매칭 결과를 공개하시겠습니까?")) {
+            if(confirm(`[${staffSelectedBatch}] 기수의 결과를 공개하시겠습니까?`)) {
                 await setDoc(doc(db, "settings", "matching_status"), { is_open: true }, { merge: true }); 
             }
         };
