@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Studio Yuyeon Admin | 🔐</title>
+    <title>Studio Yuyeon MASTER | 👑</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
         body { background: #FDFBF6; font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 20px; box-sizing: border-box; }
@@ -27,14 +27,14 @@
 </head>
 <body>
     <div id="login-section">
-        <h1 style="font-family: 'Playfair Display'; color: #1A237E;">Admin Login</h1>
+        <h1 style="font-family: 'Playfair Display'; color: #1A237E;">Master Admin</h1>
         <input type="email" id="email" class="login-input" placeholder="이메일">
         <input type="password" id="password" class="login-input" placeholder="비밀번호">
-        <button id="login-btn" class="login-btn">대시보드 접속</button>
+        <button id="login-btn" class="login-btn">마스터 접속</button>
     </div>
 
     <div class="admin-container" id="admin-main">
-        <h1 style="font-family: 'Playfair Display'; text-align: center; color: #1A237E;">Studio Yuyeon Dashboard</h1>
+        <h1 style="font-family: 'Playfair Display'; text-align: center; color: #1A237E;">Studio Yuyeon MASTER</h1>
         
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:15px; flex-wrap: wrap; gap: 10px;">
             <div id="live-status" style="padding:10px 15px; border-radius:12px; font-weight:bold; font-size:14px;">상태 확인 중...</div>
@@ -54,9 +54,9 @@
             <div class="bento-card card-large">
                 <h4 style="margin-top:0;">실시간 커플 매칭 💖</h4>
                 <p id="stat-couples" class="main-val" style="color:#FF5252; margin:5px 0;">0쌍</p>
-                <div id="match-summary" style="font-size: 13px; line-height: 1.5; max-height: 300px; overflow-y: auto; background:#fcfcfc; border-radius:15px; padding:5px;"></div>
+                <div id="match-summary" style="font-size: 13px; line-height: 1.6; max-height: 300px; overflow-y: auto; background:#fcfcfc; border-radius:15px; padding:10px;"></div>
             </div>
-            <div class="bento-card" style="border-top: 5px solid #E67E22; grid-column: span 2;"><h4 style="margin-top:0;">미제출자 번호 ⚠️</h4><div id="stat-missing" style="font-size: 14px; font-weight: bold; color: #E67E22; margin-top:10px;"></div></div>
+            <div class="bento-card" style="border-top: 5px solid #E67E22; grid-column: span 2;"><h4>미제출자 번호 ⚠️</h4><div id="stat-missing" style="font-size: 14px; font-weight: bold; color: #E67E22; margin-top:10px;"></div></div>
             <div class="bento-card" style="border-top: 5px solid #27ae60;"><h4 style="margin-top:0;">제출자</h4><p id="stat-total" class="main-val">0명</p></div>
             <div class="bento-card" style="border-top: 5px solid #f39c12;"><h4 style="margin-top:0;">성비</h4><p id="stat-gender" class="main-val" style="font-size: 22px;">0/0</p></div>
         </div>
@@ -66,7 +66,7 @@
             <button id="close-btn" class="panel-btn btn-dark">🔒 결과 차단 (재개)</button>
             <button id="download-btn" class="panel-btn btn-orange">📥 현재 기수 명단 다운</button>
             <button id="delete-btn" class="panel-btn btn-red">⚠️ 백업 후 기수 초기화</button>
-            <button id="delete-chats-btn" class="panel-btn btn-dark">🍪 쿠키삭제 (채팅 초기화)</button>
+            <button id="delete-chats-btn" class="panel-btn btn-dark">🍪 쿠키삭제 (기수별 채팅 소거)</button>
             <button id="archive-download-btn" class="panel-btn btn-blue">🏛️ 아카이브 기록 전체 다운</button>
             <button id="refresh-btn" class="panel-btn btn-green">🔄 제출현황 새로고침</button>
         </div>
@@ -108,6 +108,10 @@
             location.reload();
         };
 
+        document.getElementById('set-total-count').onchange = async (e) => {
+            await setDoc(doc(db, "settings", "matching_status"), { total_count: Number(e.target.value) }, { merge: true });
+        };
+
         function initRealtimeSync() {
             onSnapshot(doc(db, "settings", "matching_status"), (snap) => {
                 if (snap.exists()) {
@@ -128,22 +132,34 @@
             const snap = await getDocs(query(collection(db, "participants"), where("batchName", "==", currentBatchName)));
             currentData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             voteMap = {}; currentData.forEach(p => { if(p.pickId1) voteMap[p.pickId1] = (voteMap[p.pickId1]||0)+1; if(p.pickId2) voteMap[p.pickId2] = (voteMap[p.pickId2]||0)+1; });
+            
             const list = document.getElementById('list-body'); list.innerHTML = "";
             currentData.sort((a,b) => Number(a.myId) - Number(b.myId)).forEach(p => {
                 const pickText = (p.pickId1 || p.pickId2) ? `${p.pickId1||''}${p.pickId2 ? ', '+p.pickId2 : ''}` : '<span style="color:#aaa;">인연없음</span>';
                 list.innerHTML += `<tr><td>${p.myId}</td><td>${p.gender=='male'?'남':'여'}</td><td>${p.realName}</td><td>${p.phone}</td><td>${pickText}</td><td style="color:#FF5252; font-weight:bold;">${voteMap[p.myId]||0}</td><td style="text-align:left; font-size:11px;">${p.review||'-'}</td></tr>`;
             });
+
             const males = currentData.filter(p => p.gender === 'male');
             const females = currentData.filter(p => p.gender === 'female');
             const mIds = males.map(p => Number(p.myId)); const fIds = females.map(p => Number(p.myId));
             const missM = []; const missF = [];
             for(let i=1; i<=totalLimit; i++) { if(!mIds.includes(i)) missM.push(i); if(!fIds.includes(i)) missF.push(i); }
             document.getElementById('stat-missing').innerHTML = `남: ${missM.join(',')}<br>여: ${missF.join(',')}`;
+
+            // 매칭 정보에 연락처 포함 로직 
             const summary = document.getElementById('match-summary'); summary.innerHTML = "";
             let couples = 0;
             males.forEach(m => { females.forEach(f => {
-                if ([Number(m.pickId1), Number(m.pickId2)].includes(Number(f.myId)) && [Number(f.pickId1), Number(f.pickId2)].includes(Number(m.myId))) {
-                    couples++; summary.innerHTML += `<div style="padding:10px; border-bottom:1px solid #f0f0f0;">남 ${m.myId}번 ${m.realName} ↕ 여 ${f.myId}번 ${f.realName}</div>`;
+                const mPicks = [Number(m.pickId1), Number(m.pickId2)];
+                const fPicks = [Number(f.pickId1), Number(f.pickId2)];
+                if (mPicks.includes(Number(f.myId)) && fPicks.includes(Number(m.myId))) {
+                    couples++; 
+                    summary.innerHTML += `
+                        <div style="padding:10px; border-bottom:1px solid #eee; margin-bottom:8px; background:white; border-radius:10px;">
+                            <b style="color:#2196F3;">남 ${m.myId} ${m.realName}</b> (${m.phone})<br>
+                            <div style="text-align:center; color:#FF5252; font-size:11px; margin:4px 0;">↕ 매칭 성공 ↕</div>
+                            <b style="color:#E91E63;">여 ${f.myId} ${f.realName}</b> (${f.phone})
+                        </div>`;
                 }
             }); });
             document.getElementById('stat-couples').innerText = `${couples}쌍`;
@@ -151,7 +167,7 @@
             document.getElementById('stat-gender').innerText = `${males.length}/${females.length}`;
         }
 
-        const verifyPW = () => prompt("보안 비밀번호를 입력하세요.") === SEC_PW;
+        const verifyPW = () => prompt("보안 비밀번호(2024)를 입력하세요.") === SEC_PW;
 
         document.getElementById('download-btn').onclick = () => {
             if(!verifyPW()) return;
@@ -160,7 +176,7 @@
                 csv += `${p.myId},${p.gender=='male'?'남':'여'},${p.realName},${p.birth || '-'},${p.phone},${voteMap[p.myId]||0},"${(p.review || "-").replace(/"/g, '""')}"\n`;
             });
             const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
-            link.download = `${currentBatchName}_명단.csv`; link.click();
+            link.download = `${currentBatchName}_현재명단.csv`; link.click();
         };
 
         document.getElementById('archive-download-btn').onclick = async () => {
@@ -169,7 +185,7 @@
             let csv = "\uFEFF기수,번호,성별,이름,생년월일,연락처,득표수,후기\n";
             snap.forEach(d => { const p = d.data(); csv += `${p.batchName},${p.myId},${p.gender=='male'?'남':'여'},${p.realName},${p.birth || '-'},${p.phone},${p.voteCount || 0},"${(p.review || "-").replace(/"/g, '""')}"\n`; });
             const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
-            link.download = `전체아카이브.csv`; link.click();
+            link.download = `전체아카이브기록.csv`; link.click();
         };
 
         document.getElementById('delete-btn').onclick = async () => {
@@ -187,7 +203,7 @@
 
         document.getElementById('delete-chats-btn').onclick = async () => {
             if(!verifyPW()) return;
-            if(!confirm("⚠️ 유령 데이터까지 뿌리째 삭제하시겠습니까?")) return;
+            if(!confirm(`⚠️ 현재 [${currentBatchName}] 기수의 모든 대화 내용을 삭제하시겠습니까?`)) return;
             try {
                 alert("정밀 소거 중...");
                 for (let m = 1; m <= totalLimit; m++) {
@@ -202,11 +218,12 @@
                         await deleteDoc(doc(db, "chats", chatId));
                     }
                 }
-                alert(`✅ 청소 완료!`); location.reload(); 
+                alert(`✅ [${currentBatchName}] 기수 채팅 청소 완료!`); 
+                updateDashboard();
             } catch (e) { console.error(e); }
         };
 
-        document.getElementById('open-btn').onclick = async () => { await setDoc(doc(db, "settings", "matching_status"), { is_open: true }, { merge: true }); alert("공개됨"); };
+        document.getElementById('open-btn').onclick = async () => { await setDoc(doc(db, "settings", "matching_status"), { is_open: true }, { merge: true }); alert("결과 공개됨"); };
         document.getElementById('close-btn').onclick = async () => { await setDoc(doc(db, "settings", "matching_status"), { is_open: false }, { merge: true }); alert("차단됨"); };
         document.getElementById('refresh-btn').onclick = updateDashboard;
     </script>
