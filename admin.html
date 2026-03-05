@@ -190,11 +190,11 @@
             document.getElementById('stat-gender').innerText = `${males.length}/${females.length}`;
         }
 
-        const verify = () => prompt("보안 비밀번호(2024)를 입력하세요.") === SEC_PW;
+        const verify = () => prompt("보안 비밀번호를 입력하세요.") === SEC_PW;
 
         document.getElementById('delete-btn').onclick = async () => {
             if(currentData.length === 0) return alert("데이터가 없습니다.");
-            const batchName = prompt("백업할 기수 이름 (예: 전주 12기)");
+            const batchName = prompt("백업할 기수 이름 (예: 유연 133기)");
             if(!batchName || !verify()) return;
             if(!confirm("⚠️ 현재 데이터를 아카이브하고 삭제하시겠습니까?")) return;
             try {
