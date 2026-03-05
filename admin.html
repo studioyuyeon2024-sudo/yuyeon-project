@@ -6,41 +6,23 @@
     <title>Studio Yuyeon Admin | 🔐</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
-        
         body { background: #FDFBF6; font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 20px; box-sizing: border-box; }
         .admin-container { width: 100%; max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 30px; border-top: 8px solid #1A237E; box-shadow: 0 10px 30px rgba(0,0,0,0.05); display: none; }
-        
         #login-section { max-width: 400px; margin: 15vh auto; background: white; padding: 40px; border-radius: 30px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); text-align: center; }
         .login-input { width: 100%; padding: 15px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 12px; font-size: 16px; box-sizing: border-box; }
         .login-btn { width: 100%; padding: 18px; border: none; border-radius: 12px; background: #1A237E; color: white; font-weight: bold; cursor: pointer; }
-
         .bento-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin: 30px 0; }
         .bento-card { background: white; padding: 25px; border-radius: 24px; border: 1px solid #f0f0f0; text-align: left; }
         .card-large { grid-column: span 2; grid-row: span 2; border-top: 5px solid #FF5252; }
         .main-val { font-size: 32px; font-weight: bold; color: #1A237E; margin: 10px 0; }
-        
         .control-panel { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 25px; }
         .panel-btn { padding: 18px; border: none; border-radius: 15px; color: white; font-weight: bold; cursor: pointer; font-size: 14px; transition: 0.2s; }
         .panel-btn:hover { opacity: 0.8; transform: translateY(-2px); }
         .btn-purple { background: #9b59b6; } .btn-dark { background: #34495e; } .btn-orange { background: #f39c12; } .btn-red { background: #e74c3c; } .btn-blue { background: #2980b9; grid-column: span 2; } .btn-green { background: #27ae60; grid-column: span 2; }
-
         .table-wrapper { overflow-x: auto; border-radius: 20px; border: 1px solid #eee; margin-top: 20px; }
         table { width: 100%; border-collapse: collapse; font-size: 12px; }
         th, td { padding: 15px; border: 1px solid #f9f9f9; text-align: center; }
         th { background: #1A237E; color: white; }
-
-        @media (max-width: 768px) {
-            body { padding: 10px; }
-            .admin-container { padding: 15px; border-radius: 15px; }
-            .bento-grid { grid-template-columns: 1fr; gap: 12px; }
-            .card-large { grid-column: span 1; grid-row: auto; }
-            .control-panel { grid-template-columns: 1fr; gap: 8px; }
-            .main-val { font-size: 28px; }
-            h1 { font-size: 20px; margin-bottom: 15px; }
-            .table-wrapper table { font-size: 10px; }
-            th, td { padding: 10px 4px; }
-            .bento-card { padding: 20px; }
-        }
     </style>
 </head>
 <body>
@@ -107,6 +89,7 @@
         const db = getFirestore(app);
         const SEC_PW = "2024";
         let currentData = [];
+        let voteMap = {}; // 득표수 맵 전역 변수화
         let totalLimit = 12;
 
         document.getElementById('login-btn').onclick = async () => {
@@ -145,7 +128,7 @@
             const snap = await getDocs(collection(db, "participants"));
             currentData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             
-            const voteMap = {};
+            voteMap = {}; // 초기화
             currentData.forEach(p => { 
                 if(p.pickId1) voteMap[p.pickId1] = (voteMap[p.pickId1]||0)+1; 
                 if(p.pickId2) voteMap[p.pickId2] = (voteMap[p.pickId2]||0)+1; 
@@ -192,15 +175,62 @@
 
         const verify = () => prompt("보안 비밀번호를 입력하세요.") === SEC_PW;
 
+        // [수정] 현재 기수 명단 다운로드 기능 (득표수/후기 포함)
+        document.getElementById('download-btn').onclick = () => {
+            if(!verify()) return alert("인증 실패");
+            if(currentData.length === 0) return alert("다운로드할 데이터가 없습니다.");
+
+            let csv = "\uFEFF번호,성별,이름,연락처,득표수,후기\n";
+            currentData.sort((a,b) => Number(a.myId) - Number(b.myId)).forEach(p => {
+                const votes = voteMap[p.myId] || 0;
+                const review = (p.review || "-").replace(/,/g, " "); // 쉼표 제거 처리
+                csv += `${p.myId},${p.gender=='male'?'남':'여'},${p.realName},${p.phone},${votes},"${review}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `현재기수명단_${new Date().toLocaleDateString()}.csv`;
+            link.click();
+        };
+
+        // [수정] 아카이브 기록 전체 다운로드 (상세 정보 포함)
+        document.getElementById('archive-download-btn').onclick = async () => {
+            if(!verify()) return alert("인증 실패");
+            const snap = await getDocs(collection(db, "archive"));
+            if(snap.empty) return alert("아카이브 데이터가 없습니다.");
+
+            let csv = "\uFEFF기수,번호,성별,이름,연락처,득표수,후기\n";
+            snap.forEach(d => { 
+                const p = d.data(); 
+                const review = (p.review || "-").replace(/,/g, " ");
+                csv += `${p.batchName},${p.myId},${p.gender=='male'?'남':'여'},${p.realName},${p.phone},${p.voteCount || 0},"${review}"\n`; 
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.download = `전체아카이브기록_${new Date().toLocaleDateString()}.csv`;
+            link.click();
+        };
+
+        // [수정] 백업 시 득표수(voteCount)를 함께 저장하여 영구 보존
         document.getElementById('delete-btn').onclick = async () => {
             if(currentData.length === 0) return alert("데이터가 없습니다.");
             const batchName = prompt("백업할 기수 이름 (예: 유연 133기)");
             if(!batchName || !verify()) return;
-            if(!confirm("⚠️ 현재 데이터를 아카이브하고 삭제하시겠습니까?")) return;
+            if(!confirm("⚠️ 현재 데이터를 아카이브하고 초기화하시겠습니까?")) return;
+
             try {
                 const batch = writeBatch(db);
                 currentData.forEach(p => {
-                    batch.set(doc(db, "archive", `${batchName}_${p.gender}_${p.myId}`), { ...p, batchName, archivedAt: new Date() });
+                    const finalVoteCount = voteMap[p.myId] || 0; // 백업 당시의 득표수 계산
+                    batch.set(doc(db, "archive", `${batchName}_${p.gender}_${p.myId}`), { 
+                        ...p, 
+                        batchName, 
+                        voteCount: finalVoteCount, // 필드 추가
+                        archivedAt: new Date() 
+                    });
                     batch.delete(doc(db, "participants", p.id));
                 });
                 await batch.commit();
@@ -208,48 +238,29 @@
             } catch (e) { alert("오류: " + e.message); }
         };
 
-        // [정밀 타격 삭제] 유령 데이터까지 확실히 지우는 고출력 삭제 로직
         document.getElementById('delete-chats-btn').onclick = async () => {
             if(!verify()) return alert("인증 실패");
-            if(!confirm("⚠️ 유령 데이터와 모든 대화 내용을 뿌리까지 삭제하시겠습니까?\n이 작업은 데이터베이스 용량을 확실히 비워줍니다.")) return;
-            
+            if(!confirm("⚠️ 유령 데이터와 모든 대화 내용을 뿌리까지 삭제하시겠습니까?")) return;
             try {
-                alert("데이터 정밀 소거를 시작합니다. 잠시만 기다려주세요...");
-                let totalDeletedRooms = 0;
-                let totalDeletedMsgs = 0;
-
-                // 1. 모든 가능한 번호 조합(Nuclear Approach) 타격
+                alert("데이터 정밀 소거 중...");
                 for (let m = 1; m <= totalLimit; m++) {
                     for (let f = 1; f <= totalLimit; f++) {
                         const chatId = `${m}_${f}`;
-                        
-                        // 하위 'messages' 컬렉션 직접 조회 및 삭제
                         const msgSnap = await getDocs(collection(db, "chats", chatId, "messages"));
                         if (!msgSnap.empty) {
                             const batch = writeBatch(db);
-                            msgSnap.forEach((mDoc) => {
-                                batch.delete(doc(db, "chats", chatId, "messages", mDoc.id));
-                                totalDeletedMsgs++;
-                            });
+                            msgSnap.forEach((mDoc) => batch.delete(doc(db, "chats", chatId, "messages", mDoc.id)));
                             await batch.commit();
                         }
-                        
-                        // 마지막으로 상위 대화방 문서(이미 유령화된 것 포함) 삭제
                         await deleteDoc(doc(db, "chats", chatId));
-                        totalDeletedRooms++;
                     }
                 }
-
-                alert(`✅ 청소 완료!\n- 시도된 경로: ${totalDeletedRooms}곳\n- 삭제된 메시지: ${totalDeletedMsgs}개\n이제 데이터베이스가 완전히 깨끗해졌습니다.`);
-                location.reload(); 
-            } catch (e) { 
-                console.error(e);
-                alert("오류 발생: " + e.message + "\n보안 규칙을 다시 확인하세요."); 
-            }
+                alert(`✅ 청소 완료!`); location.reload(); 
+            } catch (e) { console.error(e); }
         };
 
         document.getElementById('open-btn').onclick = async () => { 
-            if (confirm("매칭 결과를 공개하시겠습니까? (참여자 접수가 마감됩니다)")) {
+            if (confirm("매칭 결과를 공개하시겠습니까?")) {
                 await setDoc(doc(db, "settings", "matching_status"), { is_open: true }, { merge: true }); 
                 alert("결과 공개됨");
             }
@@ -257,14 +268,6 @@
 
         document.getElementById('close-btn').onclick = async () => { await setDoc(doc(db, "settings", "matching_status"), { is_open: false }, { merge: true }); alert("접수 재개됨"); };
         document.getElementById('refresh-btn').onclick = updateDashboard;
-        document.getElementById('archive-download-btn').onclick = async () => {
-            if(!verify()) return;
-            const snap = await getDocs(collection(db, "archive"));
-            let csv = "\uFEFF기수,번호,성별,이름,연락처\n";
-            snap.forEach(d => { const p = d.data(); csv += `${p.batchName},${p.myId},${p.gender},${p.realName},${p.phone}\n`; });
-            const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
-            link.download = `전체_아카이브.csv`; link.click();
-        };
     </script>
 </body>
 </html>
