@@ -261,7 +261,7 @@
             if (matched.length > 0) {
                 matched.forEach(p => {
                     const chatId = myGender === 'male' ? `${currentBatchName}_${myId}_${p.myId}` : `${currentBatchName}_${p.myId}_${myId}`;
-                    area.innerHTML += `<div style='background:white; border:1px solid #eee; padding:15px; border-radius:15px; margin-bottom:12px;'><div style='font-weight:bold; margin-bottom:10px;'>💖 ${p.myId}번님과 매칭!</div><button onclick="window.enterChat('${chatId}', '${p.myId}')" style="width:100%; padding:12px; background:#1A237E; color:white; border:none; border-radius:10px; cursor:pointer;">1:1 웹 채팅 시작하기</button></div>`;
+                    area.innerHTML += `<div style='background:white; border:1px solid #eee; padding:15px; border-radius:15px; margin-bottom:12px;'><div style='font-weight:bold; margin-bottom:10px;'>💖 ${p.myId}번님과 매칭!</div><button onclick="window.enterChat('${chatId}', '${p.myId}')" style="width:100%; padding:12px; background:#1A237E; color:white; border:none; border-radius:10px; cursor:pointer;">1:1 채팅 시작하기</button></div>`;
                 });
             } else area.innerHTML += `<div style='background:#f4f4f4; padding:20px; border-radius:15px;'>매칭된 인연이 없습니다 :)</div>`;
         };
