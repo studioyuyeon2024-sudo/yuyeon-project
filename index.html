@@ -19,18 +19,22 @@
         #status-bar { display: none; background: #FF5252; color: white; padding: 10px; border-radius: 10px; font-size: 13px; font-weight: bold; margin-bottom: 15px; animation: blink 2s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
         
-        /* 채팅방 UI 개선 */
+        /* 채팅방 디자인 개선 */
         #chat-section { display: none; text-align: left; }
         .chat-info-bar { background: #F0F2F5; padding: 12px; border-radius: 15px; margin-bottom: 15px; display: flex; flex-direction: column; align-items: center; gap: 5px; }
         #cookie-count-badge { background: #1A237E; color: white; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
         #time-limit-badge { color: #FF5252; font-size: 11px; font-weight: 500; }
         
-        #chat-box { height: 450px; overflow-y: auto; border: 1px solid #eee; padding: 15px; border-radius: 20px; background: #f9f9fb; margin-bottom: 15px; display: flex; flex-direction: column; gap: 15px; }
-        .msg-wrapper { display: flex; flex-direction: column; gap: 4px; max-width: 80%; }
-        .msg-wrapper.me { align-self: flex-end; align-items: flex-end; }
-        .msg-wrapper.other { align-self: flex-start; align-items: flex-start; }
-        .msg-label { font-size: 10px; color: #888; font-weight: bold; margin: 0 4px; }
-        .msg { padding: 10px 14px; border-radius: 18px; font-size: 14px; line-height: 1.5; word-break: break-all; }
+        #chat-box { height: 450px; overflow-y: auto; border: 1px solid #eee; padding: 15px; border-radius: 20px; background: #f9f9fb; margin-bottom: 15px; display: flex; flex-direction: column; gap: 18px; }
+        
+        /* 말풍선 레이아웃 핵심 */
+        .msg-wrapper { display: flex; flex-direction: column; gap: 4px; max-width: 85%; }
+        .msg-wrapper.me { align-self: flex-end; align-items: flex-end; } /* 나: 오른쪽 정렬 */
+        .msg-wrapper.other { align-self: flex-start; align-items: flex-start; } /* 상대: 왼쪽 정렬 */
+        
+        .msg-label { font-size: 11px; color: #888; font-weight: bold; margin: 0 5px; }
+        .msg { padding: 10px 14px; border-radius: 18px; font-size: 14px; line-height: 1.5; word-break: break-all; box-shadow: 0 2px 4px rgba(0,0,0,0.03); }
+        
         .msg-wrapper.me .msg { background: #1A237E; color: white; border-bottom-right-radius: 2px; }
         .msg-wrapper.other .msg { background: #E9ECEF; color: #333; border-bottom-left-radius: 2px; }
         
@@ -71,7 +75,7 @@
                         <div class="privacy-text">
                             <strong>1. 수집 항목:</strong> 성명, 성별, 생년월일, 연락처, 매칭 번호, 참여 후기<br>
                             <strong>2. 이용 목적:</strong> 매칭 결과 분석 및 <strong>스튜디오 유연 소식 안내</strong><br>
-                            <strong>3. 보유 기간:</strong> <strong>참여일로부터 1년간 보관</strong> 후 즉시 파기<br>
+                            <strong>3. 보유 기간:</strong> <strong>참여일로부터 1년간 보관</strong> 후 파기<br>
                             <strong>4. 거부 권리:</strong> 동의를 거부할 수 있으나, 거부 시 결과 조회가 불가능합니다.
                         </div>
                     </div>
@@ -179,9 +183,7 @@
             const pickGrid = document.getElementById('pick-id-grid');
             myGrid.innerHTML = ""; pickGrid.innerHTML = "";
             for (let i = 1; i <= currentTotalCount; i++) {
-                const mb = document.createElement('div');
-                mb.className = 'bubble';
-                mb.innerText = i;
+                const mb = document.createElement('div'); mb.className = 'bubble'; mb.innerText = i;
                 mb.onclick = () => {
                     if (takenIds.includes(i) && !isResultsRevealed) alert("본인의 번호가 맞는 지 확인해 주세요.");
                     document.querySelectorAll('#my-id-grid .bubble').forEach(x => x.classList.remove('selected'));
@@ -204,9 +206,6 @@
             const qId = query(collection(db, "participants"), where("gender", "==", gender), where("myId", "==", myNum));
             const snapId = await getDocs(qId);
             if (!snapId.empty) return alert("⚠️ 해당 번호는 이미 제출되었습니다.");
-            const qPhone = query(collection(db, "participants"), where("phone", "==", phoneInput.value));
-            const snapPhone = await getDocs(qPhone);
-            if (!snapPhone.empty) return alert("이미 제출된 연락처입니다.");
             const picks = Array.from(document.querySelectorAll('#pick-id-grid .bubble.selected')).map(b => Number(b.innerText));
             await addDoc(collection(db, "participants"), {
                 gender, myId: myNum, realName: document.getElementById('user-real-name').value,
@@ -224,7 +223,7 @@
         });
 
         withdrawBtn.onclick = async () => {
-            if (!confirm("⚠️ 제출하신 정보를 삭제하시겠습니까?")) return;
+            if (!confirm("⚠️ 정보를 삭제하시겠습니까?")) return;
             const q = query(collection(db, "participants"), where("phone", "==", phoneInput.value));
             const snap = await getDocs(q);
             await Promise.all(snap.docs.map(d => deleteDoc(doc(db, "participants", d.id))));
@@ -242,11 +241,9 @@
             const snap = await getDocs(query(collection(db, "participants"), where("phone", "==", phone)));
             if (snap.empty) return alert("등록된 정보가 없습니다.");
             const myData = snap.docs[0].data();
-            myId = String(myData.myId); myGender = myData.gender;
+            myId = String(myData.myId).trim(); // 타입 안전성을 위해 공백 제거 및 문자열 변환
+            myGender = myData.gender;
             myCreatedAt = myData.createdAt.toDate(); 
-            const now = new Date();
-            const diffDays = (now - myCreatedAt) / (1000 * 60 * 60 * 24);
-            const isTimeExpired = diffDays > 3;
             const opposites = (await getDocs(collection(db, "participants"))).docs.map(d => d.data()).filter(p => p.gender !== myGender);
             const matched = opposites.filter(p => (String(p.pickId1) === myId || String(p.pickId2) === myId) && [String(myData.pickId1), String(myData.pickId2)].includes(String(p.myId)));
             document.getElementById('result-modal').style.display = 'none';
@@ -256,19 +253,17 @@
             const area = document.getElementById('match-list-area');
             area.innerHTML = `<div style="background:#FFF9E6; padding:20px; border-radius:20px; margin-bottom:20px;">나의 득표수: <b>${opposites.filter(p => String(p.pickId1) === myId || String(p.pickId2) === myId).length}표</b></div>`;
             if (matched.length > 0) {
-                area.innerHTML += `<h3 style="color:#FF5252;">🎉 매칭 성공!</h3>`;
                 matched.forEach(p => {
                     const chatId = myGender === 'male' ? `${myId}_${p.myId}` : `${p.myId}_${myId}`;
-                    if (isTimeExpired) area.innerHTML += `<div style='background:#f4f4f4; border:1px solid #ddd; padding:20px; border-radius:15px; margin-bottom:12px; opacity:0.7;'><div style='font-weight:bold; margin-bottom:10px;'>💖 ${p.myId}번님과 매칭!</div><button disabled style="width:100%; padding:12px; background:#999; color:white; border:none; border-radius:10px;">이용 기간 만료 (3일 경과)</button></div>`;
-                    else area.innerHTML += `<div style='background:white; border:1px solid #eee; padding:20px; border-radius:15px; margin-bottom:12px;'><div style='font-weight:bold; margin-bottom:10px;'>💖 ${p.myId}번님과 매칭!</div><button onclick="window.enterChat('${chatId}', '${p.myId}')" style="width:100%; padding:12px; background:#1A237E; color:white; border:none; border-radius:10px; cursor:pointer;">1:1 웹 채팅 시작하기</button></div>`;
+                    area.innerHTML += `<div style='background:white; border:1px solid #eee; padding:12px; border-radius:15px; margin-bottom:12px;'><div style='font-weight:bold; margin-bottom:10px;'>💖 ${p.myId}번님과 매칭!</div><button onclick="window.enterChat('${chatId}', '${p.myId}')" style="width:100%; padding:12px; background:#1A237E; color:white; border:none; border-radius:10px; cursor:pointer;">1:1 웹 채팅 시작하기</button></div>`;
                 });
             } else area.innerHTML += `<div style='background:#f4f4f4; padding:25px 20px; border-radius:15px; color:#666;'>다음번에 더 좋은 인연으로 뵐게요 :)</div>`;
         };
 
         window.enterChat = (chatId, otherId) => {
-            const currentUserIdStr = String(myId);
-            const meGender = myGender === 'male' ? '남' : '여';
-            const otherGender = myGender === 'male' ? '여' : '남';
+            const currentUserIdStr = String(myId).trim(); // 비교 기준값 고정
+            const meGenderLabel = myGender === 'male' ? '남' : '여';
+            const otherGenderLabel = myGender === 'male' ? '여' : '남';
             currentChatId = chatId;
             document.getElementById('result-section').style.display = 'none';
             document.getElementById('chat-section').style.display = 'block';
@@ -280,13 +275,14 @@
                 let myMsgCount = 0;
                 snap.forEach(msgDoc => {
                     const msgData = msgDoc.data();
-                    const isMe = String(msgData.senderId) === currentUserIdStr;
+                    // 데이터 타입 보정하여 비교 (isMe 판단 핵심)
+                    const isMe = String(msgData.senderId).trim() === currentUserIdStr;
                     if (isMe) myMsgCount++;
                     const wrapper = document.createElement('div');
                     wrapper.className = `msg-wrapper ${isMe ? 'me' : 'other'}`;
                     const label = document.createElement('div');
                     label.className = 'msg-label';
-                    label.innerText = isMe ? `${meGender} ${myId}번 (나)` : `${otherGender} ${otherId}번`;
+                    label.innerText = isMe ? `${meGenderLabel} ${myId}번 (나)` : `${otherGenderLabel} ${otherId}번`;
                     const msgDiv = document.createElement('div');
                     msgDiv.className = 'msg';
                     msgDiv.innerText = msgData.text;
@@ -298,22 +294,21 @@
                 document.getElementById('cookie-count-badge').innerText = `🍪 남은 대화 쿠키: ${COOKIE_LIMIT - myMsgCount}개`;
                 document.getElementById('time-limit-badge').innerText = `⌛ 남은 시간: ${Math.max(0, (3 - diffDays).toFixed(1))}일 (3일 경과 시 종료)`;
                 if (myMsgCount >= COOKIE_LIMIT || diffDays > 3) {
-                    chatInput.disabled = true;
-                    chatInput.placeholder = "이용 기간이 만료되었거나 쿠키를 모두 소진하였습니다.";
+                    chatInput.disabled = true; chatInput.placeholder = "이용이 종료되었습니다.";
                 }
                 chatBox.scrollTop = chatBox.scrollHeight;
             });
         };
 
-        // [복구] 전송 로직 수정 - currentChatId 직접 참조
         document.getElementById('send-msg-btn').onclick = async () => {
             const text = chatInput.value.trim();
             if (!text || !currentChatId || chatInput.disabled) return;
-            const targetChatId = currentChatId; // 클로저 이슈 방지
+            const targetChatId = currentChatId;
             chatInput.value = "";
             try {
+                // 저장 시 senderId를 문자열로 통일하여 저장
                 await addDoc(collection(db, "chats", targetChatId, "messages"), {
-                    senderId: String(myId), text: text, createdAt: serverTimestamp()
+                    senderId: String(myId).trim(), text: text, createdAt: serverTimestamp()
                 });
             } catch (e) { alert("전송 오류: " + e.message); }
         };
