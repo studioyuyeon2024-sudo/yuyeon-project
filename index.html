@@ -16,10 +16,13 @@
         .bubble { aspect-ratio: 1; border-radius: 50%; background: #F8F9FA; border: 1px solid #E0E0E0; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; transition: 0.2s; }
         .bubble.selected { background: #1A237E !important; color: white !important; font-weight: bold; transform: scale(1.1); }
         
+        /* 인연 없음 버튼 스타일 */
+        .no-match-btn { width: 100%; padding: 15px; border-radius: 12px; background: #F8F9FA; border: 1px solid #E0E0E0; font-size: 14px; color: #666; cursor: pointer; text-align: center; transition: 0.2s; margin-top: 5px; }
+        .no-match-btn.active { background: #34495e; color: white; border-color: #34495e; font-weight: bold; }
+
         #status-bar { display: none; background: #FF5252; color: white; padding: 10px; border-radius: 10px; font-size: 13px; font-weight: bold; margin-bottom: 15px; animation: blink 2s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
         
-        /* 채팅방 UI 상단 안내 바 */
         #chat-section { display: none; text-align: left; }
         .chat-info-bar { background: #F0F4FF; padding: 15px; border-radius: 20px; margin-bottom: 15px; display: flex; flex-direction: column; align-items: center; gap: 6px; border: 1px solid #D1D9FF; }
         .cookie-badge { background: #1A237E; color: white; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; }
@@ -34,7 +37,7 @@
         .msg-wrapper.me .msg { background: #1A237E; color: white; border-bottom-right-radius: 2px; }
         .msg-wrapper.other .msg { background: #FFFFFF; color: #333; border: 1px solid #E5E7EB; border-bottom-left-radius: 2px; }
         
-        /* 약관 한 줄 정렬 및 디자인 */
+        /* 약관 디자인 */
         .privacy-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; margin-bottom: 12px; }
         .privacy-header span { color: #1A237E; font-size: 14px; font-weight: bold; }
         .privacy-header input[type="checkbox"] { width: 22px !important; height: 22px !important; margin: 0 !important; cursor: pointer; }
@@ -63,7 +66,12 @@
                     <input type="tel" id="user-birth" maxlength="10" placeholder="생년월일(1900-00-00)" required>
                     <input type="tel" id="user-phone" maxlength="13" placeholder="예: 010-0000-0000" required>
                 </div>
-                <div class="card"><label>호감 이성 번호 (최대 2명)</label><div class="bubble-grid" id="pick-id-grid"></div></div>
+                <div class="card">
+                    <label>호감 이성 번호 (최대 2명)</label>
+                    <div class="bubble-grid" id="pick-id-grid"></div>
+                    <div style="text-align:center; color:#ccc; font-size:11px; margin: 10px 0;">또는</div>
+                    <div class="no-match-btn" id="no-match-btn">이번 기수에는 인연이 없었어요 ❄️</div>
+                </div>
                 <div class="card"><label>참여 후기 (선택)</label><textarea id="user-review" placeholder="오늘 유연 데이팅은 어떠셨나요?"></textarea></div>
                 
                 <div class="card">
@@ -74,9 +82,9 @@
                     <div class="privacy-box">
                         <div class="privacy-text">
                             <strong>1. 수집 항목:</strong> 성명, 성별, 생년월일, 연락처, 매칭 번호, 참여 후기<br>
-                            <strong>2. 이용 목적:</strong> 매칭 결과 분석, 서비스 제공 및 <strong>스튜디오 유연 홍보/안내 소식 발송</strong><br>
-                            <strong>3. 보유 기간:</strong> <strong>참여일로부터 1년간 보관</strong> 후 파기 (참여자 요청 시 즉시 삭제)<br>
-                            <strong>4. 거부 권리:</strong> 동의를 거부할 권리가 있으나, 거부 시 결과 조회가 불가능합니다.
+                            <strong>2. 이용 목적:</strong> 매칭 결과 분석, 서비스 제공 및 <strong>스튜디오 유연 안내 소식 발송</strong><br>
+                            <strong>3. 보유 기간:</strong> <strong>참여일로부터 1년간 보관</strong> 후 파기 (사용자 요청 시 즉시 삭제)<br>
+                            <strong>4. 거부 권리:</strong> 동의를 거부할 수 있으나, 거부 시 결과 조회가 불가능합니다.
                         </div>
                     </div>
                 </div>
@@ -105,7 +113,7 @@
         <div id="chat-section">
             <div class="chat-info-bar">
                 <div class="cookie-badge" id="cookie-display">🍪 쿠키 잔량: 500개</div>
-                <div class="time-badge" id="time-display">⌛ 대화 쿠키를 소진하거나 3일이 경과하면 종료됩니다 :)</div>
+                <div class="time-badge">⌛ 대화 쿠키를 소진하거나 3일이 경과하면 종료됩니다 :)</div>
             </div>
             <div id="chat-box"></div>
             <div style="display:flex; gap:10px;">
@@ -128,6 +136,7 @@
         const phoneInput = document.getElementById('user-phone');
         const verifyPhoneInput = document.getElementById('verify-phone');
         const withdrawBtn = document.getElementById('withdraw-btn');
+        const noMatchBtn = document.getElementById('no-match-btn');
         const chatInput = document.getElementById('chat-input');
         
         let myId, myGender, currentChatId, chatUnsubscribe, myCreatedAt;
@@ -136,7 +145,7 @@
 
         phoneInput.value = "010-";
 
-        // 자동 하이픈 및 고정 로직
+        // 자동 하이픈 로직
         const applyFormat = (input, type) => {
             input.addEventListener('input', (e) => {
                 let v = e.target.value.replace(/[^0-9]/g, '');
@@ -171,9 +180,16 @@
             const q = query(collection(db, "participants"), where("gender", "==", genderSelect.value));
             const snap = await getDocs(q);
             takenIds = snap.docs.map(d => Number(d.data().myId));
+            setupGrids();
+        }
+        genderSelect.onchange = updateTakenIds;
+
+        const setupGrids = () => {
             const myGrid = document.getElementById('my-id-grid');
             const pickGrid = document.getElementById('pick-id-grid');
             myGrid.innerHTML = ""; pickGrid.innerHTML = "";
+            
+            // 본인 번호 그리드
             for (let i = 1; i <= currentTotalCount; i++) {
                 const mb = document.createElement('div'); mb.className = 'bubble'; mb.innerText = i;
                 mb.onclick = () => {
@@ -182,24 +198,45 @@
                     mb.classList.add('selected'); document.getElementById('user-id').value = i;
                 };
                 myGrid.appendChild(mb);
+            }
+
+            // 호감 번호 그리드
+            for (let i = 1; i <= currentTotalCount; i++) {
                 const pb = document.createElement('div'); pb.className = 'bubble'; pb.innerText = i;
-                pb.onclick = () => pb.classList.toggle('selected');
+                pb.onclick = () => {
+                    if (noMatchBtn.classList.contains('active')) return;
+                    const selected = document.querySelectorAll('#pick-id-grid .bubble.selected');
+                    if (!pb.classList.contains('selected') && selected.length >= 2) return alert("최대 2명까지만 선택 가능합니다.");
+                    pb.classList.toggle('selected');
+                };
                 pickGrid.appendChild(pb);
             }
-        }
-        genderSelect.onchange = updateTakenIds;
+        };
+
+        // '인연 없음' 상호 배타 로직
+        noMatchBtn.onclick = () => {
+            noMatchBtn.classList.toggle('active');
+            if (noMatchBtn.classList.contains('active')) {
+                document.querySelectorAll('#pick-id-grid .bubble').forEach(b => b.classList.remove('selected'));
+            }
+        };
 
         document.getElementById('matching-form').onsubmit = async (e) => {
             e.preventDefault();
-            if (isResultsRevealed) return alert("접수가 마감되었습니다.");
+            if (isResultsRevealed) return alert("접수가 이미 마감되었습니다.");
             if (!document.getElementById('privacy-check').checked) return alert("개인정보 동의를 체크해 주세요.");
+            
             const myNum = Number(document.getElementById('user-id').value);
-            if(!myNum) return alert("본인 번호를 선택하세요.");
+            if(!myNum) return alert("본인의 번호를 선택해 주세요.");
+            
+            const picks = Array.from(document.querySelectorAll('#pick-id-grid .bubble.selected')).map(b => Number(b.innerText));
+            if (picks.length === 0 && !noMatchBtn.classList.contains('active')) return alert("호감 번호를 선택하거나 '인연 없음'을 눌러주세요.");
+
             const gender = genderSelect.value;
             const qId = query(collection(db, "participants"), where("gender", "==", gender), where("myId", "==", myNum));
             const snapId = await getDocs(qId);
-            if (!snapId.empty) return alert("이미 제출된 번호입니다.");
-            const picks = Array.from(document.querySelectorAll('#pick-id-grid .bubble.selected')).map(b => Number(b.innerText));
+            if (!snapId.empty) return alert("⚠️ 이미 제출된 번호입니다.");
+            
             await addDoc(collection(db, "participants"), {
                 gender, myId: myNum, realName: document.getElementById('user-real-name').value,
                 phone: phoneInput.value, createdAt: serverTimestamp(), pickId1: picks[0] || null, pickId2: picks[1] || null
@@ -207,26 +244,10 @@
             alert("제출 완료!"); location.reload();
         };
 
-        phoneInput.addEventListener('blur', async (e) => {
-            if (e.target.value.length === 13 && !isResultsRevealed) {
-                const q = query(collection(db, "participants"), where("phone", "==", e.target.value));
-                const snap = await getDocs(q);
-                withdrawBtn.style.display = !snap.empty ? 'block' : 'none';
-            } else { withdrawBtn.style.display = 'none'; }
-        });
-
-        withdrawBtn.onclick = async () => {
-            if (!confirm("⚠️ 정보를 삭제하시겠습니까? 다시 작성이 가능합니다.")) return;
-            const q = query(collection(db, "participants"), where("phone", "==", phoneInput.value));
-            const snap = await getDocs(q);
-            await Promise.all(snap.docs.map(d => deleteDoc(doc(db, "participants", d.id))));
-            alert("회수 완료!"); location.reload();
-        };
-
+        // 결과 확인 및 채팅방 식별 로직은 이전 고유 ID(gender_id) 체계를 유지하여 undefined를 방지합니다.
         document.getElementById('check-result-btn').onclick = () => {
             if (!isResultsRevealed) return alert("결과 공개 전입니다!");
             document.getElementById('result-modal').style.display = 'flex';
-            verifyPhoneInput.value = "010-"; verifyPhoneInput.focus();
         };
 
         document.getElementById('confirm-verify-btn').onclick = async () => {
@@ -248,11 +269,11 @@
                     const chatId = myGender === 'male' ? `${myId}_${p.myId}` : `${p.myId}_${myId}`;
                     area.innerHTML += `<div style='background:white; border:1px solid #eee; padding:15px; border-radius:15px; margin-bottom:12px;'><div style='font-weight:bold; margin-bottom:10px;'>💖 ${p.myId}번님과 매칭!</div><button onclick="window.enterChat('${chatId}', '${p.myId}')" style="width:100%; padding:12px; background:#1A237E; color:white; border:none; border-radius:10px; cursor:pointer;">1:1 웹 채팅 시작하기</button></div>`;
                 });
-            } else area.innerHTML += `<div style='background:#f4f4f4; padding:20px; border-radius:15px; color:#666;'>매칭된 인연이 없습니다 :)</div>`;
+            } else area.innerHTML += `<div style='background:#f4f4f4; padding:25px 20px; border-radius:15px; color:#666;'>매칭된 인연이 없습니다 :)</div>`;
         };
 
         window.enterChat = (chatId, otherId) => {
-            const myUniqueId = `${myGender}_${myId}`; // 성별 조합 고유 ID
+            const myUniqueId = `${myGender}_${myId}`;
             currentChatId = chatId;
             document.getElementById('result-section').style.display = 'none';
             document.getElementById('chat-section').style.display = 'block';
@@ -264,7 +285,7 @@
                 let myMsgCount = 0;
                 snap.forEach(msgDoc => {
                     const msgData = msgDoc.data();
-                    const isMe = String(msgData.senderId) === myUniqueId; // 성별까지 정확히 체크
+                    const isMe = String(msgData.senderId) === myUniqueId;
                     if (isMe) myMsgCount++;
                     const parts = String(msgData.senderId).split('_');
                     const senderLabel = parts[0] === 'male' ? '남' : '여';
@@ -293,9 +314,8 @@
                 await addDoc(collection(db, "chats", currentChatId, "messages"), {
                     senderId: myUniqueId, text: text, createdAt: serverTimestamp()
                 });
-            } catch (e) { alert("전송 실패: " + e.message); }
+            } catch (e) { alert("전송 실패"); }
         };
-        chatInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') document.getElementById('send-msg-btn').click(); });
     </script>
 </body>
 </html>
