@@ -19,11 +19,11 @@
         #status-bar { display: none; background: #FF5252; color: white; padding: 10px; border-radius: 10px; font-size: 13px; font-weight: bold; margin-bottom: 15px; animation: blink 2s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
         
-        /* 채팅방 UI 핵심 개선 */
+        /* 채팅방 UI 상단 안내 바 */
         #chat-section { display: none; text-align: left; }
-        .chat-info-bar { background: #F0F2F5; padding: 15px; border-radius: 20px; margin-bottom: 15px; display: flex; flex-direction: column; align-items: center; gap: 6px; }
-        #cookie-count-badge { background: #1A237E; color: white; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; }
-        #time-limit-badge { color: #FF5252; font-size: 11px; font-weight: 600; text-align: center; }
+        .chat-info-bar { background: #F0F4FF; padding: 15px; border-radius: 20px; margin-bottom: 15px; display: flex; flex-direction: column; align-items: center; gap: 6px; border: 1px solid #D1D9FF; }
+        .cookie-badge { background: #1A237E; color: white; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .time-badge { color: #FF5252; font-size: 11px; font-weight: 600; }
         
         #chat-box { height: 450px; overflow-y: auto; border: 1px solid #eee; padding: 15px; border-radius: 20px; background: #f9f9fb; margin-bottom: 15px; display: flex; flex-direction: column; gap: 20px; }
         
@@ -36,9 +36,6 @@
         .msg { padding: 10px 15px; border-radius: 18px; font-size: 14px; line-height: 1.5; word-break: break-all; box-shadow: 0 2px 5px rgba(0,0,0,0.04); }
         .msg-wrapper.me .msg { background: #1A237E; color: white; border-bottom-right-radius: 2px; }
         .msg-wrapper.other .msg { background: #FFFFFF; color: #333; border: 1px solid #E5E7EB; border-bottom-left-radius: 2px; }
-        
-        .privacy-box { border: 1.5px solid #E5E7EB; border-radius: 15px; background: #F9FAFB; padding: 15px; margin-top: 10px; }
-        .privacy-text { font-size: 11px; color: #666; height: 100px; overflow-y: auto; line-height: 1.6; text-align: left; }
         
         .btn-main { width: 100%; padding: 20px; border: none; border-radius: 15px; font-weight: bold; background: #1A237E; color: white; font-size: 16px; cursor: pointer; margin-top: 10px; transition: 0.3s; }
         .btn-main:disabled { background: #ccc; cursor: not-allowed; }
@@ -95,8 +92,8 @@
 
         <div id="chat-section">
             <div class="chat-info-bar">
-                <div id="cookie-count-badge">🍪 남은 대화 쿠키: 500개</div>
-                <div id="time-limit-badge">⌛ 대화 쿠키를 소진하거나 3일이 경과하면 종료됩니다 :)</div>
+                <div class="cookie-badge" id="cookie-display">🍪 쿠키 잔량: 500개</div>
+                <div class="time-badge">⌛ 대화 쿠키를 소진하거나 3일이 경과하면 종료됩니다 :)</div>
             </div>
             <div id="chat-box"></div>
             <div style="display:flex; gap:10px;">
@@ -127,6 +124,7 @@
 
         phoneInput.value = "010-";
 
+        // 자동 하이픈 로직
         const applyFormat = (input, type) => {
             input.addEventListener('input', (e) => {
                 let v = e.target.value.replace(/[^0-9]/g, '');
@@ -224,8 +222,7 @@
         };
 
         window.enterChat = (chatId, otherId) => {
-            // [핵심] 성별 정보를 포함한 고유 식별값 생성
-            const myUniqueId = `${myGender}_${myId}`;
+            const myUniqueId = `${myGender}_${myId}`; // 성별 조합 고유 ID
             currentChatId = chatId;
             document.getElementById('result-section').style.display = 'none';
             document.getElementById('chat-section').style.display = 'block';
@@ -237,23 +234,24 @@
                 let myMsgCount = 0;
                 snap.forEach(msgDoc => {
                     const msgData = msgDoc.data();
-                    // [핵심] 성별까지 포함하여 본인 확인 로직 강화
-                    const isMe = msgData.senderId === myUniqueId;
+                    const isMe = String(msgData.senderId) === myUniqueId; // [해결] 성별까지 정확히 체크
                     if (isMe) myMsgCount++;
+                    
+                    const parts = String(msgData.senderId).split('_');
+                    const senderLabel = parts[0] === 'male' ? '남' : '여';
+                    const senderNum = parts[1] || '?'; // [해결] undefined 방지
+                    
                     const wrapper = document.createElement('div');
                     wrapper.className = `msg-wrapper ${isMe ? 'me' : 'other'}`;
                     const label = document.createElement('div');
                     label.className = 'msg-label';
-                    // 메시지에 저장된 성별 정보를 파악하여 정확한 라벨링
-                    const senderParts = msgData.senderId.split('_');
-                    const senderLabel = senderParts[0] === 'male' ? '남' : '여';
-                    label.innerText = isMe ? `${senderLabel} ${myId}번 (나)` : `${senderParts[0] === 'male' ? '남' : '여'} ${senderParts[1]}번`;
+                    label.innerText = isMe ? `${senderLabel} ${senderNum}번 (나)` : `${senderLabel} ${senderNum}번`;
                     const msgDiv = document.createElement('div');
                     msgDiv.className = 'msg'; msgDiv.innerText = msgData.text;
                     wrapper.appendChild(label); wrapper.appendChild(msgDiv);
                     chatBox.appendChild(wrapper);
                 });
-                document.getElementById('cookie-badge').innerText = `🍪 쿠키 잔량: ${COOKIE_LIMIT - myMsgCount}개`;
+                document.getElementById('cookie-display').innerText = `🍪 쿠키 잔량: ${COOKIE_LIMIT - myMsgCount}개`;
                 chatBox.scrollTop = chatBox.scrollHeight;
             });
         };
@@ -261,12 +259,13 @@
         document.getElementById('send-msg-btn').onclick = async () => {
             const text = chatInput.value.trim();
             if (!text || !currentChatId) return;
-            // [핵심] 저장 시 성별_번호 조합으로 저장
-            const myUniqueId = `${myGender}_${myId}`;
+            const myUniqueId = `${myGender}_${myId}`; // [해결] 전송 시에도 성별_번호 조합 사용
             chatInput.value = "";
-            await addDoc(collection(db, "chats", currentChatId, "messages"), {
-                senderId: myUniqueId, text: text, createdAt: serverTimestamp()
-            });
+            try {
+                await addDoc(collection(db, "chats", currentChatId, "messages"), {
+                    senderId: myUniqueId, text: text, createdAt: serverTimestamp()
+                });
+            } catch (e) { alert("전송 실패: " + e.message); }
         };
         chatInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') document.getElementById('send-msg-btn').click(); });
     </script>
