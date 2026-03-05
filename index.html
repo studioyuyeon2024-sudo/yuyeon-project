@@ -18,23 +18,22 @@
         #status-bar { display: none; background: #FF5252; color: white; padding: 10px; border-radius: 10px; font-size: 13px; font-weight: bold; margin-bottom: 15px; animation: blink 2s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
         
-        /* 채팅방 스타일 고도화 */
+        /* 채팅방 스타일 개선 */
         #chat-section { display: none; text-align: left; }
         #chat-box { height: 480px; overflow-y: auto; border: 1px solid #eee; padding: 15px; border-radius: 20px; background: #f9f9fb; margin-bottom: 15px; display: flex; flex-direction: column; gap: 15px; }
-        
         .msg-wrapper { display: flex; flex-direction: column; gap: 4px; max-width: 80%; }
         .msg-wrapper.me { align-self: flex-end; align-items: flex-end; }
         .msg-wrapper.other { align-self: flex-start; align-items: flex-start; }
-        
         .msg-label { font-size: 10px; color: #888; font-weight: bold; margin: 0 4px; }
         .msg { padding: 10px 14px; border-radius: 18px; font-size: 14px; line-height: 1.5; word-break: break-all; }
-        
         .msg-wrapper.me .msg { background: #1A237E; color: white; border-bottom-right-radius: 2px; }
         .msg-wrapper.other .msg { background: #E9ECEF; color: #333; border-bottom-left-radius: 2px; }
-        
         #cookie-notice { font-size: 11px; color: #1A237E; text-align: center; margin-bottom: 10px; font-weight: bold; line-height: 1.5; }
 
-        .privacy-box { border: 1.5px solid #E5E7EB; border-radius: 15px; background: #F9FAFB; padding: 15px; margin-top: 10px; }
+        /* 약관 영역 디자인 복구 */
+        .privacy-row { display: flex !important; align-items: center !important; gap: 10px !important; cursor: pointer; margin-bottom: 10px; }
+        .privacy-row input[type="checkbox"] { width: 22px !important; height: 22px !important; margin: 0 !important; cursor: pointer; flex-shrink: 0; }
+        .privacy-box { border: 1.5px solid #E5E7EB; border-radius: 15px; background: #F9FAFB; padding: 15px; }
         .privacy-text { font-size: 11px; color: #666; height: 100px; overflow-y: auto; line-height: 1.6; text-align: left; }
         
         #result-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
@@ -64,16 +63,16 @@
                 <div class="card"><label>참여 후기 (선택)</label><textarea id="user-review" placeholder="오늘 유연 데이팅은 어떠셨나요?"></textarea></div>
                 
                 <div class="card">
-                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                        <input type="checkbox" id="privacy-check" style="width:20px; height:20px; margin:0;">
-                        <span style="font-size:14px; font-weight:bold; color:#1A237E;">개인정보 수집 및 이용 동의 (필수)</span>
+                    <label class="privacy-row">
+                        <input type="checkbox" id="privacy-check">
+                        <span style="color:#1A237E; font-size:14px;">개인정보 수집 및 이용 동의 (필수)</span>
                     </label>
                     <div class="privacy-box">
                         <div class="privacy-text">
                             <strong>1. 수집 항목:</strong> 성명, 성별, 생년월일, 연락처, 매칭 번호, 참여 후기<br>
-                            <strong>2. 이용 목적:</strong> 매칭 결과 분석, 서비스 제공 및 <strong>스튜디오 유연 마케팅/이벤트 안내</strong><br>
-                            <strong>3. 보유 기간:</strong> <strong>참여일로부터 1년간 보관</strong> 후 즉시 파기 (요청 시 즉시 삭제 가능)<br>
-                            <strong>4. 거부 권리:</strong> 귀하는 동의를 거부할 수 있으나, 거부 시 결과 조회가 불가능합니다.
+                            <strong>2. 이용 목적:</strong> 매칭 결과 분석 및 <strong>스튜디오 유연 모집/안내 소식 발송</strong><br>
+                            <strong>3. 보유 기간:</strong> <strong>참여일로부터 1년간 보관</strong> 후 즉시 파기 (사용자 요청 시 즉시 삭제)<br>
+                            <strong>4. 거부 권리:</strong> 동의를 거부할 권리가 있으나, 거부 시 결과 조회가 불가능합니다.
                         </div>
                     </div>
                 </div>
@@ -120,6 +119,7 @@
         const db = getFirestore(app);
 
         const phoneInput = document.getElementById('user-phone');
+        const birthInput = document.getElementById('user-birth');
         const verifyPhoneInput = document.getElementById('verify-phone');
         const chatBox = document.getElementById('chat-box');
         const chatInput = document.getElementById('chat-input');
@@ -128,19 +128,32 @@
         let currentTotalCount = 0, isResultsRevealed = false;
         const COOKIE_LIMIT = 500;
 
+        // 010 자동 고정 로직
         phoneInput.value = "010-";
+        
+        // 휴대폰 하이픈 자동 생성 로직
         const setupPhoneFormat = (input) => {
             input.addEventListener('input', (e) => {
                 let v = e.target.value.replace(/[^0-9]/g, '');
-                if (v.length < 3) v = '010';
-                else if (v.substring(0,3) !== '010') v = '010' + v;
-                if (v.length <= 3) e.target.value = v;
-                else if (v.length <= 7) e.target.value = v.slice(0, 3) + '-' + v.slice(3);
-                else e.target.value = v.slice(0, 3) + '-' + v.slice(3, 7) + '-' + v.slice(7, 11);
+                if (input.id !== 'user-birth') {
+                    if (v.length < 3) v = '010';
+                    else if (v.substring(0,3) !== '010') v = '010' + v;
+                    if (v.length <= 3) e.target.value = v;
+                    else if (v.length <= 7) e.target.value = v.slice(0, 3) + '-' + v.slice(3);
+                    else e.target.value = v.slice(0, 3) + '-' + v.slice(3, 7) + '-' + v.slice(7, 11);
+                }
             });
         };
         setupPhoneFormat(phoneInput);
         setupPhoneFormat(verifyPhoneInput);
+
+        // 생년월일 하이픈 자동 생성
+        birthInput.addEventListener('input', (e) => {
+            let v = e.target.value.replace(/[^0-9]/g, '');
+            if (v.length <= 4) e.target.value = v;
+            else if (v.length <= 6) e.target.value = v.slice(0, 4) + '-' + v.slice(4);
+            else e.target.value = v.slice(0, 4) + '-' + v.slice(4, 6) + '-' + v.slice(6, 8);
+        });
 
         onSnapshot(doc(db, "settings", "matching_status"), (snap) => {
             if (snap.exists()) {
@@ -177,7 +190,7 @@
             const picks = Array.from(document.querySelectorAll('#pick-id-grid .bubble.selected')).map(b => Number(b.innerText));
             await addDoc(collection(db, "participants"), {
                 gender: document.getElementById('user-gender').value, myId: myNum, realName: document.getElementById('user-real-name').value,
-                phone: phoneInput.value, pickId1: picks[0] || null, pickId2: picks[1] || null, createdAt: serverTimestamp()
+                phone: phoneInput.value, birth: birthInput.value, pickId1: picks[0] || null, pickId2: picks[1] || null, createdAt: serverTimestamp()
             });
             alert("제출 완료!"); location.reload();
         };
@@ -194,7 +207,7 @@
             if (snap.empty) return alert("등록된 정보가 없습니다.");
             
             const myData = snap.docs[0].data();
-            myId = Number(myData.myId); myGender = myData.gender;
+            myId = String(myData.myId); myGender = myData.gender; // 타입 보정
             myCreatedAt = myData.createdAt.toDate(); 
 
             const now = new Date();
@@ -202,7 +215,7 @@
             const isTimeExpired = diffDays > 3;
 
             const opposites = (await getDocs(collection(db, "participants"))).docs.map(d => d.data()).filter(p => p.gender !== myGender);
-            const matched = opposites.filter(p => (Number(p.pickId1) === myId || Number(p.pickId2) === myId) && [Number(myData.pickId1), Number(myData.pickId2)].includes(Number(p.myId)));
+            const matched = opposites.filter(p => (String(p.pickId1) === myId || String(p.pickId2) === myId) && [String(myData.pickId1), String(myData.pickId2)].includes(String(p.myId)));
             
             document.getElementById('result-modal').style.display = 'none';
             document.getElementById('input-section').style.display = 'none';
@@ -210,7 +223,7 @@
             document.getElementById('result-section').style.display = 'block';
             
             const area = document.getElementById('match-list-area');
-            area.innerHTML = `<div style="background:#FFF9E6; padding:20px; border-radius:20px; margin-bottom:20px; border:1px solid #FFE082;">나의 득표수: <b>${opposites.filter(p => Number(p.pickId1) === myId || Number(p.pickId2) === myId).length}표</b></div>`;
+            area.innerHTML = `<div style="background:#FFF9E6; padding:20px; border-radius:20px; margin-bottom:20px; border:1px solid #FFE082;">나의 득표수: <b>${opposites.filter(p => String(p.pickId1) === myId || String(p.pickId2) === myId).length}표</b></div>`;
             
             if (matched.length > 0) {
                 area.innerHTML += `<h3 style="color:#FF5252;">🎉 매칭 성공!</h3>`;
@@ -234,9 +247,9 @@
         };
 
         window.enterChat = (chatId, otherId) => {
-            const currentUserId = String(myId);
-            const otherGender = myGender === 'male' ? '여' : '남';
+            const currentUserIdStr = String(myId); // 클로저 이슈 방지를 위해 문자열로 고정
             const meGender = myGender === 'male' ? '남' : '여';
+            const otherGender = myGender === 'male' ? '여' : '남';
             
             currentChatId = chatId;
             document.getElementById('result-section').style.display = 'none';
@@ -249,10 +262,9 @@
                 let myMsgCount = 0;
                 snap.forEach(msgDoc => {
                     const msgData = msgDoc.data();
-                    const isMe = String(msgData.senderId) === currentUserId;
+                    const isMe = String(msgData.senderId) === currentUserIdStr; // 명시적 문자열 비교로 좌우 구분 해결
                     if (isMe) myMsgCount++;
                     
-                    // [수정] 식별 라벨 및 말풍선 구조 개선
                     const wrapper = document.createElement('div');
                     wrapper.className = `msg-wrapper ${isMe ? 'me' : 'other'}`;
                     
