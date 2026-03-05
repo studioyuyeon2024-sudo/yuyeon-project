@@ -1,40 +1,158 @@
-/* admin.html 내 updateDashboard 함수 부분 */
-async function updateDashboard() {
-    const snap = await getDocs(collection(db, "participants"));
-    currentData = []; snap.forEach(d => currentData.push({ id: d.id, ...d.data() }));
-    
-    const voteMap = {}; currentData.forEach(p => { 
-        if(p.pickId1) voteMap[p.pickId1] = (voteMap[p.pickId1]||0)+1; 
-        if(p.pickId2) voteMap[p.pickId2] = (voteMap[p.pickId2]||0)+1; 
-    });
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studio Yuyeon Admin | 🔐</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
+        
+        /* 레이아웃 디자인 */
+        body { background: #FDFBF6; font-family: 'Noto Sans KR', sans-serif; margin: 0; padding: 20px; box-sizing: border-box; }
+        .admin-container { width: 100%; max-width: 1200px; margin: 0 auto; background: white; padding: 30px; border-radius: 30px; border-top: 8px solid #1A237E; box-shadow: 0 10px 30px rgba(0,0,0,0.05); display: none; }
+        
+        /* 로그인 섹션 */
+        #login-section { max-width: 400px; margin: 15vh auto; background: white; padding: 40px; border-radius: 30px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); text-align: center; }
+        .login-input { width: 100%; padding: 15px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 12px; font-size: 16px; box-sizing: border-box; }
+        .login-btn { width: 100%; padding: 18px; border: none; border-radius: 12px; background: #1A237E; color: white; font-weight: bold; cursor: pointer; }
 
-    const list = document.getElementById('list-body');
-    list.innerHTML = "";
-    currentData.sort((a,b)=>a.myId - b.myId).forEach(p => {
-        // [수정] 후기(review) 데이터가 정확히 표출되도록 열 추가
-        list.innerHTML += `
-            <tr>
-                <td>${p.myId}</td>
-                <td>${p.gender=='male'?'남':'여'}</td>
-                <td>${p.realName}</td>
-                <td>${p.birth}</td>
-                <td>${p.phone}</td>
-                <td>${p.pickId1||''},${p.pickId2||''}</td>
-                <td style="color:#FF5252; font-weight:bold;">${voteMap[p.myId]||0}</td>
-                <td style="text-align:left; font-size:11px; color:#666;">${p.review||'-'}</td>
-            </tr>`;
-    });
-    
-    // 매칭 커플 리스트에 이름/연락처 포함 로직 (기존 유지)
-    const males = currentData.filter(p => p.gender === 'male');
-    const females = currentData.filter(p => p.gender === 'female');
-    const summary = document.getElementById('match-summary');
-    summary.innerHTML = "";
-    males.forEach(m => {
-        females.forEach(f => {
-            if ([m.pickId1, m.pickId2].includes(f.myId) && [f.pickId1, f.pickId2].includes(m.myId)) {
-                summary.innerHTML += `<div style="padding:5px; border-bottom:1px solid #eee;">💘 <b>${m.myId}(${m.realName}/${m.phone})</b> ↔ <b>${f.myId}(${f.realName}/${f.phone})</b></div>`;
+        /* 대시보드 벤토 그리드 */
+        .bento-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin: 30px 0; }
+        .bento-card { background: white; padding: 25px; border-radius: 24px; border: 1px solid #f0f0f0; text-align: left; }
+        .card-large { grid-column: span 2; grid-row: span 2; border-top: 5px solid #FF5252; }
+        .main-val { font-size: 36px; font-weight: bold; color: #1A237E; margin: 10px 0; }
+        
+        /* 컨트롤 패널 버튼 */
+        .control-panel { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 25px; }
+        .panel-btn { padding: 18px; border: none; border-radius: 15px; color: white; font-weight: bold; cursor: pointer; font-size: 15px; transition: 0.2s; }
+        .panel-btn:hover { opacity: 0.8; transform: translateY(-2px); }
+        .btn-purple { background: #9b59b6; } .btn-dark { background: #34495e; } .btn-orange { background: #f39c12; } .btn-red { background: #e74c3c; } .btn-blue { background: #2980b9; grid-column: span 2; } .btn-green { background: #27ae60; grid-column: span 2; }
+
+        /* 데이터 테이블 */
+        .table-wrapper { overflow-x: auto; border-radius: 20px; border: 1px solid #eee; margin-top: 20px; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th, td { padding: 15px; border: 1px solid #f9f9f9; text-align: center; }
+        th { background: #1A237E; color: white; }
+        .status-tag { font-weight: bold; padding: 5px 10px; border-radius: 8px; display: inline-block; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+    <div id="login-section">
+        <h1 style="font-family: 'Playfair Display'; color: #1A237E; margin-bottom: 30px;">Admin Login</h1>
+        <input type="email" id="email" class="login-input" placeholder="관리자 이메일">
+        <input type="password" id="password" class="login-input" placeholder="비밀번호">
+        <button id="login-btn" class="login-btn">대시보드 접속</button>
+    </div>
+
+    <div class="admin-container" id="admin-main">
+        <h1 style="font-family: 'Playfair Display'; text-align: center; color: #1A237E;">Studio Yuyeon Dashboard</h1>
+        
+        <div id="live-status" class="status-tag">상태 확인 중...</div>
+
+        <div class="bento-grid">
+            <div class="bento-card card-large">
+                <h4>실시간 커플 매칭 결과 (성명/번호) 💖</h4>
+                <p id="stat-couples" class="main-val" style="color:#FF5252;">0쌍</p>
+                <div id="match-summary" style="font-size: 12px; color: #555; line-height: 1.8; max-height: 200px; overflow-y: auto;"></div>
+            </div>
+            <div class="bento-card" style="grid-column: span 2; border-top: 5px solid #1A237E;"><h4>전체 매칭률 📊</h4><p id="stat-rate" class="main-val">0%</p></div>
+            <div class="bento-card" style="border-top: 5px solid #27ae60;"><h4>현재 기수 총원</h4><p id="stat-total" class="main-val">0명</p></div>
+            <div class="bento-card" style="border-top: 5px solid #f39c12;"><h4>남 / 여 성비</h4><p id="stat-gender" class="main-val" style="font-size: 24px;">0 / 0</p></div>
+        </div>
+
+        <div class="control-panel">
+            <button id="open-btn" class="panel-btn btn-purple">🔓 결과 공개 (접수 마감)</button>
+            <button id="close-btn" class="panel-btn btn-dark">🔒 결과 차단 (접수 재개)</button>
+            <button id="download-btn" class="panel-btn btn-orange">📥 현재 기수 명단 다운 (보안)</button>
+            <button id="delete-btn" class="panel-btn btn-red">⚠️ 백업 후 기수 초기화</button>
+            <button id="archive-download-btn" class="panel-btn btn-blue">🏛️ 아카이브 전체 기록 다운 (보안)</button>
+            <button id="refresh-btn" class="panel-btn btn-green">🔄 데이터 강제 새로고침</button>
+        </div>
+
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr><th>#</th><th>성별</th><th>이름</th><th>생일</th><th>연락처</th><th>픽</th><th>득표 🔥</th><th style="width:250px;">참여 후기 📝</th></tr>
+                </thead>
+                <tbody id="list-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        
+        const firebaseConfig = { 
+            apiKey: "AIzaSyCy0qWrPE_aQGaKjJXIM_vgU8oO5Wq9mOI", 
+            authDomain: "my-dating-service.firebaseapp.com", 
+            projectId: "my-dating-service", 
+            storageBucket: "my-dating-service.firebasestorage.app", 
+            messagingSenderId: "231488184905", 
+            appId: "1:231488184905:web:d49b3e4f0ef35e524e5598" 
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const SEC_PW = "2024";
+        let currentData = [];
+
+        // 1. 로그인 및 인증 감시
+        document.getElementById('login-btn').onclick = async () => {
+            const email = document.getElementById('email').value;
+            const pw = document.getElementById('password').value;
+            try { await signInWithEmailAndPassword(auth, email, pw); }
+            catch (e) { alert("로그인 정보가 정확하지 않습니다."); }
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                document.getElementById('login-section').style.display = 'none';
+                document.getElementById('admin-main').style.display = 'block';
+                initRealtimeSync();
+                updateDashboard();
             }
         });
-    });
-}
+
+        // 2. [기능] 실시간 공개/마감 상태 감시
+        function initRealtimeSync() {
+            onSnapshot(doc(db, "settings", "matching_status"), (snap) => {
+                const statusTag = document.getElementById('live-status');
+                if (snap.exists() && snap.data().is_open) {
+                    statusTag.innerText = "🔴 현재 상태: 결과 공개 (접수 마감)";
+                    statusTag.style.background = "#FF5252"; statusTag.style.color = "white";
+                } else {
+                    statusTag.innerText = "🟢 현재 상태: 접수 중";
+                    statusTag.style.background = "#27ae60"; statusTag.style.color = "white";
+                }
+            });
+        }
+
+        // 3. [기능] 데이터 로드 및 통계 (후기 포함)
+        async function updateDashboard() {
+            const snap = await getDocs(collection(db, "participants"));
+            currentData = [];
+            snap.forEach(d => currentData.push({ id: d.id, ...d.data() }));
+
+            const voteMap = {};
+            currentData.forEach(p => {
+                if(p.pickId1) voteMap[p.pickId1] = (voteMap[p.pickId1]||0)+1;
+                if(p.pickId2) voteMap[p.pickId2] = (voteMap[p.pickId2]||0)+1;
+            });
+
+            // 테이블 렌더링
+            const list = document.getElementById('list-body');
+            list.innerHTML = "";
+            currentData.sort((a,b) => a.myId - b.myId).forEach(p => {
+                list.innerHTML += `
+                    <tr>
+                        <td>${p.myId}</td>
+                        <td>${p.gender === 'male' ? '남' : '여'}</td>
+                        <td>${p.realName}</td>
+                        <td>${p.birth}</td>
+                        <td>${p.phone}</td>
+                        <td>${p.pickId1 || ''}, ${p.pickId2 || ''}</td>
+                        <td style="color:#FF5252; font-weight:bold;">${voteMap[p.myId] || 0}</td>
+                        <td style="text-align:left; font-size:11px; color:#666;">${p.review || '-
