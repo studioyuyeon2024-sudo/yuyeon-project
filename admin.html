@@ -38,12 +38,12 @@
         @media (max-width: 768px) {
             body { padding: 10px; }
             .admin-container { padding: 15px; border-radius: 15px; }
-            .bento-grid { grid-template-columns: 1fr; gap: 12px; } /* 1열 세로 정렬 */
+            .bento-grid { grid-template-columns: 1fr; gap: 12px; }
             .card-large { grid-column: span 1; grid-row: auto; }
-            .control-panel { grid-template-columns: 1fr; gap: 8px; } /* 버튼 1열 */
+            .control-panel { grid-template-columns: 1fr; gap: 8px; }
             .main-val { font-size: 28px; }
             h1 { font-size: 20px; margin-bottom: 15px; }
-            .table-wrapper table { font-size: 10px; } /* 테이블 폰트 축소 */
+            .table-wrapper table { font-size: 10px; }
             th, td { padding: 10px 4px; }
             .bento-card { padding: 20px; }
         }
@@ -89,6 +89,7 @@
             <button id="close-btn" class="panel-btn btn-dark">🔒 결과 차단 (재개)</button>
             <button id="download-btn" class="panel-btn btn-orange">📥 현재 기수 명단 다운</button>
             <button id="delete-btn" class="panel-btn btn-red">⚠️ 백업 후 기수 초기화</button>
+            <button id="delete-chats-btn" class="panel-btn btn-dark">🍪 쿠키삭제 (채팅 초기화)</button>
             <button id="archive-download-btn" class="panel-btn btn-blue">🏛️ 아카이브 기록 전체 다운</button>
             <button id="refresh-btn" class="panel-btn btn-green">🔄 제출현황 새로고침</button>
         </div>
@@ -104,7 +105,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, setDoc, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, onSnapshot, writeBatch, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         
         const firebaseConfig = { apiKey: "AIzaSyCy0qWrPE_aQGaKjJXIM_vgU8oO5Wq9mOI", authDomain: "my-dating-service.firebaseapp.com", projectId: "my-dating-service", storageBucket: "my-dating-service.firebasestorage.app", messagingSenderId: "231488184905", appId: "1:231488184905:web:d49b3e4f0ef35e524e5598" };
         const app = initializeApp(firebaseConfig);
@@ -162,7 +163,6 @@
 
             const males = currentData.filter(p => p.gender === 'male');
             const females = currentData.filter(p => p.gender === 'female');
-            
             const mIds = males.map(p => p.myId); const fIds = females.map(p => p.myId);
             const missM = []; const missF = [];
             for(let i=1; i<=totalLimit; i++) {
@@ -179,7 +179,6 @@
                     const fPicks = [f.pickId1, f.pickId2];
                     if (mPicks.includes(f.myId) && fPicks.includes(m.myId)) {
                         couples++;
-                        // [수정] 성별 아이콘을 텍스트 '남', '여'로 변경하고 색상 유지
                         summary.innerHTML += `
                             <div style="padding:10px; border-bottom:1.5px solid #f0f0f0; background:white; margin-bottom:8px; border-radius:12px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
                                 <div style="color:#2196F3; font-weight:bold; margin-bottom:4px; font-size:12.5px; white-space:nowrap;">
@@ -231,6 +230,31 @@
                 await batch.commit();
                 alert("백업 완료!"); updateDashboard();
             } catch (e) { alert("오류: " + e.message); }
+        };
+
+        // [신규] 쿠키 삭제(채팅 데이터 전체 삭제) 기능
+        document.getElementById('delete-chats-btn').onclick = async () => {
+            if(!verify()) return alert("인증 실패");
+            if(!confirm("⚠️ 모든 채팅 내역과 쿠키를 초기화하시겠습니까?\n이 작업은 복구할 수 없습니다.")) return;
+            
+            try {
+                alert("채팅 데이터를 삭제 중입니다. 잠시만 기다려주세요...");
+                const chatSnap = await getDocs(collection(db, "chats"));
+                if (chatSnap.empty) return alert("삭제할 채팅 내역이 없습니다.");
+
+                let totalDeleted = 0;
+                for (const chatDoc of chatSnap.docs) {
+                    // 하위 메시지 삭제
+                    const msgSnap = await getDocs(collection(db, "chats", chatDoc.id, "messages"));
+                    for (const mDoc of msgSnap.docs) {
+                        await deleteDoc(doc(db, "chats", chatDoc.id, "messages", mDoc.id));
+                        totalDeleted++;
+                    }
+                    // 상위 채팅방 문서 삭제
+                    await deleteDoc(doc(db, "chats", chatDoc.id));
+                }
+                alert(`총 ${totalDeleted}개의 메시지와 쿠키가 삭제되었습니다.`);
+            } catch (e) { alert("오류 발생: " + e.message); }
         };
 
         document.getElementById('open-btn').onclick = async () => { 
