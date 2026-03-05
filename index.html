@@ -82,8 +82,8 @@
                     <div class="privacy-box">
                         <div class="privacy-text">
                             <strong>1. 수집 항목:</strong> 성명, 성별, 생년월일, 연락처, 매칭 번호, 참여 후기<br>
-                            <strong>2. 이용 목적:</strong> 매칭 결과 분석, 서비스 제공 및 <strong>스튜디오 유연 안내 소식 발송</strong><br>
-                            <strong>3. 보유 기간:</strong> <strong>참여일로부터 1년간 보관</strong> 후 파기 (사용자 요청 시 즉시 삭제)<br>
+                            <strong>2. 이용 목적:</strong> 매칭 결과 분석, 서비스 제공 및 스튜디오 유연 안내 소식 발송<br>
+                            <strong>3. 보유 기간:</strong> 참여일로부터 1년간 보관 후 파기 (사용자 요청 시 즉시 삭제)<br>
                             <strong>4. 거부 권리:</strong> 동의를 거부할 수 있으나, 거부 시 결과 조회가 불가능합니다.
                         </div>
                     </div>
@@ -223,7 +223,7 @@
 
         document.getElementById('matching-form').onsubmit = async (e) => {
             e.preventDefault();
-            if (isResultsRevealed) return alert("접수가 이미 마감되었습니다.");
+            if (isResultsRevealed) return alert("제출이 마감되었습니다.");
             if (!document.getElementById('privacy-check').checked) return alert("개인정보 동의를 체크해 주세요.");
             
             const myNum = Number(document.getElementById('user-id').value);
