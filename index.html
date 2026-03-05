@@ -18,7 +18,7 @@
         #status-bar { display: none; background: #FF5252; color: white; padding: 10px; border-radius: 10px; font-size: 13px; font-weight: bold; margin-bottom: 15px; animation: blink 2s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
         
-        /* 채팅방 스타일 개선 */
+        /* 채팅방 스타일 */
         #chat-section { display: none; text-align: left; }
         #chat-box { height: 480px; overflow-y: auto; border: 1px solid #eee; padding: 15px; border-radius: 20px; background: #f9f9fb; margin-bottom: 15px; display: flex; flex-direction: column; gap: 15px; }
         .msg-wrapper { display: flex; flex-direction: column; gap: 4px; max-width: 80%; }
@@ -30,15 +30,14 @@
         .msg-wrapper.other .msg { background: #E9ECEF; color: #333; border-bottom-left-radius: 2px; }
         #cookie-notice { font-size: 11px; color: #1A237E; text-align: center; margin-bottom: 10px; font-weight: bold; line-height: 1.5; }
 
-        /* 약관 영역 디자인 복구 */
-        .privacy-row { display: flex !important; align-items: center !important; gap: 10px !important; cursor: pointer; margin-bottom: 10px; }
-        .privacy-row input[type="checkbox"] { width: 22px !important; height: 22px !important; margin: 0 !important; cursor: pointer; flex-shrink: 0; }
-        .privacy-box { border: 1.5px solid #E5E7EB; border-radius: 15px; background: #F9FAFB; padding: 15px; }
+        /* 약관 레이아웃 수정 */
+        .privacy-box { border: 1.5px solid #E5E7EB; border-radius: 15px; background: #F9FAFB; padding: 15px; margin-top: 10px; }
         .privacy-text { font-size: 11px; color: #666; height: 100px; overflow-y: auto; line-height: 1.6; text-align: left; }
         
         #result-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; }
         .modal-content { background: white; padding: 30px; border-radius: 25px; width: 100%; max-width: 350px; text-align: center; }
-        .btn-main { width: 100%; padding: 20px; border: none; border-radius: 15px; font-weight: bold; background: #1A237E; color: white; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        .btn-main { width: 100%; padding: 20px; border: none; border-radius: 15px; font-weight: bold; background: #1A237E; color: white; font-size: 16px; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        .btn-main:disabled { background: #ccc; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -63,22 +62,22 @@
                 <div class="card"><label>참여 후기 (선택)</label><textarea id="user-review" placeholder="오늘 유연 데이팅은 어떠셨나요?"></textarea></div>
                 
                 <div class="card">
-                    <label class="privacy-row">
-                        <input type="checkbox" id="privacy-check">
-                        <span style="color:#1A237E; font-size:14px;">개인정보 수집 및 이용 동의 (필수)</span>
+                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                        <input type="checkbox" id="privacy-check" style="width:20px; height:20px; margin:0;">
+                        <span style="font-size:14px; font-weight:bold; color:#1A237E;">개인정보 수집 및 이용 동의 (필수)</span>
                     </label>
                     <div class="privacy-box">
                         <div class="privacy-text">
                             <strong>1. 수집 항목:</strong> 성명, 성별, 생년월일, 연락처, 매칭 번호, 참여 후기<br>
-                            <strong>2. 이용 목적:</strong> 매칭 결과 분석 및 <strong>스튜디오 유연 모집/안내 소식 발송</strong><br>
-                            <strong>3. 보유 기간:</strong> <strong>참여일로부터 1년간 보관</strong> 후 즉시 파기 (사용자 요청 시 즉시 삭제)<br>
+                            <strong>2. 이용 목적:</strong> 매칭 결과 분석 및 <strong>스튜디오 유연 소식 안내(마케팅)</strong><br>
+                            <strong>3. 보유 기간:</strong> <strong>참여일로부터 1년간 보관</strong> 후 즉시 파기<br>
                             <strong>4. 거부 권리:</strong> 동의를 거부할 권리가 있으나, 거부 시 결과 조회가 불가능합니다.
                         </div>
                     </div>
                 </div>
 
                 <button type="submit" class="btn-main" id="submit-btn">정보 제출하기</button>
-                <button type="button" id="withdraw-btn" style="width:100%; padding:15px; border:none; border-radius:15px; background:#e74c3c; color:white; font-size:14px; margin-top:10px; display:none;">⚠️ 정보 회수하기</button>
+                <button type="button" id="withdraw-btn" style="width:100%; padding:15px; border:none; border-radius:15px; background:#e74c3c; color:white; font-size:14px; margin-top:10px; display:none;">⚠️ 내 정보 회수하고 다시 쓰기</button>
                 <button type="button" class="btn-main" id="check-result-btn" style="background:white; color:#1A237E; border:1.5px solid #1A237E;">결과 확인하기</button>
             </form>
         </div>
@@ -121,18 +120,17 @@
         const phoneInput = document.getElementById('user-phone');
         const birthInput = document.getElementById('user-birth');
         const verifyPhoneInput = document.getElementById('verify-phone');
+        const withdrawBtn = document.getElementById('withdraw-btn');
         const chatBox = document.getElementById('chat-box');
         const chatInput = document.getElementById('chat-input');
         
         let myId, myGender, currentChatId, chatUnsubscribe, myCreatedAt;
-        let currentTotalCount = 0, isResultsRevealed = false;
+        let currentTotalCount = 0, isResultsRevealed = false, takenIds = [];
         const COOKIE_LIMIT = 500;
 
-        // 010 자동 고정 로직
+        // [복구] 010 기본값 및 하이픈 자동 삽입
         phoneInput.value = "010-";
-        
-        // 휴대폰 하이픈 자동 생성 로직
-        const setupPhoneFormat = (input) => {
+        const formatPhone = (input) => {
             input.addEventListener('input', (e) => {
                 let v = e.target.value.replace(/[^0-9]/g, '');
                 if (input.id !== 'user-birth') {
@@ -144,10 +142,10 @@
                 }
             });
         };
-        setupPhoneFormat(phoneInput);
-        setupPhoneFormat(verifyPhoneInput);
+        formatPhone(phoneInput);
+        formatPhone(verifyPhoneInput);
 
-        // 생년월일 하이픈 자동 생성
+        // [복구] 생년월일 하이픈
         birthInput.addEventListener('input', (e) => {
             let v = e.target.value.replace(/[^0-9]/g, '');
             if (v.length <= 4) e.target.value = v;
@@ -155,15 +153,26 @@
             else e.target.value = v.slice(0, 4) + '-' + v.slice(4, 6) + '-' + v.slice(6, 8);
         });
 
+        // 설정 감시 및 마감 처리
         onSnapshot(doc(db, "settings", "matching_status"), (snap) => {
             if (snap.exists()) {
                 const data = snap.data();
                 currentTotalCount = data.total_count || 12;
                 isResultsRevealed = data.is_open;
                 document.getElementById('status-bar').style.display = (isResultsRevealed && document.getElementById('result-section').style.display === 'none') ? 'block' : 'none';
+                document.getElementById('submit-btn').innerText = isResultsRevealed ? "접수 마감됨" : "정보 제출하기";
+                document.getElementById('submit-btn').disabled = isResultsRevealed;
                 setupGrids();
+                updateTakenIds();
             }
         });
+
+        // [복구] 중복 방지를 위한 점유 번호 업데이트
+        async function updateTakenIds() {
+            const q = query(collection(db, "participants"), where("gender", "==", document.getElementById('user-gender').value));
+            const snap = await getDocs(q);
+            takenIds = snap.docs.map(d => Number(d.data().myId));
+        }
 
         const setupGrids = () => {
             const myGrid = document.getElementById('my-id-grid');
@@ -172,6 +181,8 @@
             for (let i = 1; i <= currentTotalCount; i++) {
                 const mb = document.createElement('div'); mb.className = 'bubble'; mb.innerText = i;
                 mb.onclick = () => {
+                    // [복구] 결과 공개 전일 때만 중복 선택 알림
+                    if (takenIds.includes(i) && !isResultsRevealed) alert("본인의 번호가 맞는 지 확인해 주세요.");
                     document.querySelectorAll('#my-id-grid .bubble').forEach(x => x.classList.remove('selected'));
                     mb.classList.add('selected'); document.getElementById('user-id').value = i;
                 };
@@ -182,21 +193,56 @@
             }
         };
 
+        // [복구] 제출 로직 강화 (마감/중복 차단)
         document.getElementById('matching-form').onsubmit = async (e) => {
             e.preventDefault();
-            if (!document.getElementById('privacy-check').checked) return alert("동의 필요!");
+            if (isResultsRevealed) return alert("접수가 이미 마감되었습니다.");
+            if (!document.getElementById('privacy-check').checked) return alert("개인정보 동의가 필요합니다.");
+            
             const myNum = Number(document.getElementById('user-id').value);
-            if(!myNum) return alert("본인 번호를 선택해주세요.");
+            if(!myNum) return alert("본인의 번호를 선택해 주세요.");
+
+            // 1. 번호 중복 최종 체크
+            const gender = document.getElementById('user-gender').value;
+            const qId = query(collection(db, "participants"), where("gender", "==", gender), where("myId", "==", myNum));
+            const snapId = await getDocs(qId);
+            if (!snapId.empty) return alert("⚠️ 해당 번호는 이미 제출되었습니다. 번호를 다시 확인해 주세요.");
+
+            // 2. 휴대폰 중복 체크
+            const qPhone = query(collection(db, "participants"), where("phone", "==", phoneInput.value));
+            const snapPhone = await getDocs(qPhone);
+            if (!snapPhone.empty) return alert("이미 제출된 연락처입니다. 정보 회수 후 다시 제출해 주세요.");
+
             const picks = Array.from(document.querySelectorAll('#pick-id-grid .bubble.selected')).map(b => Number(b.innerText));
             await addDoc(collection(db, "participants"), {
-                gender: document.getElementById('user-gender').value, myId: myNum, realName: document.getElementById('user-real-name').value,
-                phone: phoneInput.value, birth: birthInput.value, pickId1: picks[0] || null, pickId2: picks[1] || null, createdAt: serverTimestamp()
+                gender, myId: myNum, realName: document.getElementById('user-real-name').value,
+                birth: birthInput.value, phone: phoneInput.value, pickId1: picks[0] || null, pickId2: picks[1] || null, createdAt: serverTimestamp()
             });
-            alert("제출 완료!"); location.reload();
+            alert("✅ 제출이 완료되었습니다!"); location.reload();
+        };
+
+        // [복구] 실시간 정보 회수 버튼 노출
+        phoneInput.addEventListener('blur', async (e) => {
+            if (e.target.value.length === 13 && !isResultsRevealed) {
+                const q = query(collection(db, "participants"), where("phone", "==", e.target.value));
+                const snap = await getDocs(q);
+                withdrawBtn.style.display = !snap.empty ? 'block' : 'none';
+            } else {
+                withdrawBtn.style.display = 'none';
+            }
+        });
+
+        // [복구] 회수 실행 로직
+        withdrawBtn.onclick = async () => {
+            if (!confirm("⚠️ 정보를 삭제하시겠습니까? 삭제 후 다시 제출하실 수 있습니다.")) return;
+            const q = query(collection(db, "participants"), where("phone", "==", phoneInput.value));
+            const snap = await getDocs(q);
+            await Promise.all(snap.docs.map(d => deleteDoc(doc(db, "participants", d.id))));
+            alert("회수 완료! 다시 입력해 주세요."); location.reload();
         };
 
         document.getElementById('check-result-btn').onclick = () => {
-            if (!isResultsRevealed) return alert("공개 전입니다!");
+            if (!isResultsRevealed) return alert("결과가 아직 공개되지 않았습니다!");
             document.getElementById('result-modal').style.display = 'flex';
             verifyPhoneInput.value = "010-"; verifyPhoneInput.focus();
         };
@@ -204,10 +250,10 @@
         document.getElementById('confirm-verify-btn').onclick = async () => {
             const phone = verifyPhoneInput.value;
             const snap = await getDocs(query(collection(db, "participants"), where("phone", "==", phone)));
-            if (snap.empty) return alert("등록된 정보가 없습니다.");
+            if (snap.empty) return alert("등록된 정보가 없습니다. 연락처를 확인해 주세요.");
             
             const myData = snap.docs[0].data();
-            myId = String(myData.myId); myGender = myData.gender; // 타입 보정
+            myId = String(myData.myId); myGender = myData.gender;
             myCreatedAt = myData.createdAt.toDate(); 
 
             const now = new Date();
@@ -230,15 +276,9 @@
                 matched.forEach(p => {
                     const chatId = myGender === 'male' ? `${myId}_${p.myId}` : `${p.myId}_${myId}`;
                     if (isTimeExpired) {
-                        area.innerHTML += `<div style='background:#f4f4f4; border:1px solid #ddd; padding:20px; border-radius:15px; margin-bottom:12px; opacity:0.7;'>
-                            <div style='font-weight:bold; margin-bottom:10px;'>💖 ${p.myId}번님과 매칭!</div>
-                            <button disabled style="width:100%; padding:12px; background:#999; color:white; border:none; border-radius:10px;">이용 기간 만료 (3일 경과)</button>
-                        </div>`;
+                        area.innerHTML += `<div style='background:#f4f4f4; border:1px solid #ddd; padding:20px; border-radius:15px; margin-bottom:12px; opacity:0.7;'><div style='font-weight:bold; margin-bottom:10px;'>💖 ${p.myId}번님과 매칭!</div><button disabled style="width:100%; padding:12px; background:#999; color:white; border:none; border-radius:10px;">이용 기간 만료 (3일 경과)</button></div>`;
                     } else {
-                        area.innerHTML += `<div style='background:white; border:1px solid #eee; padding:20px; border-radius:15px; margin-bottom:12px;'>
-                            <div style='font-weight:bold; margin-bottom:10px;'>💖 ${p.myId}번님과 매칭!</div>
-                            <button onclick="window.enterChat('${chatId}', '${p.myId}')" style="width:100%; padding:12px; background:#1A237E; color:white; border:none; border-radius:10px; cursor:pointer;">1:1 웹 채팅 시작하기</button>
-                        </div>`;
+                        area.innerHTML += `<div style='background:white; border:1px solid #eee; padding:20px; border-radius:15px; margin-bottom:12px;'><div style='font-weight:bold; margin-bottom:10px;'>💖 ${p.myId}번님과 매칭!</div><button onclick="window.enterChat('${chatId}', '${p.myId}')" style="width:100%; padding:12px; background:#1A237E; color:white; border:none; border-radius:10px; cursor:pointer;">1:1 웹 채팅 시작하기</button></div>`;
                     }
                 });
             } else {
@@ -247,10 +287,9 @@
         };
 
         window.enterChat = (chatId, otherId) => {
-            const currentUserIdStr = String(myId); // 클로저 이슈 방지를 위해 문자열로 고정
+            const currentUserIdStr = String(myId);
             const meGender = myGender === 'male' ? '남' : '여';
             const otherGender = myGender === 'male' ? '여' : '남';
-            
             currentChatId = chatId;
             document.getElementById('result-section').style.display = 'none';
             document.getElementById('chat-section').style.display = 'block';
@@ -262,29 +301,22 @@
                 let myMsgCount = 0;
                 snap.forEach(msgDoc => {
                     const msgData = msgDoc.data();
-                    const isMe = String(msgData.senderId) === currentUserIdStr; // 명시적 문자열 비교로 좌우 구분 해결
+                    const isMe = String(msgData.senderId) === currentUserIdStr;
                     if (isMe) myMsgCount++;
-                    
                     const wrapper = document.createElement('div');
                     wrapper.className = `msg-wrapper ${isMe ? 'me' : 'other'}`;
-                    
                     const label = document.createElement('div');
                     label.className = 'msg-label';
                     label.innerText = isMe ? `${meGender} ${myId}번 (나)` : `${otherGender} ${otherId}번`;
-                    
                     const msgDiv = document.createElement('div');
                     msgDiv.className = 'msg';
                     msgDiv.innerText = msgData.text;
-                    
-                    wrapper.appendChild(label);
-                    wrapper.appendChild(msgDiv);
+                    wrapper.appendChild(label); wrapper.appendChild(msgDiv);
                     chatBox.appendChild(wrapper);
                 });
-                
                 const now = new Date();
                 const diffDays = (now - myCreatedAt) / (1000 * 60 * 60 * 24);
                 document.getElementById('cookie-notice').innerHTML = `🍪 쿠키 잔량: ${COOKIE_LIMIT - myMsgCount}개 | 남은 시간: ${Math.max(0, (3 - diffDays).toFixed(1))}일<br>대화 쿠키를 모두 사용하시거나 3일이 경과하면 종료됩니다 :)`;
-                
                 if (myMsgCount >= COOKIE_LIMIT || diffDays > 3) {
                     chatInput.disabled = true;
                     chatInput.placeholder = "대화 기간이 종료되었거나 쿠키를 모두 소진하였습니다.";
