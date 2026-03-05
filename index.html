@@ -15,18 +15,14 @@
         .bubble-grid { display: grid !important; grid-template-columns: repeat(6, 1fr) !important; gap: 10px; margin: 15px 0; }
         .bubble { aspect-ratio: 1; border-radius: 50%; background: #F8F9FA; border: 1px solid #E0E0E0; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; transition: 0.2s; }
         .bubble.selected { background: #1A237E !important; color: white !important; font-weight: bold; transform: scale(1.1); }
-        
         .no-match-btn { width: 100%; padding: 15px; border-radius: 12px; background: #F8F9FA; border: 1px solid #E0E0E0; font-size: 14px; color: #666; cursor: pointer; text-align: center; transition: 0.2s; margin-top: 5px; }
         .no-match-btn.active { background: #34495e; color: white; border-color: #34495e; font-weight: bold; }
-
         #status-bar { display: none; background: #FF5252; color: white; padding: 10px; border-radius: 10px; font-size: 13px; font-weight: bold; margin-bottom: 15px; animation: blink 2s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
-        
         #chat-section { display: none; text-align: left; }
         .chat-info-bar { background: #F0F4FF; padding: 15px; border-radius: 20px; margin-bottom: 15px; display: flex; flex-direction: column; align-items: center; gap: 6px; border: 1px solid #D1D9FF; }
         .cookie-badge { background: #1A237E; color: white; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; }
         .time-badge { color: #FF5252; font-size: 11px; font-weight: 600; }
-        
         #chat-box { height: 450px; overflow-y: auto; border: 1px solid #eee; padding: 15px; border-radius: 20px; background: #f9f9fb; margin-bottom: 15px; display: flex; flex-direction: column; gap: 20px; }
         .msg-wrapper { display: flex; flex-direction: column; gap: 4px; max-width: 82%; }
         .msg-wrapper.me { align-self: flex-end; align-items: flex-end; }
@@ -35,13 +31,11 @@
         .msg { padding: 10px 15px; border-radius: 18px; font-size: 14px; line-height: 1.5; word-break: break-all; box-shadow: 0 2px 5px rgba(0,0,0,0.04); }
         .msg-wrapper.me .msg { background: #1A237E; color: white; border-bottom-right-radius: 2px; }
         .msg-wrapper.other .msg { background: #FFFFFF; color: #333; border: 1px solid #E5E7EB; border-bottom-left-radius: 2px; }
-        
         .privacy-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; margin-bottom: 12px; }
         .privacy-header span { color: #1A237E; font-size: 14px; font-weight: bold; }
         .privacy-header input[type="checkbox"] { width: 22px !important; height: 22px !important; margin: 0 !important; cursor: pointer; }
         .privacy-box { border: 1.5px solid #E5E7EB; border-radius: 15px; background: #F9FAFB; padding: 15px; }
         .privacy-text { font-size: 11px; color: #666; height: 100px; overflow-y: auto; line-height: 1.6; text-align: left; }
-        
         .btn-main { width: 100%; padding: 20px; border: none; border-radius: 15px; font-weight: bold; background: #1A237E; color: white; font-size: 16px; cursor: pointer; margin-top: 10px; transition: 0.3s; }
         .btn-main:disabled { background: #ccc; cursor: not-allowed; }
     </style>
@@ -71,7 +65,6 @@
                     <div class="no-match-btn" id="no-match-btn">이번 기수에는 인연이 없었어요 ❄️</div>
                 </div>
                 <div class="card"><label>참여 후기 (선택)</label><textarea id="user-review" placeholder="오늘 유연 데이팅은 어떠셨나요?"></textarea></div>
-                
                 <div class="card">
                     <div class="privacy-header" onclick="document.getElementById('privacy-check').click();">
                         <span>개인정보 수집 및 이용 동의 (필수)</span>
@@ -80,13 +73,11 @@
                     <div class="privacy-box">
                         <div class="privacy-text">
                             <strong>1. 수집 항목:</strong> 성명, 성별, 생년월일, 연락처, 매칭 번호, 참여 후기<br>
-                            <strong>2. 이용 목적:</strong> 매칭 결과 분석, 서비스 제공 및 <strong>스튜디오 유연 안내 소식 발송</strong><br>
-                            <strong>3. 보유 기간:</strong> <strong>참여일로부터 1년간 보관</strong> 후 파기<br>
-                            <strong>4. 거부 권리:</strong> 동의를 거부할 수 있으나, 거부 시 결과 조회가 불가능합니다.
+                            <strong>2. 이용 목적:</strong> 서비스 제공 및 <strong>스튜디오 유연 안내 소식 발송</strong><br>
+                            <strong>3. 보유 기간:</strong> <strong>참여일로부터 1년간 보관</strong> 후 파기
                         </div>
                     </div>
                 </div>
-
                 <button type="submit" class="btn-main" id="submit-btn">정보 제출하기</button>
                 <button type="button" id="withdraw-btn" style="width:100%; padding:15px; border:none; border-radius:15px; background:#e74c3c; color:white; font-size:14px; margin-top:10px; display:none;">⚠️ 내 정보 회수하고 다시 쓰기</button>
                 <button type="button" class="btn-main" id="check-result-btn" style="background:white; color:#1A237E; border:1.5px solid #1A237E;">결과 확인하기</button>
@@ -95,7 +86,7 @@
 
         <div id="result-modal" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; padding: 20px;">
             <div style="background: white; padding: 30px; border-radius: 25px; width: 100%; max-width: 350px; text-align: center;">
-                <h3 style="color: #1A237E; margin-bottom: 10px;">결과 조회</h3>
+                <h3 style="color: #1A237E;">결과 조회</h3>
                 <input type="tel" id="verify-phone" maxlength="13" placeholder="010-0000-0000">
                 <button id="confirm-verify-btn" class="btn-main">결과 보기</button>
                 <p onclick="document.getElementById('result-modal').style.display='none'" style="margin-top: 15px; color: #aaa; cursor: pointer;">닫기</p>
@@ -111,7 +102,7 @@
         <div id="chat-section">
             <div class="chat-info-bar">
                 <div class="cookie-badge" id="cookie-display">🍪 쿠키 잔량: 500개</div>
-                <div class="time-badge">⌛ 대화 쿠키를 소진하거나 3일이 경과하면 종료됩니다 :)</div>
+                <div class="time-badge">⌛ 3일이 경과하면 대화창이 종료됩니다 :)</div>
             </div>
             <div id="chat-box"></div>
             <div style="display:flex; gap:10px;">
@@ -137,8 +128,8 @@
         const noMatchBtn = document.getElementById('no-match-btn');
         const chatInput = document.getElementById('chat-input');
         
-        let myId, myGender, currentChatId, chatUnsubscribe, myCreatedAt;
-        let currentTotalCount = 0, isResultsRevealed = false, takenIds = [];
+        let myId, myGender, currentChatId, chatUnsubscribe, myCreatedAt, currentBatchName = "기본기수";
+        let currentTotalCount = 12, isResultsRevealed = false, takenIds = [];
         const COOKIE_LIMIT = 500;
 
         phoneInput.value = "010-";
@@ -166,6 +157,7 @@
                 const data = snap.data();
                 currentTotalCount = data.total_count || 12;
                 isResultsRevealed = data.is_open;
+                currentBatchName = data.batch_name || "기본기수";
                 document.getElementById('status-bar').style.display = (isResultsRevealed && document.getElementById('result-section').style.display === 'none') ? 'block' : 'none';
                 document.getElementById('submit-btn').innerText = isResultsRevealed ? "접수 마감됨" : "정보 제출하기";
                 document.getElementById('submit-btn').disabled = isResultsRevealed;
@@ -176,22 +168,22 @@
 
         phoneInput.addEventListener('blur', async (e) => {
             if (e.target.value.length === 13 && !isResultsRevealed) {
-                const q = query(collection(db, "participants"), where("phone", "==", e.target.value));
+                const q = query(collection(db, "participants"), where("batchName", "==", currentBatchName), where("phone", "==", e.target.value));
                 const snap = await getDocs(q);
                 withdrawBtn.style.display = !snap.empty ? 'block' : 'none';
             } else { withdrawBtn.style.display = 'none'; }
         });
 
         withdrawBtn.onclick = async () => {
-            if (!confirm("⚠️ 제출하신 정보를 삭제하시겠습니까? 다시 작성이 가능합니다.")) return;
-            const q = query(collection(db, "participants"), where("phone", "==", phoneInput.value));
+            if (!confirm("⚠️ 정보를 회수하시겠습니까?")) return;
+            const q = query(collection(db, "participants"), where("batchName", "==", currentBatchName), where("phone", "==", phoneInput.value));
             const snap = await getDocs(q);
             await Promise.all(snap.docs.map(d => deleteDoc(doc(db, "participants", d.id))));
-            alert("회수 완료!"); location.reload();
+            location.reload();
         };
 
         async function updateTakenIds() {
-            const q = query(collection(db, "participants"), where("gender", "==", genderSelect.value));
+            const q = query(collection(db, "participants"), where("batchName", "==", currentBatchName), where("gender", "==", genderSelect.value));
             const snap = await getDocs(q);
             takenIds = snap.docs.map(d => Number(d.data().myId));
             setupGrids();
@@ -205,7 +197,7 @@
             for (let i = 1; i <= currentTotalCount; i++) {
                 const mb = document.createElement('div'); mb.className = 'bubble'; mb.innerText = i;
                 mb.onclick = () => {
-                    if (takenIds.includes(i) && !isResultsRevealed) alert("본인의 번호가 맞는 지 확인해 주세요.");
+                    if (takenIds.includes(i) && !isResultsRevealed) alert("본인 번호를 확인해 주세요.");
                     document.querySelectorAll('#my-id-grid .bubble').forEach(x => x.classList.remove('selected'));
                     mb.classList.add('selected'); document.getElementById('user-id').value = i;
                 };
@@ -214,7 +206,7 @@
                 pb.onclick = () => {
                     if (noMatchBtn.classList.contains('active')) return;
                     const selected = document.querySelectorAll('#pick-id-grid .bubble.selected');
-                    if (!pb.classList.contains('selected') && selected.length >= 2) return alert("최대 2명까지만 선택 가능합니다.");
+                    if (!pb.classList.contains('selected') && selected.length >= 2) return alert("최대 2명 선택 가능합니다.");
                     pb.classList.toggle('selected');
                 };
                 pickGrid.appendChild(pb);
@@ -223,24 +215,25 @@
 
         noMatchBtn.onclick = () => {
             noMatchBtn.classList.toggle('active');
-            if (noMatchBtn.classList.contains('active')) {
-                document.querySelectorAll('#pick-id-grid .bubble').forEach(b => b.classList.remove('selected'));
-            }
+            if (noMatchBtn.classList.contains('active')) document.querySelectorAll('#pick-id-grid .bubble').forEach(b => b.classList.remove('selected'));
         };
 
         document.getElementById('matching-form').onsubmit = async (e) => {
             e.preventDefault();
-            if (isResultsRevealed) return alert("접수가 마감되었습니다.");
-            if (!document.getElementById('privacy-check').checked) return alert("개인정보 동의를 체크해 주세요.");
+            if (isResultsRevealed) return alert("이미 마감되었습니다.");
+            if (!document.getElementById('privacy-check').checked) return alert("개인정보 동의가 필요합니다.");
             const myNum = Number(document.getElementById('user-id').value);
-            if(!myNum) return alert("본인의 번호를 선택해 주세요.");
-            const gender = genderSelect.value;
-            const qId = query(collection(db, "participants"), where("gender", "==", gender), where("myId", "==", myNum));
-            const snapId = await getDocs(qId);
-            if (!snapId.empty) return alert("⚠️ 이미 제출된 번호입니다.");
+            if(!myNum) return alert("본인 번호를 선택하세요.");
             const picks = Array.from(document.querySelectorAll('#pick-id-grid .bubble.selected')).map(b => Number(b.innerText));
+            if (picks.length === 0 && !noMatchBtn.classList.contains('active')) return alert("번호를 선택하거나 '인연 없음'을 눌러주세요.");
+
+            const gender = genderSelect.value;
+            const qId = query(collection(db, "participants"), where("batchName", "==", currentBatchName), where("gender", "==", gender), where("myId", "==", myNum));
+            const snapId = await getDocs(qId);
+            if (!snapId.empty) return alert("이미 제출된 번호입니다.");
+            
             await addDoc(collection(db, "participants"), {
-                gender, myId: myNum, realName: document.getElementById('user-real-name').value,
+                batchName: currentBatchName, gender, myId: myNum, realName: document.getElementById('user-real-name').value,
                 birth: document.getElementById('user-birth').value, phone: phoneInput.value, createdAt: serverTimestamp(), pickId1: picks[0] || null, pickId2: picks[1] || null
             });
             alert("제출 완료!"); location.reload();
@@ -249,29 +242,28 @@
         document.getElementById('check-result-btn').onclick = () => {
             if (!isResultsRevealed) return alert("결과 공개 전입니다!");
             document.getElementById('result-modal').style.display = 'flex';
-            verifyPhoneInput.value = "010-"; verifyPhoneInput.focus();
         };
 
         document.getElementById('confirm-verify-btn').onclick = async () => {
             const phone = verifyPhoneInput.value;
-            const snap = await getDocs(query(collection(db, "participants"), where("phone", "==", phone)));
-            if (snap.empty) return alert("정보가 없습니다.");
+            const snap = await getDocs(query(collection(db, "participants"), where("batchName", "==", currentBatchName), where("phone", "==", phone)));
+            if (snap.empty) return alert("현재 기수 등록 정보가 없습니다.");
             const myData = snap.docs[0].data();
             myId = Number(myData.myId); myGender = myData.gender;
             myCreatedAt = myData.createdAt.toDate(); 
-            const opposites = (await getDocs(collection(db, "participants"))).docs.map(d => d.data()).filter(p => p.gender !== myGender);
-            const matched = opposites.filter(p => (Number(p.pickId1) === myId || Number(p.pickId2) === myId) && [myData.pickId1, myData.pickId2].includes(myData.myId));
+            const opposites = (await getDocs(query(collection(db, "participants"), where("batchName", "==", currentBatchName)))).docs.map(d => d.data()).filter(p => p.gender !== myGender);
+            const matched = opposites.filter(p => (Number(p.pickId1) === myId || Number(p.pickId2) === myId) && [myData.pickId1, myData.pickId2].includes(Number(p.myId)));
             document.getElementById('result-modal').style.display = 'none';
             document.getElementById('input-section').style.display = 'none';
             document.getElementById('result-section').style.display = 'block';
             const area = document.getElementById('match-list-area');
-            area.innerHTML = `<div style="background:#FFF9E6; padding:20px; border-radius:20px; margin-bottom:20px; border:1px solid #FFE082;">나의 득표수: <b>${opposites.filter(p => Number(p.pickId1) === myId || Number(p.pickId2) === myId).length}표</b></div>`;
+            area.innerHTML = `<div style="background:#FFF9E6; padding:20px; border-radius:20px; margin-bottom:20px;">나의 득표수: <b>${opposites.filter(p => Number(p.pickId1) === myId || Number(p.pickId2) === myId).length}표</b></div>`;
             if (matched.length > 0) {
                 matched.forEach(p => {
-                    const chatId = myGender === 'male' ? `${myId}_${p.myId}` : `${p.myId}_${myId}`;
+                    const chatId = myGender === 'male' ? `${currentBatchName}_${myId}_${p.myId}` : `${currentBatchName}_${p.myId}_${myId}`;
                     area.innerHTML += `<div style='background:white; border:1px solid #eee; padding:15px; border-radius:15px; margin-bottom:12px;'><div style='font-weight:bold; margin-bottom:10px;'>💖 ${p.myId}번님과 매칭!</div><button onclick="window.enterChat('${chatId}', '${p.myId}')" style="width:100%; padding:12px; background:#1A237E; color:white; border:none; border-radius:10px; cursor:pointer;">1:1 웹 채팅 시작하기</button></div>`;
                 });
-            } else area.innerHTML += `<div style='background:#f4f4f4; padding:25px 20px; border-radius:15px; color:#666;'>매칭된 인연이 없습니다 :)</div>`;
+            } else area.innerHTML += `<div style='background:#f4f4f4; padding:20px; border-radius:15px;'>매칭된 인연이 없습니다 :)</div>`;
         };
 
         window.enterChat = (chatId, otherId) => {
@@ -307,9 +299,8 @@
             });
         };
 
-        // [신규] 대화방에서 결과 목록으로 돌아가는 로직
         window.exitChat = () => {
-            if (chatUnsubscribe) chatUnsubscribe(); // 실시간 감시 종료
+            if (chatUnsubscribe) chatUnsubscribe();
             document.getElementById('chat-section').style.display = 'none';
             document.getElementById('result-section').style.display = 'block';
         };
@@ -319,11 +310,8 @@
             if (!text || !currentChatId) return;
             const myUniqueId = `${myGender}_${myId}`;
             chatInput.value = "";
-            try {
-                await addDoc(collection(db, "chats", currentChatId, "messages"), {
-                    senderId: myUniqueId, text: text, createdAt: serverTimestamp()
-                });
-            } catch (e) { alert("전송 실패"); }
+            try { await addDoc(collection(db, "chats", currentChatId, "messages"), { senderId: myUniqueId, text: text, createdAt: serverTimestamp() }); }
+            catch (e) { alert("전송 실패"); }
         };
         chatInput.addEventListener('keypress', (e) => { if(e.key === 'Enter') document.getElementById('send-msg-btn').click(); });
     </script>
