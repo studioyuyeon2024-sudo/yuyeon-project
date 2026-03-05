@@ -29,24 +29,24 @@
         th, td { padding: 15px; border: 1px solid #f9f9f9; text-align: center; }
         th { background: #1A237E; color: white; }
 
-        /* [기능] MTS/모바일 최적화 레이아웃 */
+        /* [수정] MTS/모바일 최적화 미디어 쿼리 */
         @media (max-width: 768px) {
             body { padding: 10px; }
-            .admin-container { padding: 15px; border-radius: 15px; }
-            .bento-grid { grid-template-columns: 1fr; }
-            .card-large { grid-column: span 1; grid-row: span 1; }
-            .control-panel { grid-template-columns: 1fr; }
-            .main-val { font-size: 26px; }
-            h1 { font-size: 22px; }
+            .admin-container { padding: 20px 15px; border-radius: 20px; }
+            .bento-grid { grid-template-columns: 1fr; gap: 12px; }
+            .card-large { grid-column: span 1; grid-row: auto; }
+            .control-panel { grid-template-columns: 1fr; gap: 8px; }
+            .main-val { font-size: 28px; }
+            h1 { font-size: 20px; margin-bottom: 15px; }
             .table-wrapper table { font-size: 10px; }
-            th, td { padding: 8px 4px; }
-            .bento-card { padding: 15px; }
+            th, td { padding: 10px 4px; }
+            .bento-card { padding: 20px; }
         }
     </style>
 </head>
 <body>
     <div id="login-section">
-        <h1 style="font-family: 'Playfair Display'; color: #1A237E; margin-bottom: 30px;">Admin Login</h1>
+        <h1 style="font-family: 'Playfair Display'; color: #1A237E;">Admin Login</h1>
         <input type="email" id="email" class="login-input" placeholder="이메일">
         <input type="password" id="password" class="login-input" placeholder="비밀번호">
         <button id="login-btn" class="login-btn">대시보드 접속</button>
@@ -55,11 +55,11 @@
     <div class="admin-container" id="admin-main">
         <h1 style="font-family: 'Playfair Display'; text-align: center; color: #1A237E;">Studio Yuyeon Dashboard</h1>
         
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:10px; flex-wrap: wrap; gap: 10px;">
-            <div id="live-status" style="padding:10px; border-radius:10px; font-weight:bold;">상태 확인 중...</div>
-            <div style="background:#f4f4f4; padding:10px 20px; border-radius:15px; font-weight:bold;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:15px; flex-wrap: wrap; gap: 10px;">
+            <div id="live-status" style="padding:10px 15px; border-radius:12px; font-weight:bold; font-size:14px;">상태 확인 중...</div>
+            <div style="background:#f4f4f4; padding:10px 15px; border-radius:12px; font-weight:bold; font-size:14px;">
                 인원: 
-                <select id="set-total-count" style="padding:5px; border-radius:5px;">
+                <select id="set-total-count" style="padding:5px; border-radius:5px; font-weight:bold;">
                     <option value="6">6명</option><option value="7">7명</option><option value="8">8명</option><option value="9">9명</option><option value="10">10명</option><option value="11">11명</option><option value="12" selected>12명</option>
                 </select>
             </div>
@@ -67,16 +67,16 @@
 
         <div class="bento-grid">
             <div class="bento-card card-large">
-                <h4>실시간 커플 매칭 리스트 💖</h4>
-                <p id="stat-couples" class="main-val" style="color:#FF5252;">0쌍</p>
-                <div id="match-summary" style="font-size: 12px; line-height: 1.8; max-height: 150px; overflow-y: auto;"></div>
+                <h4 style="margin-top:0;">실시간 커플 매칭 💖</h4>
+                <p id="stat-couples" class="main-val" style="color:#FF5252; margin:5px 0;">0쌍</p>
+                <div id="match-summary" style="font-size: 13px; line-height: 1.5; max-height: 300px; overflow-y: auto; background:#fcfcfc; border-radius:15px; padding:5px;"></div>
             </div>
             <div class="bento-card" style="border-top: 5px solid #E67E22; grid-column: span 2;">
-                <h4>미제출자 번호 ⚠️</h4>
+                <h4 style="margin-top:0;">미제출자 번호 ⚠️</h4>
                 <div id="stat-missing" style="font-size: 14px; font-weight: bold; color: #E67E22; margin-top:10px;"></div>
             </div>
-            <div class="bento-card" style="border-top: 5px solid #27ae60;"><h4>현재 제출자</h4><p id="stat-total" class="main-val">0명</p></div>
-            <div class="bento-card" style="border-top: 5px solid #f39c12;"><h4>남 / 여 비</h4><p id="stat-gender" class="main-val" style="font-size: 20px;">0 / 0</p></div>
+            <div class="bento-card" style="border-top: 5px solid #27ae60;"><h4 style="margin-top:0;">제출자</h4><p id="stat-total" class="main-val">0명</p></div>
+            <div class="bento-card" style="border-top: 5px solid #f39c12;"><h4 style="margin-top:0;">성비</h4><p id="stat-gender" class="main-val" style="font-size: 22px;">0/0</p></div>
         </div>
 
         <div class="control-panel">
@@ -174,8 +174,19 @@
                     const fPicks = [f.pickId1, f.pickId2];
                     if (mPicks.includes(f.myId) && fPicks.includes(m.myId)) {
                         couples++;
-                        // [수정] 매칭 리스트에 성함과 핸드폰 번호를 함께 노출하도록 변경
-                        summary.innerHTML += `<div style="padding:5px; border-bottom:1px solid #eee;">💘 <b>${m.myId}(${m.realName}/${m.phone})</b> ↔ <b>${f.myId}(${f.realName}/${f.phone})</b></div>`;
+                        // [핵심 수정] 줄바꿈 및 디자인 최적화 로직
+                        summary.innerHTML += `
+                            <div style="padding:12px; border-bottom:1.5px solid #f0f0f0; background:white; margin-bottom:8px; border-radius:12px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
+                                <div style="color:#2196F3; font-weight:bold; margin-bottom:4px;">
+                                    <span style="background:#e3f2fd; padding:2px 6px; border-radius:5px; margin-right:5px;">♂️ 남</span>
+                                    ${m.myId}번 ${m.realName} / ${m.phone}
+                                </div>
+                                <div style="text-align:center; color:#FF5252; font-size:11px; margin:4px 0; font-weight:bold;">↕ 매칭 성공 ↕</div>
+                                <div style="color:#E91E63; font-weight:bold;">
+                                    <span style="background:#fce4ec; padding:2px 6px; border-radius:5px; margin-right:5px;">♀️ 여</span>
+                                    ${f.myId}번 ${f.realName} / ${f.phone}
+                                </div>
+                            </div>`;
                     }
                 });
             });
