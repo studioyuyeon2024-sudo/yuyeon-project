@@ -89,7 +89,7 @@
         const db = getFirestore(app);
         const SEC_PW = "2024";
         let currentData = [];
-        let voteMap = {}; // 득표수 맵 전역 변수화
+        let voteMap = {}; 
         let totalLimit = 12;
 
         document.getElementById('login-btn').onclick = async () => {
@@ -128,7 +128,7 @@
             const snap = await getDocs(collection(db, "participants"));
             currentData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             
-            voteMap = {}; // 초기화
+            voteMap = {}; 
             currentData.forEach(p => { 
                 if(p.pickId1) voteMap[p.pickId1] = (voteMap[p.pickId1]||0)+1; 
                 if(p.pickId2) voteMap[p.pickId2] = (voteMap[p.pickId2]||0)+1; 
@@ -160,7 +160,7 @@
                     if (mPicks.includes(Number(f.myId)) && fPicks.includes(Number(m.myId))) {
                         couples++;
                         summary.innerHTML += `
-                            <div style="padding:10px; border-bottom:1.5px solid #f0f0f0; background:white; margin-bottom:8px; border-radius:12px;">
+                            <div style="padding:10px; border-bottom:1.5 solid #f0f0f0; background:white; margin-bottom:8px; border-radius:12px;">
                                 <div style="color:#2196F3; font-weight:bold; font-size:12.5px;">남 ${m.myId}번 ${m.realName}</div>
                                 <div style="text-align:center; color:#FF5252; font-size:10px; font-weight:bold;">↕ 매칭 ↕</div>
                                 <div style="color:#E91E63; font-weight:bold; font-size:12.5px;">여 ${f.myId}번 ${f.realName}</div>
@@ -175,60 +175,58 @@
 
         const verify = () => prompt("보안 비밀번호를 입력하세요.") === SEC_PW;
 
-        // [수정] 현재 기수 명단 다운로드 기능 (득표수/후기 포함)
+        // [수정] 생년월일 항목 추가 및 CSV 포맷 최적화
         document.getElementById('download-btn').onclick = () => {
             if(!verify()) return alert("인증 실패");
-            if(currentData.length === 0) return alert("다운로드할 데이터가 없습니다.");
+            if(currentData.length === 0) return alert("데이터 없음");
 
-            let csv = "\uFEFF번호,성별,이름,연락처,득표수,후기\n";
+            let csv = "\uFEFF번호,성별,이름,생년월일,연락처,득표수,후기\n";
             currentData.sort((a,b) => Number(a.myId) - Number(b.myId)).forEach(p => {
                 const votes = voteMap[p.myId] || 0;
-                const review = (p.review || "-").replace(/,/g, " "); // 쉼표 제거 처리
-                csv += `${p.myId},${p.gender=='male'?'남':'여'},${p.realName},${p.phone},${votes},"${review}"\n`;
+                const review = (p.review || "-").replace(/"/g, '""'); // 따옴표 이스케이프
+                csv += `${p.myId},${p.gender=='male'?'남':'여'},${p.realName},${p.birth || '-'},${p.phone},${votes},"${review}"\n`;
             });
 
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
+            link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
             link.download = `현재기수명단_${new Date().toLocaleDateString()}.csv`;
             link.click();
         };
 
-        // [수정] 아카이브 기록 전체 다운로드 (상세 정보 포함)
+        // [수정] 아카이브 상세 정보 다운로드 (생년월일 포함)
         document.getElementById('archive-download-btn').onclick = async () => {
             if(!verify()) return alert("인증 실패");
             const snap = await getDocs(collection(db, "archive"));
-            if(snap.empty) return alert("아카이브 데이터가 없습니다.");
+            if(snap.empty) return alert("아카이브 데이터 없음");
 
-            let csv = "\uFEFF기수,번호,성별,이름,연락처,득표수,후기\n";
+            let csv = "\uFEFF기수,번호,성별,이름,생년월일,연락처,득표수,후기\n";
             snap.forEach(d => { 
                 const p = d.data(); 
-                const review = (p.review || "-").replace(/,/g, " ");
-                csv += `${p.batchName},${p.myId},${p.gender=='male'?'남':'여'},${p.realName},${p.phone},${p.voteCount || 0},"${review}"\n`; 
+                const review = (p.review || "-").replace(/"/g, '""');
+                csv += `${p.batchName},${p.myId},${p.gender=='male'?'남':'여'},${p.realName},${p.birth || '-'},${p.phone},${p.voteCount || 0},"${review}"\n`; 
             });
 
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
-            link.href = URL.createObjectURL(blob);
-            link.download = `전체아카이브기록_${new Date().toLocaleDateString()}.csv`;
+            link.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8;' }));
+            link.download = `아카이브기록_${new Date().toLocaleDateString()}.csv`;
             link.click();
         };
 
-        // [수정] 백업 시 득표수(voteCount)를 함께 저장하여 영구 보존
+        // [수정] 백업 시 비밀번호 확인 절차 제거
         document.getElementById('delete-btn').onclick = async () => {
-            if(currentData.length === 0) return alert("데이터가 없습니다.");
+            if(currentData.length === 0) return alert("백업할 데이터가 없습니다.");
             const batchName = prompt("백업할 기수 이름 (예: 유연 133기)");
-            if(!batchName || !verify()) return;
+            if(!batchName) return; 
             if(!confirm("⚠️ 현재 데이터를 아카이브하고 초기화하시겠습니까?")) return;
 
             try {
                 const batch = writeBatch(db);
                 currentData.forEach(p => {
-                    const finalVoteCount = voteMap[p.myId] || 0; // 백업 당시의 득표수 계산
+                    const finalVoteCount = voteMap[p.myId] || 0;
                     batch.set(doc(db, "archive", `${batchName}_${p.gender}_${p.myId}`), { 
                         ...p, 
                         batchName, 
-                        voteCount: finalVoteCount, // 필드 추가
+                        voteCount: finalVoteCount, 
                         archivedAt: new Date() 
                     });
                     batch.delete(doc(db, "participants", p.id));
@@ -260,7 +258,7 @@
         };
 
         document.getElementById('open-btn').onclick = async () => { 
-            if (confirm("매칭 결과를 공개하시겠습니까?")) {
+            if (confirm("결과를 공개하시겠습니까?")) {
                 await setDoc(doc(db, "settings", "matching_status"), { is_open: true }, { merge: true }); 
                 alert("결과 공개됨");
             }
