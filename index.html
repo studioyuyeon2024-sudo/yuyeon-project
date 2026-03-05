@@ -19,23 +19,24 @@
         #status-bar { display: none; background: #FF5252; color: white; padding: 10px; border-radius: 10px; font-size: 13px; font-weight: bold; margin-bottom: 15px; animation: blink 2s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
         
-        /* 채팅방 UI 상단 안내 바 */
+        /* 채팅방 UI 배지 디자인 */
         #chat-section { display: none; text-align: left; }
         .chat-info-bar { background: #F0F4FF; padding: 15px; border-radius: 20px; margin-bottom: 15px; display: flex; flex-direction: column; align-items: center; gap: 6px; border: 1px solid #D1D9FF; }
         .cookie-badge { background: #1A237E; color: white; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; }
         .time-badge { color: #FF5252; font-size: 11px; font-weight: 600; }
         
         #chat-box { height: 450px; overflow-y: auto; border: 1px solid #eee; padding: 15px; border-radius: 20px; background: #f9f9fb; margin-bottom: 15px; display: flex; flex-direction: column; gap: 20px; }
-        
-        /* 말풍선 레이아웃 정밀 수정 */
         .msg-wrapper { display: flex; flex-direction: column; gap: 4px; max-width: 82%; }
-        .msg-wrapper.me { align-self: flex-end; align-items: flex-end; } /* 나: 오른쪽 */
-        .msg-wrapper.other { align-self: flex-start; align-items: flex-start; } /* 상대: 왼쪽 */
-        
+        .msg-wrapper.me { align-self: flex-end; align-items: flex-end; }
+        .msg-wrapper.other { align-self: flex-start; align-items: flex-start; }
         .msg-label { font-size: 11px; color: #888; font-weight: bold; margin: 0 4px; }
         .msg { padding: 10px 15px; border-radius: 18px; font-size: 14px; line-height: 1.5; word-break: break-all; box-shadow: 0 2px 5px rgba(0,0,0,0.04); }
         .msg-wrapper.me .msg { background: #1A237E; color: white; border-bottom-right-radius: 2px; }
         .msg-wrapper.other .msg { background: #FFFFFF; color: #333; border: 1px solid #E5E7EB; border-bottom-left-radius: 2px; }
+        
+        /* 약관 영역 디자인 복구 */
+        .privacy-box { border: 1.5px solid #E5E7EB; border-radius: 15px; background: #F9FAFB; padding: 15px; margin-top: 10px; }
+        .privacy-text { font-size: 11px; color: #666; height: 100px; overflow-y: auto; line-height: 1.6; text-align: left; }
         
         .btn-main { width: 100%; padding: 20px; border: none; border-radius: 15px; font-weight: bold; background: #1A237E; color: white; font-size: 16px; cursor: pointer; margin-top: 10px; transition: 0.3s; }
         .btn-main:disabled { background: #ccc; cursor: not-allowed; }
@@ -64,9 +65,17 @@
                 
                 <div class="card">
                     <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                        <input type="checkbox" id="privacy-check" style="width:20px; height:20px; margin:0;">
-                        <span style="font-size:14px; font-weight:bold;">개인정보 수집 및 이용 동의 (필수)</span>
+                        <input type="checkbox" id="privacy-check" style="width:22px; height:22px; margin:0;">
+                        <span style="font-size:14px; font-weight:bold; color:#1A237E;">개인정보 수집 및 이용 동의 (필수)</span>
                     </label>
+                    <div class="privacy-box">
+                        <div class="privacy-text">
+                            <strong>1. 수집 항목:</strong> 성명, 성별, 생년월일, 연락처, 매칭 번호, 참여 후기<br>
+                            <strong>2. 이용 목적:</strong> 매칭 결과 분석, 서비스 제공 및 <strong>스튜디오 유연 모집/마케팅 정보 발송</strong><br>
+                            <strong>3. 보유 기간:</strong> <strong>수집일로부터 1년간 보관</strong> 후 파기 (참여자 요청 시 즉시 삭제)<br>
+                            <strong>4. 거부 권리:</strong> 귀하는 동의를 거부할 권리가 있으나, 거부 시 매칭 결과 조회가 불가능합니다.
+                        </div>
+                    </div>
                 </div>
 
                 <button type="submit" class="btn-main" id="submit-btn">정보 제출하기</button>
@@ -77,7 +86,7 @@
 
         <div id="result-modal" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; padding: 20px;">
             <div style="background: white; padding: 30px; border-radius: 25px; width: 100%; max-width: 350px; text-align: center;">
-                <h3 style="color: #1A237E;">결과 조회</h3>
+                <h3 style="color: #1A237E; margin-bottom: 10px;">결과 조회</h3>
                 <input type="tel" id="verify-phone" maxlength="13" placeholder="010-0000-0000">
                 <button id="confirm-verify-btn" class="btn-main">결과 보기</button>
                 <p onclick="document.getElementById('result-modal').style.display='none'" style="margin-top: 15px; color: #aaa; cursor: pointer;">닫기</p>
@@ -93,7 +102,7 @@
         <div id="chat-section">
             <div class="chat-info-bar">
                 <div class="cookie-badge" id="cookie-display">🍪 쿠키 잔량: 500개</div>
-                <div class="time-badge">⌛ 대화 쿠키를 소진하거나 3일이 경과하면 종료됩니다 :)</div>
+                <div class="time-badge" id="time-display">⌛ 3일이 경과하면 대화창이 종료됩니다 :)</div>
             </div>
             <div id="chat-box"></div>
             <div style="display:flex; gap:10px;">
@@ -114,6 +123,7 @@
 
         const genderSelect = document.getElementById('user-gender');
         const phoneInput = document.getElementById('user-phone');
+        const birthInput = document.getElementById('user-birth');
         const verifyPhoneInput = document.getElementById('verify-phone');
         const withdrawBtn = document.getElementById('withdraw-btn');
         const chatInput = document.getElementById('chat-input');
@@ -124,7 +134,7 @@
 
         phoneInput.value = "010-";
 
-        // 자동 하이픈 로직
+        // 자동 하이픈 및 010 고정 로직
         const applyFormat = (input, type) => {
             input.addEventListener('input', (e) => {
                 let v = e.target.value.replace(/[^0-9]/g, '');
@@ -141,7 +151,7 @@
                 }
             });
         };
-        applyFormat(phoneInput, 'phone'); applyFormat(verifyPhoneInput, 'phone'); applyFormat(document.getElementById('user-birth'), 'birth');
+        applyFormat(phoneInput, 'phone'); applyFormat(verifyPhoneInput, 'phone'); applyFormat(birthInput, 'birth');
 
         onSnapshot(doc(db, "settings", "matching_status"), (snap) => {
             if (snap.exists()) {
@@ -180,6 +190,7 @@
         document.getElementById('matching-form').onsubmit = async (e) => {
             e.preventDefault();
             if (isResultsRevealed) return alert("접수가 마감되었습니다.");
+            if (!document.getElementById('privacy-check').checked) return alert("개인정보 동의를 체크해 주세요.");
             const myNum = Number(document.getElementById('user-id').value);
             if(!myNum) return alert("본인 번호를 선택하세요.");
             const gender = genderSelect.value;
@@ -189,9 +200,26 @@
             const picks = Array.from(document.querySelectorAll('#pick-id-grid .bubble.selected')).map(b => Number(b.innerText));
             await addDoc(collection(db, "participants"), {
                 gender, myId: myNum, realName: document.getElementById('user-real-name').value,
-                phone: phoneInput.value, createdAt: serverTimestamp(), pickId1: picks[0] || null, pickId2: picks[1] || null
+                birth: birthInput.value, phone: phoneInput.value, pickId1: picks[0] || null, pickId2: picks[1] || null, createdAt: serverTimestamp()
             });
             alert("제출 완료!"); location.reload();
+        };
+
+        // 정보 회수 버튼
+        phoneInput.addEventListener('blur', async (e) => {
+            if (e.target.value.length === 13 && !isResultsRevealed) {
+                const q = query(collection(db, "participants"), where("phone", "==", e.target.value));
+                const snap = await getDocs(q);
+                withdrawBtn.style.display = !snap.empty ? 'block' : 'none';
+            } else { withdrawBtn.style.display = 'none'; }
+        });
+
+        withdrawBtn.onclick = async () => {
+            if (!confirm("⚠️ 제출하신 정보를 삭제하시겠습니까? 삭제 후 다시 작성이 가능합니다.")) return;
+            const q = query(collection(db, "participants"), where("phone", "==", phoneInput.value));
+            const snap = await getDocs(q);
+            await Promise.all(snap.docs.map(d => deleteDoc(doc(db, "participants", d.id))));
+            alert("회수 완료!"); location.reload();
         };
 
         document.getElementById('check-result-btn').onclick = () => {
@@ -202,23 +230,23 @@
         document.getElementById('confirm-verify-btn').onclick = async () => {
             const phone = verifyPhoneInput.value;
             const snap = await getDocs(query(collection(db, "participants"), where("phone", "==", phone)));
-            if (snap.empty) return alert("정보가 없습니다.");
+            if (snap.empty) return alert("등록된 정보가 없습니다.");
             const myData = snap.docs[0].data();
             myId = Number(myData.myId); myGender = myData.gender;
             myCreatedAt = myData.createdAt.toDate(); 
             const opposites = (await getDocs(collection(db, "participants"))).docs.map(d => d.data()).filter(p => p.gender !== myGender);
-            const matched = opposites.filter(p => (p.pickId1 === myId || p.pickId2 === myId) && [myData.pickId1, myData.pickId2].includes(p.myId));
+            const matched = opposites.filter(p => (Number(p.pickId1) === myId || Number(p.pickId2) === myId) && [myData.pickId1, myData.pickId2].includes(myData.myId));
             document.getElementById('result-modal').style.display = 'none';
             document.getElementById('input-section').style.display = 'none';
             document.getElementById('result-section').style.display = 'block';
             const area = document.getElementById('match-list-area');
-            area.innerHTML = `<div style="background:#FFF9E6; padding:20px; border-radius:20px; margin-bottom:20px;">득표수: <b>${opposites.filter(p => p.pickId1 === myId || p.pickId2 === myId).length}표</b></div>`;
+            area.innerHTML = `<div style="background:#FFF9E6; padding:20px; border-radius:20px; margin-bottom:20px; border:1px solid #FFE082;">나의 득표수: <b>${opposites.filter(p => Number(p.pickId1) === myId || Number(p.pickId2) === myId).length}표</b></div>`;
             if (matched.length > 0) {
                 matched.forEach(p => {
                     const chatId = myGender === 'male' ? `${myId}_${p.myId}` : `${p.myId}_${myId}`;
-                    area.innerHTML += `<div style='background:white; border:1px solid #eee; padding:15px; border-radius:15px; margin-bottom:12px;'><div style='font-weight:bold; margin-bottom:10px;'>💖 ${p.myId}번님과 매칭!</div><button onclick="window.enterChat('${chatId}', '${p.myId}')" style="width:100%; padding:12px; background:#1A237E; color:white; border:none; border-radius:10px;">채팅방 입장</button></div>`;
+                    area.innerHTML += `<div style='background:white; border:1px solid #eee; padding:15px; border-radius:15px; margin-bottom:12px;'><div style='font-weight:bold; margin-bottom:10px;'>💖 ${p.myId}번님과 매칭!</div><button onclick="window.enterChat('${chatId}', '${p.myId}')" style="width:100%; padding:12px; background:#1A237E; color:white; border:none; border-radius:10px; cursor:pointer;">1:1 웹 채팅 시작하기</button></div>`;
                 });
-            } else area.innerHTML += `<div style='background:#f4f4f4; padding:20px; border-radius:15px;'>매칭된 인연이 없습니다.</div>`;
+            } else area.innerHTML += `<div style='background:#f4f4f4; padding:20px; border-radius:15px; color:#666;'>매칭된 인연이 없습니다 :)</div>`;
         };
 
         window.enterChat = (chatId, otherId) => {
@@ -234,7 +262,7 @@
                 let myMsgCount = 0;
                 snap.forEach(msgDoc => {
                     const msgData = msgDoc.data();
-                    const isMe = String(msgData.senderId) === myUniqueId; // [해결] 성별까지 정확히 체크
+                    const isMe = String(msgData.senderId) === myUniqueId; // 성별까지 정확히 체크
                     if (isMe) myMsgCount++;
                     
                     const parts = String(msgData.senderId).split('_');
@@ -259,7 +287,7 @@
         document.getElementById('send-msg-btn').onclick = async () => {
             const text = chatInput.value.trim();
             if (!text || !currentChatId) return;
-            const myUniqueId = `${myGender}_${myId}`; // [해결] 전송 시에도 성별_번호 조합 사용
+            const myUniqueId = `${myGender}_${myId}`;
             chatInput.value = "";
             try {
                 await addDoc(collection(db, "chats", currentChatId, "messages"), {
