@@ -180,7 +180,7 @@
             document.getElementById('stat-gender').innerText = `${males.length}/${females.length}`;
         }
 
-        const verify = () => prompt("보안 비밀번호(2024)를 입력하세요.") === SEC_PW;
+        const verify = () => prompt("보안 비밀번호를 입력하세요.") === SEC_PW;
 
         document.getElementById('download-btn').onclick = () => {
             if(!verify()) return alert("인증 실패");
