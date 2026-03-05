@@ -179,19 +179,15 @@
                     const fPicks = [f.pickId1, f.pickId2];
                     if (mPicks.includes(f.myId) && fPicks.includes(m.myId)) {
                         couples++;
-                        // 핵심 수정: 줄바꿈 방지 및 디자인 컴팩트화
-                        // 카드 내부 성별 태그 제거 및 컴팩트한 아이콘 구분
-                        // 폰트 크기 및 간격 최적화를 통한 가독성 최대화
+                        // [수정] 성별 아이콘을 텍스트 '남', '여'로 변경하고 색상 유지
                         summary.innerHTML += `
                             <div style="padding:10px; border-bottom:1.5px solid #f0f0f0; background:white; margin-bottom:8px; border-radius:12px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
                                 <div style="color:#2196F3; font-weight:bold; margin-bottom:4px; font-size:12.5px; white-space:nowrap;">
-                                    <span style="color:#2196F3; margin-right:5px; font-size: 13px;">♂️</span>
-                                    ${m.myId}번 ${m.realName} / ${m.phone}
+                                    남 ${m.myId}번 ${m.realName} / ${m.phone}
                                 </div>
                                 <div style="text-align:center; color:#FF5252; font-size:11px; margin:4px 0; font-weight:bold; clear:both;">↕ 매칭 성공 ↕</div>
                                 <div style="color:#E91E63; font-weight:bold; font-size:12.5px; white-space:nowrap;">
-                                    <span style="color:#E91E63; margin-right:5px; font-size: 13px;">♀️</span>
-                                    ${f.myId}번 ${f.realName} / ${f.phone}
+                                    여 ${f.myId}번 ${f.realName} / ${f.phone}
                                 </div>
                             </div>`;
                     }
@@ -237,7 +233,6 @@
             } catch (e) { alert("오류: " + e.message); }
         };
 
-        // 결과 공개 시 다시 한번 확인창 띄우기
         document.getElementById('open-btn').onclick = async () => { 
             if (confirm("결과를 공개하고 참여자 접수를 마감하시겠습니까?")) {
                 await setDoc(doc(db, "settings", "matching_status"), { is_open: true }, { merge: true }); 
