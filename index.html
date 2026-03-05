@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Studio Yuyeon | 유일한 인연</title>
+    <title>Studio Yuyeon | 유연한 인연</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Noto+Sans+KR:wght@300;400;500;700&display=swap');
         body { background: #FDFBF6; font-family: 'Noto Sans KR', sans-serif; color: #333; display: flex; justify-content: center; padding: 10px; margin: 0; }
@@ -26,6 +26,7 @@
         #submit-btn { width: 100%; padding: 20px; border: none; border-radius: 15px; font-weight: bold; background: #1A237E; color: white; font-size: 17px; cursor: pointer; margin-top: 10px; }
         #withdraw-btn { width: 100%; padding: 15px; border: none; border-radius: 15px; font-weight: bold; background: #e74c3c; color: white; font-size: 14px; cursor: pointer; margin-top: 10px; display: none; }
         #check-result-btn { width: 100%; padding: 18px; border: 1.5px solid #1A237E; border-radius: 15px; font-weight: bold; background: white; color: #1A237E; font-size: 16px; cursor: pointer; margin-top: 10px; }
+        .next-schedule-box { background: #1A237E; color: white; padding: 25px 20px; border-radius: 20px; margin-top: 20px; text-decoration: none; display: block; text-align: center; }
     </style>
 </head>
 <body>
@@ -52,7 +53,7 @@
                         <strong>1. 개인정보 수집 항목:</strong> 성명, 성별, 생년월일, 연락처, 매칭 번호, 참여 후기<br><br>
                         <strong>2. 수집 및 이용 목적:</strong> 매칭 결과 분석, 커플 매칭 안내 및 서비스 운영 활용<br><br>
                         <strong>3. 보유 및 이용 기간:</strong> <strong>매칭 결과 안내 즉시 모든 데이터는 파기됩니다.</strong><br><br>
-                        <strong>4. 동의 거부 권리:</strong> 거부 시 서비스 참여가 불가능합니다.
+                        <strong>4. 동의 거부 권리:</strong> 귀하는 동의를 거부할 권리가 있으나, 거부 시 서비스 참여가 불가능합니다.
                     </div>
                 </div>
                 <button type="submit" id="submit-btn">정보 제출하기</button>
@@ -84,26 +85,29 @@
         let takenIds = [];
         let selectedPicks = [];
         let isFirstLoad = true;
-        let isResultsRevealed = false; // 결과 공개 여부 상태값
+        let isResultsRevealed = false;
 
         onSnapshot(doc(db, "settings", "matching_status"), (snap) => {
             if (snap.exists()) {
                 const data = snap.data();
                 const newTotal = data.total_count || 12;
-                isResultsRevealed = data.is_open; // 전역 변수 업데이트
+                isResultsRevealed = data.is_open;
 
                 if (isFirstLoad || newTotal !== currentTotalCount) {
                     currentTotalCount = newTotal;
                     setupGrids();
                     isFirstLoad = false;
                 }
-                document.getElementById('status-bar').style.display = isResultsRevealed ? 'block' : 'none';
+                
+                // 결과 확인 창이 아닐 때만 상태 바를 보여줌
+                if (document.getElementById('result-section').style.display !== 'block') {
+                    document.getElementById('status-bar').style.display = isResultsRevealed ? 'block' : 'none';
+                }
+                
                 document.getElementById('submit-btn').innerText = isResultsRevealed ? "접수 마감 (결과 확인 가능)" : "정보 제출하기";
                 document.getElementById('submit-btn').style.background = isResultsRevealed ? "#999" : "#1A237E";
                 
-                // [기능] 결과 공개 시 회수 버튼 강제 숨김
                 if (isResultsRevealed) withdrawBtn.style.display = 'none';
-
                 updateTakenIds();
             }
         });
@@ -115,7 +119,6 @@
         }
 
         function handleIdClick(element, id) {
-            // [기능] 결과 공개 전일 때만 중복 번호 알림 표출
             if (takenIds.includes(id) && !isResultsRevealed) alert("본인의 번호가 맞는 지 확인해 주세요.");
             document.querySelectorAll('#my-id-grid .bubble').forEach(x => x.classList.remove('selected'));
             element.classList.add('selected');
@@ -141,7 +144,6 @@
 
         genderSelect.onchange = updateTakenIds;
         phoneInput.addEventListener('blur', async (e) => {
-            // [기능] 결과 공개 전일 때만 번호 입력 시 회수 버튼 노출
             if (e.target.value.length === 13 && !isResultsRevealed) {
                 const q = query(collection(db, "participants"), where("phone", "==", e.target.value));
                 const snap = await getDocs(q);
@@ -150,9 +152,6 @@
                 withdrawBtn.style.display = 'none';
             }
         });
-
-        // [이미지: 데이터 무결성 검증 로직]
-        // 
 
         document.getElementById('matching-form').onsubmit = async (e) => {
             e.preventDefault();
@@ -169,12 +168,10 @@
             const myId = Number(userIdInput.value);
             const qId = query(collection(db, "participants"), where("gender", "==", genderSelect.value), where("myId", "==", myId));
             const snapId = await getDocs(qId);
-            
-            // [기능] 번호 중복 시 제출 원천 차단 로직
             if (!snapId.empty) { 
                 alert("⚠️ 해당 번호는 이미 다른 참가자가 사용 중입니다. 본인의 번호가 맞는 지 다시 한번 확인해 주세요."); 
                 btn.disabled = false; 
-                return; // 제출 실행 중단
+                return;
             }
 
             await addDoc(collection(db, "participants"), {
@@ -204,15 +201,24 @@
             const opposites = all.filter(p => p.gender !== genderSelect.value);
             const votes = opposites.filter(p => p.pickId1 === myId || p.pickId2 === myId).length;
             const matched = opposites.filter(p => (p.pickId1 === myId || p.pickId2 === myId) && selectedPicks.includes(p.myId));
+            
             document.getElementById('input-section').style.display = 'none';
             document.getElementById('result-section').style.display = 'block';
+            document.getElementById('status-bar').style.display = 'none'; // [수정] 결과 확인 창에서 상태 바 숨김
+            
             const area = document.getElementById('match-list-area');
             area.innerHTML = `<div style="background:#FFF9E6; padding:20px; border-radius:20px; margin-bottom:20px; border:1px solid #FFE082;">나의 득표수: <b>${votes}표</b></div>`;
+            
             if (matched.length > 0) {
-                area.innerHTML += `<h3 style="color:#FF5252;">🎉 매칭 성공!</h3>`;
-                matched.forEach(p => area.innerHTML += `<div style='background:linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%); padding:20px; border-radius:15px; margin-bottom:12px; font-weight:bold;'>💖 ${p.myId}번님과 매칭!</div>`);
+                area.innerHTML += `<h3 style="color:#FF5252;">🎉 매칭 성공! 축하합니다.</h3>`;
+                matched.forEach(p => area.innerHTML += `<div style='background:linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%); padding:20px; border-radius:15px; margin-bottom:12px; font-weight:bold;'>💖 ${p.myId}번님과 매칭되었습니다!</div>`);
             } else {
-                area.innerHTML += `<div style='background:#f4f4f4; padding:20px; border-radius:15px; margin-bottom:20px; color:#666;'>미매칭되었습니다.</div><a href="https://litt.ly/studioyuyeon" target="_blank" class="next-schedule-box"><strong>🗓️ 다음 일정 확인</strong></a>`;
+                // [수정] 미매칭 문구 변경
+                area.innerHTML += `
+                    <div style='background:#f4f4f4; padding:25px 20px; border-radius:15px; margin-bottom:20px; color:#666; line-height:1.6;'>
+                        다음번에 더 좋은 인연으로 뵐게요<br>소중한 시간 유연과 함께해주셔서 감사해요
+                    </div>
+                    <a href="https://litt.ly/studioyuyeon" target="_blank" class="next-schedule-box"><strong>🗓️ 다음 일정 확인</strong></a>`;
             }
         };
 
