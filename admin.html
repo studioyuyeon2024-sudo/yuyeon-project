@@ -29,16 +29,16 @@
         th, td { padding: 15px; border: 1px solid #f9f9f9; text-align: center; }
         th { background: #1A237E; color: white; }
 
-        /* [추가] MTS/모바일 최적화 미디어 쿼리 */
+        /* [기능] MTS/모바일 최적화 레이아웃 */
         @media (max-width: 768px) {
             body { padding: 10px; }
             .admin-container { padding: 15px; border-radius: 15px; }
-            .bento-grid { grid-template-columns: 1fr; } /* 1열로 세로 정렬 */
+            .bento-grid { grid-template-columns: 1fr; }
             .card-large { grid-column: span 1; grid-row: span 1; }
-            .control-panel { grid-template-columns: 1fr; } /* 버튼도 1열로 */
+            .control-panel { grid-template-columns: 1fr; }
             .main-val { font-size: 26px; }
             h1 { font-size: 22px; }
-            .table-wrapper table { font-size: 10px; } /* 테이블 폰트 축소 */
+            .table-wrapper table { font-size: 10px; }
             th, td { padding: 8px 4px; }
             .bento-card { padding: 15px; }
         }
@@ -46,14 +46,14 @@
 </head>
 <body>
     <div id="login-section">
-        <h1 style="font-family: 'Playfair Display'; color: #1A237E;">Admin Login</h1>
+        <h1 style="font-family: 'Playfair Display'; color: #1A237E; margin-bottom: 30px;">Admin Login</h1>
         <input type="email" id="email" class="login-input" placeholder="이메일">
         <input type="password" id="password" class="login-input" placeholder="비밀번호">
         <button id="login-btn" class="login-btn">대시보드 접속</button>
     </div>
 
     <div class="admin-container" id="admin-main">
-        <h1 style="font-family: 'Playfair Display'; text-align: center;">Studio Yuyeon Dashboard</h1>
+        <h1 style="font-family: 'Playfair Display'; text-align: center; color: #1A237E;">Studio Yuyeon Dashboard</h1>
         
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:10px; flex-wrap: wrap; gap: 10px;">
             <div id="live-status" style="padding:10px; border-radius:10px; font-weight:bold;">상태 확인 중...</div>
@@ -157,6 +157,7 @@
 
             const males = currentData.filter(p => p.gender === 'male');
             const females = currentData.filter(p => p.gender === 'female');
+            
             const mIds = males.map(p => p.myId); const fIds = females.map(p => p.myId);
             const missM = []; const missF = [];
             for(let i=1; i<=totalLimit; i++) {
@@ -169,9 +170,12 @@
             let couples = 0;
             males.forEach(m => {
                 females.forEach(f => {
-                    if ([m.pickId1, m.pickId2].includes(f.myId) && [f.pickId1, f.pickId2].includes(m.myId)) {
+                    const mPicks = [m.pickId1, m.pickId2];
+                    const fPicks = [f.pickId1, f.pickId2];
+                    if (mPicks.includes(f.myId) && fPicks.includes(m.myId)) {
                         couples++;
-                        summary.innerHTML += `<div style="padding:5px; border-bottom:1px solid #eee;">💘 <b>${m.myId}(${m.realName})</b> ↔ <b>${f.myId}(${f.realName})</b></div>`;
+                        // [수정] 매칭 리스트에 성함과 핸드폰 번호를 함께 노출하도록 변경
+                        summary.innerHTML += `<div style="padding:5px; border-bottom:1px solid #eee;">💘 <b>${m.myId}(${m.realName}/${m.phone})</b> ↔ <b>${f.myId}(${f.realName}/${f.phone})</b></div>`;
                     }
                 });
             });
@@ -180,7 +184,7 @@
             document.getElementById('stat-gender').innerText = `${males.length}/${females.length}`;
         }
 
-        const verify = () => prompt("보안 비밀번호를 입력하세요.") === SEC_PW;
+        const verify = () => prompt("보안 비밀번호(2024)를 입력하세요.") === SEC_PW;
 
         document.getElementById('download-btn').onclick = () => {
             if(!verify()) return alert("인증 실패");
@@ -215,7 +219,6 @@
             } catch (e) { alert("오류: " + e.message); }
         };
 
-        // [기능] 결과 공개 시 다시 한번 확인창 띄우기
         document.getElementById('open-btn').onclick = async () => { 
             if (confirm("결과를 공개하고 참여자 접수를 마감하시겠습니까?")) {
                 await setDoc(doc(db, "settings", "matching_status"), { is_open: true }, { merge: true }); 
