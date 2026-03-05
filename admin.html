@@ -226,41 +226,43 @@
             } catch (e) { alert("오류: " + e.message); }
         };
 
-        // [최종 수정] 뿌리까지 뽑는 강력한 쿠키(채팅) 삭제 기능
+        /* [핵심] 하위 데이터까지 완벽 소거하는 쿠키 삭제 로직 */
         document.getElementById('delete-chats-btn').onclick = async () => {
             if(!verify()) return alert("인증 실패");
-            if(!confirm("⚠️ 모든 채팅방과 메시지를 완전히 삭제하시겠습니까?\n이 작업은 절대 복구할 수 없습니다.")) return;
+            if(!confirm("⚠️ 모든 채팅방과 메시지를 '영구히' 삭제하시겠습니까?\n이 작업은 데이터베이스의 실제 용량을 비우는 작업입니다.")) return;
             
             try {
-                alert("채팅 데이터를 완전히 삭제 중입니다. 잠시만 기다려주세요...");
                 const chatSnap = await getDocs(collection(db, "chats"));
                 if (chatSnap.empty) return alert("삭제할 대화 내역이 없습니다.");
 
-                let totalDeletedMessages = 0;
-                
+                alert("데이터 정밀 소거를 시작합니다. 잠시만 기다려주세요...");
+                let deletedRooms = 0;
+                let deletedMsgs = 0;
+
                 for (const chatDoc of chatSnap.docs) {
                     const chatId = chatDoc.id;
                     
-                    // 1. 하위 메시지 싹 지우기
+                    // 1. 하위 'messages' 컬렉션의 모든 메시지 삭제
                     const msgSnap = await getDocs(collection(db, "chats", chatId, "messages"));
                     if (!msgSnap.empty) {
                         const batch = writeBatch(db);
                         msgSnap.forEach((mDoc) => {
                             batch.delete(doc(db, "chats", chatId, "messages", mDoc.id));
-                            totalDeletedMessages++;
+                            deletedMsgs++;
                         });
-                        await batch.commit();
+                        await batch.commit(); // 메시지 삭제 확정
                     }
                     
-                    // 2. 대화방(상위 문서) 자체를 영구 삭제
+                    // 2. 메시지가 비워진 상위 대화방 문서 삭제
                     await deleteDoc(doc(db, "chats", chatId));
+                    deletedRooms++;
                 }
 
-                alert(`총 ${totalDeletedMessages}개의 메시지와 모든 대화방이 영구 삭제되었습니다.`);
+                alert(`✅ 청소 완료!\n- 삭제된 대화방: ${deletedRooms}개\n- 삭제된 메시지: ${deletedMsgs}개\n이제 데이터베이스에서 완전히 사라졌습니다.`);
                 location.reload(); 
             } catch (e) { 
                 console.error(e);
-                alert("오류 발생: " + e.message); 
+                alert("오류 발생: " + e.message + "\n보안 규칙에서 delete 권한이 허용되었는지 확인하세요."); 
             }
         };
 
