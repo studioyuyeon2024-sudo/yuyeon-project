@@ -66,12 +66,29 @@
             <button id="close-btn" class="panel-btn btn-dark">🔒 결과 차단 (재개)</button>
             <button id="download-btn" class="panel-btn btn-orange">📥 현재 기수 명단 다운</button>
             <button id="delete-btn" class="panel-btn btn-red">⚠️ 백업 후 기수 초기화</button>
+            <button id="delete-selected-btn" class="panel-btn btn-dark" style="background:#e67e22;">🗑️ 선택 항목 삭제</button>
             <button id="delete-chats-btn" class="panel-btn btn-dark">🍪 쿠키삭제<br> (기수별 채팅 소거)</button>
             <button id="archive-download-btn" class="panel-btn btn-blue">🏛️ 아카이브 기록 전체 다운</button>
             <button id="refresh-btn" class="panel-btn btn-green">🔄 제출현황 새로고침</button>
         </div>
 
-        <div class="table-wrapper"><table><thead><tr><th>#</th><th>성</th><th>이름</th><th>연락처</th><th>픽</th><th>득표 🔥</th><th style="width:150px;">후기 📝</th></tr></thead><tbody id="list-body"></tbody></table></div>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="check-all"></th>
+                        <th>#</th>
+                        <th>성</th>
+                        <th>이름</th>
+                        <th>연락처</th>
+                        <th>픽</th>
+                        <th>득표 🔥</th>
+                        <th style="width:150px;">후기 📝</th>
+                    </tr>
+                </thead>
+                <tbody id="list-body"></tbody>
+            </table>
+        </div>
     </div>
 
     <script type="module">
@@ -99,6 +116,33 @@
                 updateDashboard();
             }
         });
+
+        // [신규] 전체 선택 기능
+        document.getElementById('check-all').onchange = (e) => {
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            checkboxes.forEach(cb => cb.checked = e.target.checked);
+        };
+
+        // [신규] 선택 삭제 버튼 기능
+        document.getElementById('delete-selected-btn').onclick = async () => {
+            const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+            if (checkedBoxes.length === 0) return alert("삭제할 항목을 선택해주세요.");
+            
+            if (!confirm(`선택한 ${checkedBoxes.length}개의 제출 정보를 삭제하시겠습니까?\n삭제 후 참여자가 동일한 번호로 다시 제출할 수 있습니다.`)) return;
+            
+            try {
+                const batch = writeBatch(db);
+                checkedBoxes.forEach(cb => {
+                    const docId = cb.getAttribute('data-id');
+                    batch.delete(doc(db, "participants", docId));
+                });
+                await batch.commit();
+                alert("삭제 완료!");
+                updateDashboard();
+            } catch (e) {
+                alert("삭제 중 오류가 발생했습니다: " + e.message);
+            }
+        };
 
         document.getElementById('save-batch-btn').onclick = async () => {
             const name = document.getElementById('set-batch-name').value.trim();
@@ -136,7 +180,19 @@
             const list = document.getElementById('list-body'); list.innerHTML = "";
             currentData.sort((a,b) => Number(a.myId) - Number(b.myId)).forEach(p => {
                 const pickText = (p.pickId1 || p.pickId2) ? `${p.pickId1||''}${p.pickId2 ? ', '+p.pickId2 : ''}` : '<span style="color:#aaa;">인연없음</span>';
-                list.innerHTML += `<tr><td>${p.myId}</td><td>${p.gender=='male'?'남':'여'}</td><td>${p.realName}</td><td>${p.phone}</td><td>${pickText}</td><td style="color:#FF5252; font-weight:bold;">${voteMap[p.myId]||0}</td><td style="text-align:left; font-size:11px;">${p.review||'-'}</td></tr>`;
+                
+                // [수정] 행마다 체크박스 추가
+                list.innerHTML += `
+                    <tr>
+                        <td><input type="checkbox" class="row-checkbox" data-id="${p.id}"></td>
+                        <td>${p.myId}</td>
+                        <td>${p.gender=='male'?'남':'여'}</td>
+                        <td>${p.realName}</td>
+                        <td>${p.phone}</td>
+                        <td>${pickText}</td>
+                        <td style="color:#FF5252; font-weight:bold;">${voteMap[p.myId]||0}</td>
+                        <td style="text-align:left; font-size:11px;">${p.review||'-'}</td>
+                    </tr>`;
             });
 
             const males = currentData.filter(p => p.gender === 'male');
@@ -146,7 +202,6 @@
             for(let i=1; i<=totalLimit; i++) { if(!mIds.includes(i)) missM.push(i); if(!fIds.includes(i)) missF.push(i); }
             document.getElementById('stat-missing').innerHTML = `남: ${missM.join(',')}<br>여: ${missF.join(',')}`;
 
-            // 매칭 정보에 연락처 포함 로직 
             const summary = document.getElementById('match-summary'); summary.innerHTML = "";
             let couples = 0;
             males.forEach(m => { females.forEach(f => {
@@ -223,7 +278,7 @@
             } catch (e) { console.error(e); }
         };
 
-        document.getElementById('open-btn').onclick = async () => { await setDoc(doc(db, "settings", "matching_status"), { is_open: true }, { merge: true }); alert("결과 공개됨"); };
+        document.getElementById('open-btn').onclick = async () => { await setDoc(doc(db, "settings", "matching_status"), { is_open: true }, { merge: true }); alert("공개됨"); };
         document.getElementById('close-btn').onclick = async () => { await setDoc(doc(db, "settings", "matching_status"), { is_open: false }, { merge: true }); alert("차단됨"); };
         document.getElementById('refresh-btn').onclick = updateDashboard;
     </script>
