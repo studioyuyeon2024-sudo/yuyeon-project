@@ -16,7 +16,8 @@
         .bubble { aspect-ratio: 1; border-radius: 50%; background: #F8F9FA; border: 1px solid #E0E0E0; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; transition: 0.2s; }
         .bubble.selected { background: #1A237E !important; color: white !important; font-weight: bold; transform: scale(1.1); }
         
-        .no-match-btn { width: 100%; padding: 15px; border-radius: 12px; background: #F8F9FA; border: 1px solid #E0E0E0; font-size: 14px; color: #666; cursor: pointer; text-align: center; transition: 0.2s; margin-top: 5px; }
+        /* [수정] 박스 삐져나옴 방지 설정 추가 */
+        .no-match-btn { width: 100%; padding: 15px; border-radius: 12px; background: #F8F9FA; border: 1px solid #E0E0E0; font-size: 14px; color: #666; cursor: pointer; text-align: center; transition: 0.2s; margin-top: 5px; box-sizing: border-box; }
         .no-match-btn.active { background: #34495e; color: white; border-color: #34495e; font-weight: bold; }
 
         #status-bar { display: none; background: #FF5252; color: white; padding: 10px; border-radius: 10px; font-size: 13px; font-weight: bold; margin-bottom: 15px; animation: blink 2s infinite; }
@@ -36,7 +37,6 @@
         .msg-wrapper.me .msg { background: #1A237E; color: white; border-bottom-right-radius: 2px; }
         .msg-wrapper.other .msg { background: #FFFFFF; color: #333; border: 1px solid #E5E7EB; border-bottom-left-radius: 2px; }
         
-        /* 약관 디자인 복구 및 최적화  */
         .privacy-row { display: flex; justify-content: space-between; align-items: center; cursor: pointer; margin-bottom: 12px; }
         .privacy-row span { color: #1A237E; font-size: 14px; font-weight: bold; }
         .privacy-row input[type="checkbox"] { width: 22px !important; height: 22px !important; margin: 0 !important; cursor: pointer; }
@@ -79,7 +79,7 @@
                     </label>
                     <div class="privacy-content">
                         <strong>1. 개인정보 수집 항목:</strong> 성명, 성별, 생년월일, 연락처, 매칭 번호, 참여 후기<br><br>
-                        <strong>2. 수집 및 이용 목적:</strong> 매칭 결과 분석, 커플 매칭 안내 및 <strong>스튜디오 유연의 새로운 서비스 소식(이벤트, 기수 모집 등) 안내</strong><br><br>
+                        <strong>2. 수집 및 이용 목적:</strong> 매칭 결과 분석, 커플 매칭 안내 및 <strong>스튜디오 유연의 새로운 서비스 소식 안내</strong><br><br>
                         <strong>3. 보유 및 이용 기간:</strong> <strong>수집일로부터 1년간 보관 후 지체 없이 파기합니다.</strong> (단, 사용자의 요청 시 즉시 파기 가능)<br><br>
                         <strong>4. 동의 거부 권리:</strong> 귀하는 동의를 거부할 권리가 있으나, 거부 시 서비스 참여 및 안내가 불가능합니다.
                     </div>
@@ -135,7 +135,7 @@
         const noMatchBtn = document.getElementById('no-match-btn');
         const chatInput = document.getElementById('chat-input');
         
-        let myId, myGender, currentChatId, chatUnsubscribe, myCreatedAt, currentBatchName = "기본기수";
+        let myId, myGender, currentChatId, chatUnsubscribe, currentBatchName = "기본기수";
         let currentTotalCount = 12, isResultsRevealed = false, takenIds = [];
         const COOKIE_LIMIT = 500;
 
@@ -258,9 +258,8 @@
             if (snap.empty) return alert("현재 기수 등록 정보가 없습니다.");
             const myData = snap.docs[0].data();
             myId = Number(myData.myId); myGender = myData.gender;
-            myCreatedAt = myData.createdAt.toDate(); 
             const opposites = (await getDocs(query(collection(db, "participants"), where("batchName", "==", currentBatchName)))).docs.map(d => d.data()).filter(p => p.gender !== myGender);
-            const matched = opposites.filter(p => (Number(p.pickId1) === myId || Number(p.pickId2) === myId) && [myData.pickId1, myData.pickId2].includes(Number(p.myId)));
+            const matched = opposites.filter(p => (Number(p.pickId1) === myId || Number(p.pickId2) === myId) && [Number(myData.pickId1), Number(myData.pickId2)].includes(Number(p.myId)));
             document.getElementById('result-modal').style.display = 'none';
             document.getElementById('input-section').style.display = 'none';
             document.getElementById('result-section').style.display = 'block';
