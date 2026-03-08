@@ -44,6 +44,15 @@
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:15px; flex-wrap: wrap; gap: 10px;">
             <div id="live-status" style="padding:10px 15px; border-radius:12px; font-weight:bold; font-size:14px;">상태 확인 중...</div>
             <div id="current-batch-display" style="font-weight:bold; color:#1A237E; background:#E3F2FD; padding:10px 15px; border-radius:10px; font-size:14px;">관리 기수: -</div>
+            
+            <div style="background:#f4f4f4; padding:10px 15px; border-radius:12px; font-weight:bold; font-size:14px;">
+                인원: 
+                <select id="set-total-count" style="padding:5px; border-radius:5px; font-weight:bold;">
+                    <option value="6">6명</option><option value="7">7명</option><option value="8">8명</option>
+                    <option value="9">9명</option><option value="10">10명</option><option value="11">11명</option>
+                    <option value="12" selected>12명</option>
+                </select>
+            </div>
         </div>
 
         <div class="bento-grid">
@@ -107,11 +116,19 @@
             location.reload();
         };
 
+        // [추가] 인원 조정 시 Firestore 업데이트 로직
+        document.getElementById('set-total-count').onchange = async (e) => {
+            await setDoc(doc(db, "settings", "matching_status"), { total_count: Number(e.target.value) }, { merge: true });
+        };
+
         function initRealtimeSync() {
             onSnapshot(doc(db, "settings", "matching_status"), (snap) => {
                 if (snap.exists()) {
                     const data = snap.data();
                     totalLimit = data.total_count || 12;
+                    // [추가] 서버 인원수와 드롭다운 동기화
+                    document.getElementById('set-total-count').value = totalLimit;
+                    
                     const tag = document.getElementById('live-status');
                     tag.innerText = data.is_open ? "🔴 결과 공개 중" : "🟢 접수 중";
                     tag.style.background = data.is_open ? "#FF5252" : "#27ae60";
@@ -148,10 +165,9 @@
             document.getElementById('stat-couples').innerText = `${Math.floor(summary.childElementCount)}쌍`;
         }
 
-        // [백업 로직] 목록 유지 버전
         document.getElementById('backup-btn').onclick = async () => {
             if(currentData.length === 0) return alert("백업할 데이터가 없습니다.");
-            if(!confirm(`⚠️ [${staffSelectedBatch}] 데이터를 저장소로 복사하시겠습니까?\n목록은 삭제되지 않고 유지됩니다.`)) return;
+            if(!confirm(`⚠️ [${staffSelectedBatch}] 기수의 실시간 데이터를 저장소(Archive)로 복사하시겠습니까?\n목록은 삭제되지 않고 유지됩니다.`)) return;
             try {
                 const batch = writeBatch(db);
                 currentData.forEach(p => {
@@ -163,7 +179,6 @@
             } catch (e) { alert("백업 오류: " + e.message); }
         };
 
-        // [수정] 결과 공개 확인 알림창 추가
         document.getElementById('open-btn').onclick = async () => { 
             if(confirm("매칭 결과를 공개하시겠습니까?")) {
                 await setDoc(doc(db, "settings", "matching_status"), { is_open: true }, { merge: true }); 
