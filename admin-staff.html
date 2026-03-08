@@ -16,7 +16,8 @@
         .bento-card { background: white; padding: 25px; border-radius: 24px; border: 1px solid #f0f0f0; text-align: left; }
         .main-val { font-size: 32px; font-weight: bold; color: #27ae60; margin: 10px 0; }
         .control-panel { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 25px; }
-        .panel-btn { padding: 18px; border: none; border-radius: 15px; color: white; font-weight: bold; cursor: pointer; font-size: 14px; transition: 0.2s; }
+        .panel-btn { padding: 15px 5px; border: none; border-radius: 15px; color: white; font-weight: bold; cursor: pointer; font-size: 14px; transition: 0.2s; line-height:1.2; white-space: nowrap; }
+        .panel-btn:hover { opacity: 0.8; transform: translateY(-2px); }
         .btn-purple { background: #9b59b6; } .btn-dark { background: #34495e; } .btn-red { background: #e74c3c; } .btn-green { background: #27ae60; grid-column: span 2; }
         .table-wrapper { overflow-x: auto; border-radius: 20px; border: 1px solid #eee; margin-top: 20px; }
         table { width: 100%; border-collapse: collapse; font-size: 12px; }
@@ -68,16 +69,27 @@
             <button id="open-btn" class="panel-btn btn-purple">🔓 결과 공개 (마감)</button>
             <button id="close-btn" class="panel-btn btn-dark">🔒 결과 차단 (재개)</button>
             <button id="backup-btn" class="panel-btn btn-red">⚠️ 종료 후 필수!</button>
+            <button id="delete-selected-btn" class="panel-btn btn-dark" style="background:#e67e22;">🗑️ 선택 항목 삭제</button>
             <button id="refresh-btn" class="panel-btn btn-green">🔄 제출현황 새로고침</button>
         </div>
 
-        <div class="table-wrapper"><table><thead><tr><th>#</th><th>성</th><th>이름</th><th>연락처</th><th>픽</th><th>득표 🔥</th></tr></thead><tbody id="list-body"></tbody></table></div>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="check-all"></th>
+                        <th>#</th><th>성</th><th>이름</th><th>연락처</th><th>픽</th><th>득표 🔥</th>
+                    </tr>
+                </thead>
+                <tbody id="list-body"></tbody>
+            </table>
+        </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-        import { getFirestore, collection, getDocs, doc, setDoc, onSnapshot, query, where, writeBatch } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, onSnapshot, query, where, writeBatch, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         
         const firebaseConfig = { apiKey: "AIzaSyCy0qWrPE_aQGaKjJXIM_vgU8oO5Wq9mOI", authDomain: "my-dating-service.firebaseapp.com", projectId: "my-dating-service", storageBucket: "my-dating-service.firebasestorage.app", messagingSenderId: "231488184905", appId: "1:231488184905:web:d49b3e4f0ef35e524e5598" };
         const app = initializeApp(firebaseConfig);
@@ -116,7 +128,6 @@
             location.reload();
         };
 
-        // [추가] 인원 조정 시 Firestore 업데이트 로직
         document.getElementById('set-total-count').onchange = async (e) => {
             await setDoc(doc(db, "settings", "matching_status"), { total_count: Number(e.target.value) }, { merge: true });
         };
@@ -126,9 +137,7 @@
                 if (snap.exists()) {
                     const data = snap.data();
                     totalLimit = data.total_count || 12;
-                    // [추가] 서버 인원수와 드롭다운 동기화
                     document.getElementById('set-total-count').value = totalLimit;
-                    
                     const tag = document.getElementById('live-status');
                     tag.innerText = data.is_open ? "🔴 결과 공개 중" : "🟢 접수 중";
                     tag.style.background = data.is_open ? "#FF5252" : "#27ae60";
@@ -137,6 +146,33 @@
                 }
             });
         }
+
+        // [신규] 전체 선택 기능 로직
+        document.getElementById('check-all').onchange = (e) => {
+            const checkboxes = document.querySelectorAll('.row-checkbox');
+            checkboxes.forEach(cb => cb.checked = e.target.checked);
+        };
+
+        // [신규] 선택 삭제 실행 로직
+        document.getElementById('delete-selected-btn').onclick = async () => {
+            const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
+            if (checkedBoxes.length === 0) return alert("삭제할 항목을 선택해주세요.");
+            
+            if (!confirm(`선택한 ${checkedBoxes.length}개의 데이터를 삭제하시겠습니까?\n삭제된 번호는 신청자가 다시 제출할 수 있습니다.`)) return;
+            
+            try {
+                const batch = writeBatch(db);
+                checkedBoxes.forEach(cb => {
+                    const docId = cb.getAttribute('data-id');
+                    batch.delete(doc(db, "participants", docId));
+                });
+                await batch.commit();
+                alert("성공적으로 삭제되었습니다.");
+                updateDashboard();
+            } catch (e) {
+                alert("삭제 중 오류 발생: " + e.message);
+            }
+        };
 
         async function updateDashboard() {
             const snap = await getDocs(query(collection(db, "participants"), where("batchName", "==", staffSelectedBatch)));
@@ -148,7 +184,17 @@
             });
             const list = document.getElementById('list-body'); list.innerHTML = "";
             currentData.sort((a,b) => Number(a.myId) - Number(b.myId)).forEach(p => {
-                list.innerHTML += `<tr><td>${p.myId}</td><td>${p.gender=='male'?'남':'여'}</td><td>${p.realName}</td><td>${p.phone}</td><td>${p.pickId1||''}${p.pickId2?', '+p.pickId2:''}</td><td style="color:#FF5252; font-weight:bold;">${voteMap[p.myId]||0}</td></tr>`;
+                // [수정] 행마다 체크박스 추가
+                list.innerHTML += `
+                    <tr>
+                        <td><input type="checkbox" class="row-checkbox" data-id="${p.id}"></td>
+                        <td>${p.myId}</td>
+                        <td>${p.gender=='male'?'남':'여'}</td>
+                        <td>${p.realName}</td>
+                        <td>${p.phone}</td>
+                        <td>${p.pickId1||''}${p.pickId2?', '+p.pickId2:''}</td>
+                        <td style="color:#FF5252; font-weight:bold;">${voteMap[p.myId]||0}</td>
+                    </tr>`;
             });
             const males = currentData.filter(p => p.gender === 'male');
             const females = currentData.filter(p => p.gender === 'female');
@@ -167,7 +213,7 @@
 
         document.getElementById('backup-btn').onclick = async () => {
             if(currentData.length === 0) return alert("백업할 데이터가 없습니다.");
-            if(!confirm(`⚠️ [${staffSelectedBatch}] 기수의 실시간 데이터를 저장소(Archive)로 복사하시겠습니까?\n목록은 삭제되지 않고 유지됩니다.`)) return;
+            if(!confirm(`⚠️ [${staffSelectedBatch}] 데이터를 저장소로 복사하시겠습니까?\n목록은 삭제되지 않고 유지됩니다.`)) return;
             try {
                 const batch = writeBatch(db);
                 currentData.forEach(p => {
