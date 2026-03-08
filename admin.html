@@ -16,7 +16,7 @@
         .card-large { grid-column: span 2; grid-row: span 2; border-top: 5px solid #FF5252; }
         .main-val { font-size: 32px; font-weight: bold; color: #1A237E; margin: 10px 0; }
         .control-panel { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 25px; }
-        .panel-btn { padding: 18px; border: none; border-radius: 15px; color: white; font-weight: bold; cursor: pointer; font-size: 14px; transition: 0.2s; }
+        .panel-btn { padding: 15px 5px; border: none; border-radius: 15px; color: white; font-weight: bold; cursor: pointer; font-size: 14px; transition: 0.2s; line-height:1.2; }
         .panel-btn:hover { opacity: 0.8; transform: translateY(-2px); }
         .btn-purple { background: #9b59b6; } .btn-dark { background: #34495e; } .btn-orange { background: #f39c12; } .btn-red { background: #e74c3c; } .btn-blue { background: #2980b9; grid-column: span 2; } .btn-green { background: #27ae60; grid-column: span 2; }
         .table-wrapper { overflow-x: auto; border-radius: 20px; border: 1px solid #eee; margin-top: 20px; }
@@ -66,7 +66,7 @@
             <button id="close-btn" class="panel-btn btn-dark">🔒 결과 차단 (재개)</button>
             <button id="download-btn" class="panel-btn btn-orange">📥 현재 기수 명단 다운</button>
             <button id="delete-btn" class="panel-btn btn-red">⚠️ 백업 후 기수 초기화</button>
-            <button id="delete-chats-btn" class="panel-btn btn-dark">🍪 쿠키삭제 (기수별 채팅 소거)</button>
+            <button id="delete-chats-btn" class="panel-btn btn-dark">🍪 쿠키삭제<br> (기수별 채팅 소거)</button>
             <button id="archive-download-btn" class="panel-btn btn-blue">🏛️ 아카이브 기록 전체 다운</button>
             <button id="refresh-btn" class="panel-btn btn-green">🔄 제출현황 새로고침</button>
         </div>
