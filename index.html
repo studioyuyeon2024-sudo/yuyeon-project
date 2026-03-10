@@ -395,7 +395,6 @@
             
             const area = document.getElementById('match-list-area');
             
-            // [수정] 나의 번호와 득표수를 함께 표시
             area.innerHTML = `
                 <div style="background:#FFF9E6; padding:20px; border-radius:20px; margin-bottom:20px;">
                     <div style="font-size:14px; color:#666; margin-bottom:5px;">내 번호: <b style="color:#1A237E; font-size:16px;">${genderLabel} ${myId}번</b></div>
@@ -405,9 +404,11 @@
             if (matched.length > 0) {
                 matched.forEach(p => {
                     const chatId = myGender === 'male' ? `${targetBatch}_${myId}_${p.myId}` : `${targetBatch}_${p.myId}_${myId}`;
+                    // [수정] 상대방 성별 라벨을 동적으로 구해서 표시
+                    const partnerGenderLabel = p.gender === 'male' ? '남' : '여';
                     area.innerHTML += `
                         <div style='background:white; border:1px solid #eee; padding:15px; border-radius:15px; margin-bottom:12px;'>
-                            <div style='font-weight:bold; margin-bottom:10px; font-size:16px;'>💖 ${p.myId}번님과 매칭!</div>
+                            <div style='font-weight:bold; margin-bottom:10px; font-size:16px;'>💖 ${partnerGenderLabel} ${p.myId}번님과 매칭!</div>
                             <button onclick="window.enterChat('${chatId}', '${p.myId}')" style="width:100%; padding:15px; background:#1A237E; color:white; border:none; border-radius:10px; cursor:pointer; font-size:16px; font-weight:bold;">1:1 채팅 시작하기</button>
                         </div>`;
                 });
