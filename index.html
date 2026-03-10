@@ -16,7 +16,6 @@
         .bubble { aspect-ratio: 1; border-radius: 50%; background: #F8F9FA; border: 1px solid #E0E0E0; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer; transition: 0.2s; }
         .bubble.selected { background: #1A237E !important; color: white !important; font-weight: bold; transform: scale(1.1); }
         
-        /* [수정] 박스 삐져나옴 방지 설정 추가 */
         .no-match-btn { width: 100%; padding: 15px; border-radius: 12px; background: #F8F9FA; border: 1px solid #E0E0E0; font-size: 14px; color: #666; cursor: pointer; text-align: center; transition: 0.2s; margin-top: 5px; box-sizing: border-box; }
         .no-match-btn.active { background: #34495e; color: white; border-color: #34495e; font-weight: bold; }
 
@@ -44,6 +43,10 @@
         
         .btn-main { width: 100%; padding: 20px; border: none; border-radius: 15px; font-weight: bold; background: #1A237E; color: white; font-size: 16px; cursor: pointer; margin-top: 10px; transition: 0.3s; }
         .btn-main:disabled { background: #ccc; cursor: not-allowed; }
+        
+        /* 기수 선택 버튼 스타일 */
+        .batch-select-btn { width: 100%; padding: 18px; border: 2px solid #1A237E; border-radius: 15px; background: white; color: #1A237E; font-size: 16px; font-weight: bold; margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
+        .batch-select-btn:hover { background: #1A237E; color: white; }
     </style>
 </head>
 <body>
@@ -61,8 +64,11 @@
                     <input type="hidden" id="user-id" required>
                     <label>기본 정보</label>
                     <input type="text" id="user-real-name" placeholder="본명" required>
-                    <input type="tel" id="user-birth" maxlength="10" placeholder="생년월일(1900-00-00)" required>
-                    <input type="tel" id="user-phone" maxlength="13" placeholder="예: 010-0000-0000" required>
+                    <input type="tel" id="user-birth" maxlength="10" placeholder="생년월일 (예: 1990-01-01)" required>
+                    <input type="tel" id="user-phone" maxlength="13" placeholder="연락처 (예: 010-0000-0000)" required>
+                    
+                    <label style="margin-top: 15px; color: #FF5252;">결과 확인용 비밀번호 🔒</label>
+                    <input type="password" id="user-pin" maxlength="4" placeholder="숫자 4자리 입력 (기억해주세요!)" pattern="[0-9]{4}" inputmode="numeric" required style="border-color: #FF5252 !important; background: #FFF5F5 !important;">
                 </div>
                 <div class="card">
                     <label>호감 이성 번호 (최대 2명)</label>
@@ -93,15 +99,24 @@
 
         <div id="result-modal" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; padding: 20px;">
             <div style="background: white; padding: 30px; border-radius: 25px; width: 100%; max-width: 350px; text-align: center;">
-                <h3 style="color: #1A237E; margin-bottom: 10px;">결과 조회</h3>
-                <input type="tel" id="verify-phone" maxlength="13" placeholder="010-0000-0000">
-                <button id="confirm-verify-btn" class="btn-main">결과 보기</button>
-                <p onclick="document.getElementById('result-modal').style.display='none'" style="margin-top: 15px; color: #aaa; cursor: pointer;">닫기</p>
+                <h3 style="color: #1A237E; margin-bottom: 10px;">나의 유연 기록장 📖</h3>
+                <p style="font-size: 13px; color: #666; margin-bottom: 20px;">연락처와 비밀번호를 입력해주세요.</p>
+                <input type="tel" id="verify-phone" maxlength="13" placeholder="연락처 (010-0000-0000)">
+                <input type="password" id="verify-pin" maxlength="4" placeholder="비밀번호 4자리" pattern="[0-9]{4}" inputmode="numeric">
+                <button id="confirm-verify-btn" class="btn-main">내 기록 찾기</button>
+                <p onclick="document.getElementById('result-modal').style.display='none'" style="margin-top: 15px; color: #aaa; cursor: pointer; font-size:14px;">닫기</p>
             </div>
         </div>
 
+        <div id="batch-select-section" style="display:none;">
+            <h2 class="serif-title">나의 유연 기록</h2>
+            <p style="color:#666; font-size:14px; margin-bottom:20px;">최근 3일 이내에 참여한 기수입니다.</p>
+            <div id="batch-list-area"></div>
+            <button onclick="location.reload()" style="width:100%; padding:15px; border:none; background:#eee; border-radius:12px; margin-top:20px;">처음으로</button>
+        </div>
+
         <div id="result-section" style="display:none;">
-            <h2 class="serif-title">매칭 결과</h2>
+            <h2 class="serif-title" id="result-title">매칭 결과</h2>
             <div id="match-list-area"></div>
             <button onclick="location.reload()" style="width:100%; padding:15px; border:none; background:#eee; border-radius:12px; margin-top:20px;">처음으로</button>
         </div>
@@ -131,6 +146,7 @@
         const genderSelect = document.getElementById('user-gender');
         const phoneInput = document.getElementById('user-phone');
         const verifyPhoneInput = document.getElementById('verify-phone');
+        const verifyPinInput = document.getElementById('verify-pin');
         const withdrawBtn = document.getElementById('withdraw-btn');
         const noMatchBtn = document.getElementById('no-match-btn');
         const chatInput = document.getElementById('chat-input');
@@ -165,7 +181,14 @@
                 currentTotalCount = data.total_count || 12;
                 isResultsRevealed = data.is_open;
                 currentBatchName = data.batch_name || "기본기수";
-                document.getElementById('status-bar').style.display = (isResultsRevealed && document.getElementById('result-section').style.display === 'none') ? 'block' : 'none';
+                
+                // 결과 보기 창이 안 떠있을 때만 상단 바 표시
+                if (document.getElementById('result-section').style.display === 'none' && 
+                    document.getElementById('chat-section').style.display === 'none' &&
+                    document.getElementById('batch-select-section').style.display === 'none') {
+                    document.getElementById('status-bar').style.display = isResultsRevealed ? 'block' : 'none';
+                }
+                
                 document.getElementById('submit-btn').innerText = isResultsRevealed ? "접수 마감됨" : "정보 제출하기";
                 document.getElementById('submit-btn').disabled = isResultsRevealed;
                 if (isResultsRevealed) withdrawBtn.style.display = 'none';
@@ -186,6 +209,7 @@
             const q = query(collection(db, "participants"), where("batchName", "==", currentBatchName), where("phone", "==", phoneInput.value));
             const snap = await getDocs(q);
             await Promise.all(snap.docs.map(d => deleteDoc(doc(db, "participants", d.id))));
+            alert("회수되었습니다. 올바른 정보로 다시 제출해주세요.");
             location.reload();
         };
 
@@ -229,8 +253,13 @@
             e.preventDefault();
             if (isResultsRevealed) return alert("이미 마감되었습니다.");
             if (!document.getElementById('privacy-check').checked) return alert("개인정보 동의가 필요합니다.");
+            
             const myNum = Number(document.getElementById('user-id').value);
             if(!myNum) return alert("본인 번호를 선택하세요.");
+            
+            const pin = document.getElementById('user-pin').value;
+            if(pin.length !== 4) return alert("비밀번호 4자리를 입력해주세요.");
+
             const picks = Array.from(document.querySelectorAll('#pick-id-grid .bubble.selected')).map(b => Number(b.innerText));
             if (picks.length === 0 && !noMatchBtn.classList.contains('active')) return alert("번호를 선택하거나 '인연 없음'을 눌러주세요.");
 
@@ -240,10 +269,18 @@
             if (!snapId.empty) return alert("⚠️ 이미 제출된 번호입니다.");
             
             await addDoc(collection(db, "participants"), {
-                batchName: currentBatchName, gender, myId: myNum, realName: document.getElementById('user-real-name').value,
-                birth: document.getElementById('user-birth').value, phone: phoneInput.value, createdAt: serverTimestamp(), pickId1: picks[0] || null, pickId2: picks[1] || null
+                batchName: currentBatchName, 
+                gender, 
+                myId: myNum, 
+                realName: document.getElementById('user-real-name').value,
+                birth: document.getElementById('user-birth').value, 
+                phone: phoneInput.value, 
+                pin: pin, // [신규] 비밀번호 저장
+                createdAt: serverTimestamp(), 
+                pickId1: picks[0] || null, 
+                pickId2: picks[1] || null
             });
-            alert("제출 완료!"); location.reload();
+            alert("제출 완료! 결과를 확인할 때 설정하신 비밀번호가 필요합니다."); location.reload();
         };
 
         document.getElementById('check-result-btn').onclick = () => {
@@ -252,26 +289,100 @@
             verifyPhoneInput.value = "010-"; verifyPhoneInput.focus();
         };
 
+        // [핵심 변경] 로그인 및 기수 추적 로직
         document.getElementById('confirm-verify-btn').onclick = async () => {
             const phone = verifyPhoneInput.value;
-            const snap = await getDocs(query(collection(db, "participants"), where("batchName", "==", currentBatchName), where("phone", "==", phone)));
-            if (snap.empty) return alert("현재 기수 등록 정보가 없습니다.");
-            const myData = snap.docs[0].data();
-            myId = Number(myData.myId); myGender = myData.gender;
-            const opposites = (await getDocs(query(collection(db, "participants"), where("batchName", "==", currentBatchName)))).docs.map(d => d.data()).filter(p => p.gender !== myGender);
-            const matched = opposites.filter(p => (Number(p.pickId1) === myId || Number(p.pickId2) === myId) && [Number(myData.pickId1), Number(myData.pickId2)].includes(Number(p.myId)));
+            const pin = verifyPinInput.value;
+            
+            if(!phone || pin.length !== 4) return alert("연락처와 비밀번호 4자리를 정확히 입력해주세요.");
+
+            // 연락처와 비밀번호가 일치하는 모든 데이터 검색 (기수 무관)
+            const q = query(collection(db, "participants"), where("phone", "==", phone), where("pin", "==", pin));
+            const snap = await getDocs(q);
+            
+            if (snap.empty) {
+                // 혹시 번호만 맞고 비번이 틀린건지 확인 (친절한 에러 메시지)
+                const phoneCheck = await getDocs(query(collection(db, "participants"), where("phone", "==", phone)));
+                if(!phoneCheck.empty) return alert("비밀번호가 틀렸습니다.");
+                return alert("제출된 정보가 없습니다.");
+            }
+
+            // 72시간(3일) 이내의 유효한 데이터만 필터링
+            const now = new Date();
+            const threeDaysInMs = 3 * 24 * 60 * 60 * 1000;
+            const validRecords = [];
+
+            snap.forEach(doc => {
+                const data = doc.data();
+                const createdAt = data.createdAt.toDate();
+                if ((now - createdAt) <= threeDaysInMs) {
+                    validRecords.push(data);
+                }
+            });
+
+            if (validRecords.length === 0) {
+                return alert("최근 3일 이내에 참여한 기록이 없습니다.\n(대화창은 3일 후 자동 소멸됩니다.)");
+            }
+
             document.getElementById('result-modal').style.display = 'none';
             document.getElementById('input-section').style.display = 'none';
+            document.getElementById('status-bar').style.display = 'none';
+
+            // 1. 유효한 기록이 여러 개면 기수 선택 화면 표시
+            if (validRecords.length > 1) {
+                document.getElementById('batch-select-section').style.display = 'block';
+                const listArea = document.getElementById('batch-list-area');
+                listArea.innerHTML = "";
+                
+                // 최신순으로 정렬하여 표시
+                validRecords.sort((a, b) => b.createdAt.toDate() - a.createdAt.toDate()).forEach(record => {
+                    const btn = document.createElement('button');
+                    btn.className = 'batch-select-btn';
+                    const dateStr = record.createdAt.toDate().toLocaleDateString('ko-KR', {month: 'long', day: 'numeric'});
+                    btn.innerHTML = `${record.batchName} <span style="font-size:12px; color:#888; font-weight:normal;">(${dateStr})</span>`;
+                    btn.onclick = () => showResult(record);
+                    listArea.appendChild(btn);
+                });
+            } 
+            // 2. 유효한 기록이 한 개면 바로 결과창 표시
+            else {
+                showResult(validRecords[0]);
+            }
+        };
+
+        // 결과창 그리기 함수
+        async function showResult(myData) {
+            document.getElementById('batch-select-section').style.display = 'none';
             document.getElementById('result-section').style.display = 'block';
+            
+            const targetBatch = myData.batchName;
+            myId = Number(myData.myId); 
+            myGender = myData.gender;
+            
+            document.getElementById('result-title').innerText = `[${targetBatch}] 매칭 결과`;
+
+            // 해당 기수의 이성 데이터만 가져오기
+            const opposites = (await getDocs(query(collection(db, "participants"), where("batchName", "==", targetBatch)))).docs.map(d => d.data()).filter(p => p.gender !== myGender);
+            
+            // 매칭 계산
+            const matched = opposites.filter(p => (Number(p.pickId1) === myId || Number(p.pickId2) === myId) && [Number(myData.pickId1), Number(myData.pickId2)].includes(Number(p.myId)));
+            
             const area = document.getElementById('match-list-area');
             area.innerHTML = `<div style="background:#FFF9E6; padding:20px; border-radius:20px; margin-bottom:20px;">나의 득표수: <b>${opposites.filter(p => Number(p.pickId1) === myId || Number(p.pickId2) === myId).length}표</b></div>`;
+            
             if (matched.length > 0) {
                 matched.forEach(p => {
-                    const chatId = myGender === 'male' ? `${currentBatchName}_${myId}_${p.myId}` : `${currentBatchName}_${p.myId}_${myId}`;
-                    area.innerHTML += `<div style='background:white; border:1px solid #eee; padding:15px; border-radius:15px; margin-bottom:12px;'><div style='font-weight:bold; margin-bottom:10px;'>💖 ${p.myId}번님과 매칭!</div><button onclick="window.enterChat('${chatId}', '${p.myId}')" style="width:100%; padding:12px; background:#1A237E; color:white; border:none; border-radius:10px; cursor:pointer;">1:1 채팅 시작하기</button></div>`;
+                    const chatId = myGender === 'male' ? `${targetBatch}_${myId}_${p.myId}` : `${targetBatch}_${p.myId}_${myId}`;
+                    area.innerHTML += `
+                        <div style='background:white; border:1px solid #eee; padding:15px; border-radius:15px; margin-bottom:12px;'>
+                            <div style='font-weight:bold; margin-bottom:10px;'>💖 ${p.myId}번님과 매칭!</div>
+                            <button onclick="window.enterChat('${chatId}', '${p.myId}')" style="width:100%; padding:12px; background:#1A237E; color:white; border:none; border-radius:10px; cursor:pointer;">1:1 채팅 시작하기</button>
+                        </div>`;
                 });
-            } else area.innerHTML += `<div style='background:#f4f4f4; padding:25px 20px; border-radius:15px; color:#666;'>매칭된 인연이 없습니다 :)</div>`;
-        };
+            } else {
+                area.innerHTML += `<div style='background:#f4f4f4; padding:25px 20px; border-radius:15px; color:#666;'>매칭된 인연이 없습니다 :)</div>`;
+            }
+        }
 
         window.enterChat = (chatId, otherId) => {
             const myUniqueId = `${myGender}_${myId}`;
@@ -279,6 +390,7 @@
             document.getElementById('result-section').style.display = 'none';
             document.getElementById('chat-section').style.display = 'block';
             if (chatUnsubscribe) chatUnsubscribe();
+            
             const q = query(collection(db, "chats", chatId, "messages"), orderBy("createdAt", "asc"));
             chatUnsubscribe = onSnapshot(q, (snap) => {
                 const chatBox = document.getElementById('chat-box');
