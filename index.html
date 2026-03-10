@@ -51,10 +51,23 @@
 </head>
 <body>
     <div class="container">
-        <h1 class="serif-title">Studio Yuyeon</h1>
-        <div id="status-bar">📢 매칭 결과가 공개되었습니다! 결과를 확인하세요.</div>
         
-        <div id="input-section">
+        <div id="landing-section">
+            <h1 class="serif-title" style="margin-top: 30px;">Studio Yuyeon</h1>
+            <p style="color:#666; font-size: 14px; margin-bottom: 40px;">2030 직장인 연애의 새로운 기준</p>
+
+            <button type="button" class="btn-main" id="go-to-past-btn" style="background:white; color:#1A237E; border:2px solid #1A237E; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(26, 35, 126, 0.1);">👉 지난 기수 매칭 결과 확인</button>
+            <button type="button" class="btn-main" id="go-to-submit-btn">📝 호감 선택하기 (로딩중)</button>
+        </div>
+        
+        <div id="input-section" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+                <button type="button" onclick="location.reload()" style="background:none; border:none; color:#888; font-size:14px; cursor:pointer;">← 뒤로</button>
+                <h1 class="serif-title" style="margin:0; font-size:24px;">Studio Yuyeon</h1>
+                <div style="width: 40px;"></div> </div>
+
+            <div id="status-bar">📢 매칭 결과가 공개되었습니다! 결과를 확인하세요.</div>
+
             <form id="matching-form">
                 <div class="card">
                     <label>성별</label>
@@ -93,7 +106,6 @@
 
                 <button type="submit" class="btn-main" id="submit-btn">정보 제출하기</button>
                 <button type="button" id="withdraw-btn" style="width:100%; padding:15px; border:none; border-radius:15px; background:#e74c3c; color:white; font-size:14px; margin-top:10px; display:none;">⚠️ 내 정보 회수하고 다시 쓰기</button>
-                <button type="button" class="btn-main" id="check-result-btn" style="background:white; color:#1A237E; border:1.5px solid #1A237E;">결과 확인하기</button>
             </form>
         </div>
 
@@ -182,19 +194,38 @@
                 isResultsRevealed = data.is_open;
                 currentBatchName = data.batch_name || "기본기수";
                 
-                // 결과 보기 창이 안 떠있을 때만 상단 바 표시
+                // 결과 보기 창이 안 떠있을 때만 폼 내부 상단 바 표시
                 if (document.getElementById('result-section').style.display === 'none' && 
                     document.getElementById('chat-section').style.display === 'none' &&
-                    document.getElementById('batch-select-section').style.display === 'none') {
+                    document.getElementById('batch-select-section').style.display === 'none' &&
+                    document.getElementById('landing-section').style.display === 'none') {
                     document.getElementById('status-bar').style.display = isResultsRevealed ? 'block' : 'none';
                 }
+
+                // [신규] 랜딩 페이지 호감 선택 버튼 동적 이름 변경
+                const goToSubmitBtn = document.getElementById('go-to-submit-btn');
+                goToSubmitBtn.innerText = isResultsRevealed ? "현재 기수 접수 마감" : `📝 [${currentBatchName}] 호감 선택하기`;
+                goToSubmitBtn.disabled = isResultsRevealed;
                 
-                document.getElementById('submit-btn').innerText = isResultsRevealed ? "접수 마감됨" : "정보 제출하기";
+                document.getElementById('submit-btn').innerText = isResultsRevealed ? "접수 마감됨" : `[${currentBatchName}] 현장 정보 제출하기`;
                 document.getElementById('submit-btn').disabled = isResultsRevealed;
                 if (isResultsRevealed) withdrawBtn.style.display = 'none';
                 updateTakenIds();
             }
         });
+
+        // [신규] 랜딩 페이지에서 제출 폼으로 넘어가는 버튼 로직
+        document.getElementById('go-to-submit-btn').onclick = () => {
+            document.getElementById('landing-section').style.display = 'none';
+            document.getElementById('input-section').style.display = 'block';
+            document.getElementById('status-bar').style.display = isResultsRevealed ? 'block' : 'none';
+        };
+
+        // [신규] 랜딩 페이지에서 과거 결과 확인 모달 띄우는 로직
+        document.getElementById('go-to-past-btn').onclick = () => {
+            document.getElementById('result-modal').style.display = 'flex';
+            verifyPhoneInput.value = "010-"; verifyPhoneInput.focus();
+        };
 
         phoneInput.addEventListener('blur', async (e) => {
             if (e.target.value.length === 13 && !isResultsRevealed) {
@@ -263,17 +294,17 @@
             const picks = Array.from(document.querySelectorAll('#pick-id-grid .bubble.selected')).map(b => Number(b.innerText));
             if (picks.length === 0 && !noMatchBtn.classList.contains('active')) return alert("번호를 선택하거나 '인연 없음'을 눌러주세요.");
 
-const gender = genderSelect.value;
+            const gender = genderSelect.value;
         
-        // 1. 번호 중복 체크 (기존)
-        const qId = query(collection(db, "participants"), where("batchName", "==", currentBatchName), where("gender", "==", gender), where("myId", "==", myNum));
-        const snapId = await getDocs(qId);
-        if (!snapId.empty) return alert("⚠️ 이미 누군가 선택한 본인 번호입니다.");
+            // 1. 번호 중복 체크 
+            const qId = query(collection(db, "participants"), where("batchName", "==", currentBatchName), where("gender", "==", gender), where("myId", "==", myNum));
+            const snapId = await getDocs(qId);
+            if (!snapId.empty) return alert("⚠️ 이미 누군가 선택한 본인 번호입니다.");
 
-        // 2. [신규 추가] 연락처 중복 체크
-        const qPhone = query(collection(db, "participants"), where("batchName", "==", currentBatchName), where("phone", "==", phoneInput.value));
-        const snapPhone = await getDocs(qPhone);
-        if (!snapPhone.empty) return alert("⚠️ 이 연락처로 이미 제출된 내역이 있습니다. 다시 제출하려면 [내 정보 회수]를 먼저 진행해주세요.");
+            // 2. 연락처 중복 체크
+            const qPhone = query(collection(db, "participants"), where("batchName", "==", currentBatchName), where("phone", "==", phoneInput.value));
+            const snapPhone = await getDocs(qPhone);
+            if (!snapPhone.empty) return alert("⚠️ 이 연락처로 이미 제출된 내역이 있습니다. 다시 제출하려면 [내 정보 회수]를 먼저 진행해주세요.");
             
             await addDoc(collection(db, "participants"), {
                 batchName: currentBatchName, 
@@ -282,7 +313,7 @@ const gender = genderSelect.value;
                 realName: document.getElementById('user-real-name').value,
                 birth: document.getElementById('user-birth').value, 
                 phone: phoneInput.value, 
-                pin: pin, // [신규] 비밀번호 저장
+                pin: pin,
                 createdAt: serverTimestamp(), 
                 pickId1: picks[0] || null, 
                 pickId2: picks[1] || null
@@ -290,58 +321,56 @@ const gender = genderSelect.value;
             alert("제출 완료! 결과를 확인할 때 설정하신 비밀번호가 필요합니다."); location.reload();
         };
 
-        document.getElementById('check-result-btn').onclick = () => {
-            if (!isResultsRevealed) return alert("결과 공개 전입니다!");
-            document.getElementById('result-modal').style.display = 'flex';
-            verifyPhoneInput.value = "010-"; verifyPhoneInput.focus();
-        };
-
-        // [핵심 변경] 로그인 및 기수 추적 로직
+        // 로그인 및 기수 추적 로직
         document.getElementById('confirm-verify-btn').onclick = async () => {
             const phone = verifyPhoneInput.value;
             const pin = verifyPinInput.value;
             
             if(!phone || pin.length !== 4) return alert("연락처와 비밀번호 4자리를 정확히 입력해주세요.");
 
-            // 연락처와 비밀번호가 일치하는 모든 데이터 검색 (기수 무관)
             const q = query(collection(db, "participants"), where("phone", "==", phone), where("pin", "==", pin));
             const snap = await getDocs(q);
             
             if (snap.empty) {
-                // 혹시 번호만 맞고 비번이 틀린건지 확인 (친절한 에러 메시지)
                 const phoneCheck = await getDocs(query(collection(db, "participants"), where("phone", "==", phone)));
                 if(!phoneCheck.empty) return alert("비밀번호가 틀렸습니다.");
                 return alert("제출된 정보가 없습니다.");
             }
 
-            // 72시간(3일) 이내의 유효한 데이터만 필터링
             const now = new Date();
             const threeDaysInMs = 3 * 24 * 60 * 60 * 1000;
             const validRecords = [];
+            let isCurrentBatchPending = false; 
 
             snap.forEach(doc => {
                 const data = doc.data();
                 const createdAt = data.createdAt.toDate();
                 if ((now - createdAt) <= threeDaysInMs) {
-                    validRecords.push(data);
+                    if (data.batchName === currentBatchName && !isResultsRevealed) {
+                        isCurrentBatchPending = true;
+                    } else {
+                        validRecords.push(data);
+                    }
                 }
             });
 
             if (validRecords.length === 0) {
-                return alert("최근 3일 이내에 참여한 기록이 없습니다.\n(대화창은 3일 후 자동 소멸됩니다.)");
+                if (isCurrentBatchPending) {
+                    return alert(`현재 참여하신 [${currentBatchName}]의 매칭 결과가 아직 공개되지 않았습니다.\n진행자의 안내를 기다려주세요!`);
+                }
+                return alert("최근 3일 이내에 열람 가능한 매칭 기록이 없습니다.\n(대화창은 3일 후 자동 소멸됩니다.)");
             }
 
             document.getElementById('result-modal').style.display = 'none';
+            document.getElementById('landing-section').style.display = 'none'; // 랜딩 화면 숨기기
             document.getElementById('input-section').style.display = 'none';
             document.getElementById('status-bar').style.display = 'none';
 
-            // 1. 유효한 기록이 여러 개면 기수 선택 화면 표시
             if (validRecords.length > 1) {
                 document.getElementById('batch-select-section').style.display = 'block';
                 const listArea = document.getElementById('batch-list-area');
                 listArea.innerHTML = "";
                 
-                // 최신순으로 정렬하여 표시
                 validRecords.sort((a, b) => b.createdAt.toDate() - a.createdAt.toDate()).forEach(record => {
                     const btn = document.createElement('button');
                     btn.className = 'batch-select-btn';
@@ -351,13 +380,11 @@ const gender = genderSelect.value;
                     listArea.appendChild(btn);
                 });
             } 
-            // 2. 유효한 기록이 한 개면 바로 결과창 표시
             else {
                 showResult(validRecords[0]);
             }
         };
 
-        // 결과창 그리기 함수
         async function showResult(myData) {
             document.getElementById('batch-select-section').style.display = 'none';
             document.getElementById('result-section').style.display = 'block';
@@ -368,10 +395,7 @@ const gender = genderSelect.value;
             
             document.getElementById('result-title').innerText = `[${targetBatch}] 매칭 결과`;
 
-            // 해당 기수의 이성 데이터만 가져오기
             const opposites = (await getDocs(query(collection(db, "participants"), where("batchName", "==", targetBatch)))).docs.map(d => d.data()).filter(p => p.gender !== myGender);
-            
-            // 매칭 계산
             const matched = opposites.filter(p => (Number(p.pickId1) === myId || Number(p.pickId2) === myId) && [Number(myData.pickId1), Number(myData.pickId2)].includes(Number(p.myId)));
             
             const area = document.getElementById('match-list-area');
