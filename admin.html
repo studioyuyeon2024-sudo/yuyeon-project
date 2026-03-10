@@ -223,7 +223,7 @@
             document.getElementById('stat-gender').innerText = `${males.length}/${females.length}`;
         }
 
-        const verifyPW = () => prompt("보안 비밀번호(2024)를 입력하세요.") === SEC_PW;
+        const verifyPW = () => prompt("보안 비밀번호를 입력하세요.") === SEC_PW;
 
         document.getElementById('download-btn').onclick = () => {
             if(!verifyPW()) return;
