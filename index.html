@@ -23,9 +23,11 @@
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
         
         #chat-section { display: none; text-align: left; }
-        .chat-info-bar { background: #F0F4FF; padding: 15px; border-radius: 20px; margin-bottom: 15px; display: flex; flex-direction: column; align-items: center; gap: 6px; border: 1px solid #D1D9FF; }
+        .chat-info-bar { background: #F0F4FF; padding: 15px; border-radius: 20px; margin-bottom: 15px; display: flex; flex-direction: column; align-items: center; gap: 8px; border: 1px solid #D1D9FF; }
         .cookie-badge { background: #1A237E; color: white; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; }
-        .time-badge { color: #FF5252; font-size: 11px; font-weight: 600; }
+        
+        /* [수정] 안내 문구 디자인 최적화 (가운데 정렬, 줄간격 등) */
+        .time-badge { color: #FF5252; font-size: 11px; font-weight: 600; text-align: center; line-height: 1.4; word-break: keep-all; }
         
         #chat-box { height: 450px; overflow-y: auto; border: 1px solid #eee; padding: 15px; border-radius: 20px; background: #f9f9fb; margin-bottom: 15px; display: flex; flex-direction: column; gap: 20px; }
         .msg-wrapper { display: flex; flex-direction: column; gap: 4px; max-width: 82%; }
@@ -44,7 +46,6 @@
         .btn-main { width: 100%; padding: 20px; border: none; border-radius: 15px; font-weight: bold; background: #1A237E; color: white; font-size: 16px; cursor: pointer; margin-top: 10px; transition: 0.3s; }
         .btn-main:disabled { background: #ccc; cursor: not-allowed; }
         
-        /* 기수 선택 버튼 스타일 */
         .batch-select-btn { width: 100%; padding: 18px; border: 2px solid #1A237E; border-radius: 15px; background: white; color: #1A237E; font-size: 16px; font-weight: bold; margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
         .batch-select-btn:hover { background: #1A237E; color: white; }
     </style>
@@ -136,15 +137,15 @@
 
         <div id="chat-section">
             <div class="chat-info-bar">
-                <div class="cookie-badge" id="cookie-display">🍪 쿠키 잔량: 500개</div>
-                <div class="time-badge">⌛ 3일이 경과하면 대화창이 종료됩니다 :)</div>
+                <div class="cookie-badge" id="cookie-display">🍪 쿠키 잔량: 300개</div>
+                <div class="time-badge">쿠키를 모두 사용하시거나<br>3일이 경과하면 대화창이 종료됩니다 :)</div>
             </div>
             <div id="chat-box"></div>
             <div style="display:flex; gap:10px;">
                 <input type="text" id="chat-input" placeholder="메시지를 입력하세요..." style="margin-bottom:0;">
                 <button id="send-msg-btn" style="padding:15px; background:#1A237E; color:white; border:none; border-radius:12px; white-space:nowrap; font-weight:bold;">전송</button>
             </div>
-            <button onclick="window.exitChat()" style="width:100%; padding:15px; border:none; background:#f4f4f4; border-radius:10px; margin-top:15px; font-size:15px; font-weight:bold; color:#1a237e; cursor:pointer;">← 매칭 명단으로 돌아가기</button>
+            <button onclick="window.exitChat()" style="width:100%; padding:15px; border:none; background:#f4f4f4; border-radius:10px; margin-top:15px; font-size:14px; font-weight:bold; color:#666; cursor:pointer;">← 매칭 명단으로 돌아가기</button>
         </div>
     </div>
 
@@ -166,7 +167,10 @@
         
         let myId, myGender, currentChatId, chatUnsubscribe, currentBatchName = "기본기수";
         let currentTotalCount = 12, isResultsRevealed = false, takenIds = [];
-        const COOKIE_LIMIT = 500;
+        
+        // [수정] 기본 쿠키 제한량을 300으로 변경
+        const COOKIE_LIMIT = 300;
+        let hasWarnedCookie = false; // [신규] 경고창이 한 번만 뜨게 제어하는 변수
 
         phoneInput.value = "010-";
 
@@ -404,7 +408,6 @@
             if (matched.length > 0) {
                 matched.forEach(p => {
                     const chatId = myGender === 'male' ? `${targetBatch}_${myId}_${p.myId}` : `${targetBatch}_${p.myId}_${myId}`;
-                    // [수정] 상대방 성별 라벨을 동적으로 구해서 표시
                     const partnerGenderLabel = p.gender === 'male' ? '남' : '여';
                     area.innerHTML += `
                         <div style='background:white; border:1px solid #eee; padding:15px; border-radius:15px; margin-bottom:12px;'>
@@ -422,6 +425,10 @@
             currentChatId = chatId;
             document.getElementById('result-section').style.display = 'none';
             document.getElementById('chat-section').style.display = 'block';
+            
+            // [신규] 채팅방 들어갈 때마다 경고창 초기화 (다시 20개 이하가 되면 알려주기 위해)
+            hasWarnedCookie = false; 
+
             if (chatUnsubscribe) chatUnsubscribe();
             
             const q = query(collection(db, "chats", chatId, "messages"), orderBy("createdAt", "asc"));
@@ -446,7 +453,23 @@
                     wrapper.appendChild(label); wrapper.appendChild(msgDiv);
                     chatBox.appendChild(wrapper);
                 });
-                document.getElementById('cookie-display').innerText = `🍪 쿠키 잔량: ${COOKIE_LIMIT - myMsgCount}개`;
+                
+                const remainingCookies = COOKIE_LIMIT - myMsgCount;
+                document.getElementById('cookie-display').innerText = `🍪 쿠키 잔량: ${remainingCookies}개`;
+                
+                // [신규] 쿠키가 정확히 20개 이하로 남았을 때 한 번만 경고창 띄우기
+                if (remainingCookies <= 20 && remainingCookies > 0 && !hasWarnedCookie) {
+                    alert("🍪 쿠키가 얼마 남지 않았어요!\n\n대화를 계속 이어나가시려면 카카오톡 / 인스타그램 ID 또는 핸드폰 번호를 교환해 보세요 :)");
+                    hasWarnedCookie = true; // 경고창 띄웠다고 표시
+                }
+
+                // 쿠키가 0개가 되면 전송 막기 (원래 있던 로직을 더 명확하게)
+                if (remainingCookies <= 0) {
+                    document.getElementById('chat-input').placeholder = "쿠키를 모두 소진하였습니다.";
+                    document.getElementById('chat-input').disabled = true;
+                    document.getElementById('send-msg-btn').disabled = true;
+                }
+
                 chatBox.scrollTop = chatBox.scrollHeight;
             });
         };
