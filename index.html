@@ -25,8 +25,6 @@
         #chat-section { display: none; text-align: left; }
         .chat-info-bar { background: #F0F4FF; padding: 15px; border-radius: 20px; margin-bottom: 15px; display: flex; flex-direction: column; align-items: center; gap: 8px; border: 1px solid #D1D9FF; }
         .cookie-badge { background: #1A237E; color: white; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; }
-        
-        /* [수정] 안내 문구 디자인 최적화 (가운데 정렬, 줄간격 등) */
         .time-badge { color: #FF5252; font-size: 14px; font-weight: 600; text-align: center; line-height: 1.5; word-break: keep-all; }
         
         #chat-box { height: 450px; overflow-y: auto; border: 1px solid #eee; padding: 15px; border-radius: 20px; background: #f9f9fb; margin-bottom: 15px; display: flex; flex-direction: column; gap: 20px; }
@@ -46,6 +44,7 @@
         .btn-main { width: 100%; padding: 20px; border: none; border-radius: 15px; font-weight: bold; background: #1A237E; color: white; font-size: 16px; cursor: pointer; margin-top: 10px; transition: 0.3s; }
         .btn-main:disabled { background: #ccc; cursor: not-allowed; }
         
+        /* 기수 선택 버튼 스타일 */
         .batch-select-btn { width: 100%; padding: 18px; border: 2px solid #1A237E; border-radius: 15px; background: white; color: #1A237E; font-size: 16px; font-weight: bold; margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
         .batch-select-btn:hover { background: #1A237E; color: white; }
     </style>
@@ -168,9 +167,8 @@
         let myId, myGender, currentChatId, chatUnsubscribe, currentBatchName = "기본기수";
         let currentTotalCount = 12, isResultsRevealed = false, takenIds = [];
         
-        // [수정] 기본 쿠키 제한량을 300으로 변경
         const COOKIE_LIMIT = 300;
-        let hasWarnedCookie = false; // [신규] 경고창이 한 번만 뜨게 제어하는 변수
+        let hasWarnedCookie = false; 
 
         phoneInput.value = "010-";
 
@@ -416,7 +414,14 @@
                         </div>`;
                 });
             } else {
-                area.innerHTML += `<div style='background:#f4f4f4; padding:25px 20px; border-radius:15px; color:#666;'>매칭된 인연이 없습니다 :)</div>`;
+                // [수정] 매칭 실패 시 문구 변경 및 다음 일정 확인 버튼 추가
+                area.innerHTML += `
+                    <div style='background:#f4f4f4; padding:30px 20px; border-radius:15px; color:#555; text-align:center; margin-bottom:15px;'>
+                        <span style="font-size: 16px; font-weight: bold;">이번 기수에서는 인연이 안계셨어요 ❄️</span><br>
+                        <span style="font-size: 14px; color: #888; display:block; margin-top: 5px;">다음번에 더 좋은 인연으로 뵐게요</span>
+                    </div>
+                    <button onclick="window.open('https://litt.ly/studioyuyeon', '_blank')" style="width:100%; padding:18px; background:#fff; color:#1A237E; border:2px solid #1A237E; border-radius:12px; cursor:pointer; font-size:16px; font-weight:bold;">📅 유연 다음 일정 확인하기</button>
+                `;
             }
         }
 
@@ -426,7 +431,6 @@
             document.getElementById('result-section').style.display = 'none';
             document.getElementById('chat-section').style.display = 'block';
             
-            // [신규] 채팅방 들어갈 때마다 경고창 초기화 (다시 20개 이하가 되면 알려주기 위해)
             hasWarnedCookie = false; 
 
             if (chatUnsubscribe) chatUnsubscribe();
@@ -457,13 +461,11 @@
                 const remainingCookies = COOKIE_LIMIT - myMsgCount;
                 document.getElementById('cookie-display').innerText = `🍪 쿠키 잔량: ${remainingCookies}개`;
                 
-                // [신규] 쿠키가 정확히 20개 이하로 남았을 때 한 번만 경고창 띄우기
                 if (remainingCookies <= 20 && remainingCookies > 0 && !hasWarnedCookie) {
                     alert("🍪 쿠키가 얼마 남지 않았어요!\n\n대화를 계속 이어나가시려면 카카오톡 / 인스타그램 ID 또는 핸드폰 번호를 교환해 보세요 :)");
-                    hasWarnedCookie = true; // 경고창 띄웠다고 표시
+                    hasWarnedCookie = true; 
                 }
 
-                // 쿠키가 0개가 되면 전송 막기 (원래 있던 로직을 더 명확하게)
                 if (remainingCookies <= 0) {
                     document.getElementById('chat-input').placeholder = "쿠키를 모두 소진하였습니다.";
                     document.getElementById('chat-input').disabled = true;
