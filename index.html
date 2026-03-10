@@ -64,7 +64,8 @@
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
                 <button type="button" onclick="location.reload()" style="background:none; border:none; color:#888; font-size:14px; cursor:pointer;">← 뒤로</button>
                 <h1 class="serif-title" style="margin:0; font-size:24px;">Studio Yuyeon</h1>
-                <div style="width: 40px;"></div> </div>
+                <div style="width: 40px;"></div> 
+            </div>
 
             <div id="status-bar">📢 매칭 결과가 공개되었습니다! 결과를 확인하세요.</div>
 
@@ -124,13 +125,13 @@
             <h2 class="serif-title">나의 유연 기록</h2>
             <p style="color:#666; font-size:14px; margin-bottom:20px;">최근 3일 이내에 참여한 기수입니다.</p>
             <div id="batch-list-area"></div>
-            <button onclick="location.reload()" style="width:100%; padding:15px; border:none; background:#eee; border-radius:12px; margin-top:20px;">처음으로</button>
+            <button onclick="location.reload()" style="width:100%; padding:15px; border:none; background:#eee; border-radius:12px; margin-top:20px; font-size:16px; font-weight:bold; color:#333; cursor:pointer;">처음으로 돌아가기</button>
         </div>
 
         <div id="result-section" style="display:none;">
             <h2 class="serif-title" id="result-title">매칭 결과</h2>
             <div id="match-list-area"></div>
-            <button onclick="location.reload()" style="width:100%; padding:15px; border:none; background:#eee; border-radius:12px; margin-top:20px;">처음으로</button>
+            <button onclick="location.reload()" style="width:100%; padding:15px; border:none; background:#eee; border-radius:12px; margin-top:20px; font-size:16px; font-weight:bold; color:#333; cursor:pointer;">처음으로 돌아가기</button>
         </div>
 
         <div id="chat-section">
@@ -141,9 +142,9 @@
             <div id="chat-box"></div>
             <div style="display:flex; gap:10px;">
                 <input type="text" id="chat-input" placeholder="메시지를 입력하세요..." style="margin-bottom:0;">
-                <button id="send-msg-btn" style="padding:15px; background:#1A237E; color:white; border:none; border-radius:12px; white-space:nowrap;">전송</button>
+                <button id="send-msg-btn" style="padding:15px; background:#1A237E; color:white; border:none; border-radius:12px; white-space:nowrap; font-weight:bold;">전송</button>
             </div>
-            <button onclick="window.exitChat()" style="width:100%; padding:10px; border:none; background:#f4f4f4; border-radius:10px; margin-top:15px; font-size:12px; color:#888; cursor:pointer;">← 매칭 명단으로 돌아가기</button>
+            <button onclick="window.exitChat()" style="width:100%; padding:15px; border:none; background:#f4f4f4; border-radius:10px; margin-top:15px; font-size:14px; font-weight:bold; color:#666; cursor:pointer;">← 매칭 명단으로 돌아가기</button>
         </div>
     </div>
 
@@ -194,7 +195,6 @@
                 isResultsRevealed = data.is_open;
                 currentBatchName = data.batch_name || "기본기수";
                 
-                // 결과 보기 창이 안 떠있을 때만 폼 내부 상단 바 표시
                 if (document.getElementById('result-section').style.display === 'none' && 
                     document.getElementById('chat-section').style.display === 'none' &&
                     document.getElementById('batch-select-section').style.display === 'none' &&
@@ -202,7 +202,6 @@
                     document.getElementById('status-bar').style.display = isResultsRevealed ? 'block' : 'none';
                 }
 
-                // [신규] 랜딩 페이지 호감 선택 버튼 동적 이름 변경
                 const goToSubmitBtn = document.getElementById('go-to-submit-btn');
                 goToSubmitBtn.innerText = isResultsRevealed ? "현재 기수 접수 마감" : `📝 [${currentBatchName}] 호감 선택하기`;
                 goToSubmitBtn.disabled = isResultsRevealed;
@@ -214,14 +213,12 @@
             }
         });
 
-        // [신규] 랜딩 페이지에서 제출 폼으로 넘어가는 버튼 로직
         document.getElementById('go-to-submit-btn').onclick = () => {
             document.getElementById('landing-section').style.display = 'none';
             document.getElementById('input-section').style.display = 'block';
             document.getElementById('status-bar').style.display = isResultsRevealed ? 'block' : 'none';
         };
 
-        // [신규] 랜딩 페이지에서 과거 결과 확인 모달 띄우는 로직
         document.getElementById('go-to-past-btn').onclick = () => {
             document.getElementById('result-modal').style.display = 'flex';
             verifyPhoneInput.value = "010-"; verifyPhoneInput.focus();
@@ -296,12 +293,10 @@
 
             const gender = genderSelect.value;
         
-            // 1. 번호 중복 체크 
             const qId = query(collection(db, "participants"), where("batchName", "==", currentBatchName), where("gender", "==", gender), where("myId", "==", myNum));
             const snapId = await getDocs(qId);
             if (!snapId.empty) return alert("⚠️ 이미 누군가 선택한 본인 번호입니다.");
 
-            // 2. 연락처 중복 체크
             const qPhone = query(collection(db, "participants"), where("batchName", "==", currentBatchName), where("phone", "==", phoneInput.value));
             const snapPhone = await getDocs(qPhone);
             if (!snapPhone.empty) return alert("⚠️ 이 연락처로 이미 제출된 내역이 있습니다. 다시 제출하려면 [내 정보 회수]를 먼저 진행해주세요.");
@@ -321,7 +316,6 @@
             alert("제출 완료! 결과를 확인할 때 설정하신 비밀번호가 필요합니다."); location.reload();
         };
 
-        // 로그인 및 기수 추적 로직
         document.getElementById('confirm-verify-btn').onclick = async () => {
             const phone = verifyPhoneInput.value;
             const pin = verifyPinInput.value;
@@ -362,7 +356,7 @@
             }
 
             document.getElementById('result-modal').style.display = 'none';
-            document.getElementById('landing-section').style.display = 'none'; // 랜딩 화면 숨기기
+            document.getElementById('landing-section').style.display = 'none'; 
             document.getElementById('input-section').style.display = 'none';
             document.getElementById('status-bar').style.display = 'none';
 
@@ -392,6 +386,7 @@
             const targetBatch = myData.batchName;
             myId = Number(myData.myId); 
             myGender = myData.gender;
+            const genderLabel = myGender === 'male' ? '남' : '여';
             
             document.getElementById('result-title').innerText = `[${targetBatch}] 매칭 결과`;
 
@@ -399,15 +394,21 @@
             const matched = opposites.filter(p => (Number(p.pickId1) === myId || Number(p.pickId2) === myId) && [Number(myData.pickId1), Number(myData.pickId2)].includes(Number(p.myId)));
             
             const area = document.getElementById('match-list-area');
-            area.innerHTML = `<div style="background:#FFF9E6; padding:20px; border-radius:20px; margin-bottom:20px;">나의 득표수: <b>${opposites.filter(p => Number(p.pickId1) === myId || Number(p.pickId2) === myId).length}표</b></div>`;
+            
+            // [수정] 나의 번호와 득표수를 함께 표시
+            area.innerHTML = `
+                <div style="background:#FFF9E6; padding:20px; border-radius:20px; margin-bottom:20px;">
+                    <div style="font-size:14px; color:#666; margin-bottom:5px;">내 번호: <b style="color:#1A237E; font-size:16px;">${genderLabel} ${myId}번</b></div>
+                    <div style="font-size:15px; color:#333;">나의 득표수: <b style="color:#FF5252; font-size:18px;">${opposites.filter(p => Number(p.pickId1) === myId || Number(p.pickId2) === myId).length}표</b></div>
+                </div>`;
             
             if (matched.length > 0) {
                 matched.forEach(p => {
                     const chatId = myGender === 'male' ? `${targetBatch}_${myId}_${p.myId}` : `${targetBatch}_${p.myId}_${myId}`;
                     area.innerHTML += `
                         <div style='background:white; border:1px solid #eee; padding:15px; border-radius:15px; margin-bottom:12px;'>
-                            <div style='font-weight:bold; margin-bottom:10px;'>💖 ${p.myId}번님과 매칭!</div>
-                            <button onclick="window.enterChat('${chatId}', '${p.myId}')" style="width:100%; padding:12px; background:#1A237E; color:white; border:none; border-radius:10px; cursor:pointer;">1:1 채팅 시작하기</button>
+                            <div style='font-weight:bold; margin-bottom:10px; font-size:16px;'>💖 ${p.myId}번님과 매칭!</div>
+                            <button onclick="window.enterChat('${chatId}', '${p.myId}')" style="width:100%; padding:15px; background:#1A237E; color:white; border:none; border-radius:10px; cursor:pointer; font-size:16px; font-weight:bold;">1:1 채팅 시작하기</button>
                         </div>`;
                 });
             } else {
