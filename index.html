@@ -263,10 +263,17 @@
             const picks = Array.from(document.querySelectorAll('#pick-id-grid .bubble.selected')).map(b => Number(b.innerText));
             if (picks.length === 0 && !noMatchBtn.classList.contains('active')) return alert("번호를 선택하거나 '인연 없음'을 눌러주세요.");
 
-            const gender = genderSelect.value;
-            const qId = query(collection(db, "participants"), where("batchName", "==", currentBatchName), where("gender", "==", gender), where("myId", "==", myNum));
-            const snapId = await getDocs(qId);
-            if (!snapId.empty) return alert("⚠️ 이미 제출된 번호입니다.");
+const gender = genderSelect.value;
+        
+        // 1. 번호 중복 체크 (기존)
+        const qId = query(collection(db, "participants"), where("batchName", "==", currentBatchName), where("gender", "==", gender), where("myId", "==", myNum));
+        const snapId = await getDocs(qId);
+        if (!snapId.empty) return alert("⚠️ 이미 누군가 선택한 본인 번호입니다.");
+
+        // 2. [신규 추가] 연락처 중복 체크
+        const qPhone = query(collection(db, "participants"), where("batchName", "==", currentBatchName), where("phone", "==", phoneInput.value));
+        const snapPhone = await getDocs(qPhone);
+        if (!snapPhone.empty) return alert("⚠️ 이 연락처로 이미 제출된 내역이 있습니다. 다시 제출하려면 [내 정보 회수]를 먼저 진행해주세요.");
             
             await addDoc(collection(db, "participants"), {
                 batchName: currentBatchName, 
