@@ -23,7 +23,7 @@
         table { width: 100%; border-collapse: collapse; font-size: 12px; }
         th, td { padding: 15px; border: 1px solid #f9f9f9; text-align: center; }
         th { background: #1A237E; color: white; }
-        h4{line-height: 1.4; margin-bottom;10px;}
+        h4{line-height: 1.4; margin-bottom:10px;}
     </style>
 </head>
 <body>
@@ -118,13 +118,11 @@
             }
         });
 
-        // [신규] 전체 선택 기능
         document.getElementById('check-all').onchange = (e) => {
             const checkboxes = document.querySelectorAll('.row-checkbox');
             checkboxes.forEach(cb => cb.checked = e.target.checked);
         };
 
-        // [신규] 선택 삭제 버튼 기능
         document.getElementById('delete-selected-btn').onclick = async () => {
             const checkedBoxes = document.querySelectorAll('.row-checkbox:checked');
             if (checkedBoxes.length === 0) return alert("삭제할 항목을 선택해주세요.");
@@ -173,6 +171,11 @@
             });
         }
 
+        // [신규] 비밀번호 확인 함수
+        window.showUserPin = (pin, name) => {
+            alert(`${name}님의 비밀번호는 [ ${pin} ] 입니다.`);
+        };
+
         async function updateDashboard() {
             const snap = await getDocs(query(collection(db, "participants"), where("batchName", "==", currentBatchName)));
             currentData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -182,13 +185,13 @@
             currentData.sort((a,b) => Number(a.myId) - Number(b.myId)).forEach(p => {
                 const pickText = (p.pickId1 || p.pickId2) ? `${p.pickId1||''}${p.pickId2 ? ', '+p.pickId2 : ''}` : '<span style="color:#aaa;">인연없음</span>';
                 
-                // [수정] 행마다 체크박스 추가
+                // [수정] 이름 부분에 클릭 이벤트 추가
                 list.innerHTML += `
                     <tr>
                         <td><input type="checkbox" class="row-checkbox" data-id="${p.id}"></td>
                         <td>${p.myId}</td>
                         <td>${p.gender=='male'?'남':'여'}</td>
-                        <td>${p.realName}</td>
+                        <td onclick="window.showUserPin('${p.pin || '미설정'}', '${p.realName}')" style="cursor:pointer; color:blue; text-decoration:underline;" title="클릭하여 비밀번호 확인">${p.realName}</td>
                         <td>${p.phone}</td>
                         <td>${pickText}</td>
                         <td style="color:#FF5252; font-weight:bold;">${voteMap[p.myId]||0}</td>
