@@ -47,6 +47,9 @@
         /* 기수 선택 버튼 스타일 */
         .batch-select-btn { width: 100%; padding: 18px; border: 2px solid #1A237E; border-radius: 15px; background: white; color: #1A237E; font-size: 16px; font-weight: bold; margin-bottom: 10px; cursor: pointer; transition: 0.2s; }
         .batch-select-btn:hover { background: #1A237E; color: white; }
+        /* 팝업창이 스르륵 부드럽게 나타나는 마법 애니메이션 */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+#result-modal > div { animation: fadeIn 0.4s ease-out; }
     </style>
 </head>
 <body>
